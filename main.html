@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        #chatContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: stretch;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: #ffffe0;
+            z-index: 2;
+        }
+        
+        #textInput {
+            flex: 1;
+            width: 100%;
+            padding: 5px;
+            font-size: 14px;
+            resize: both;
+            box-sizing: border-box;
+        }
+        
+        #submitButton {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        #drawingContainer {
+            position: absolute;
+            top: 150px;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 150px);
+            overflow-x: auto;
+            background-color: #f0f8ff;
+            z-index: 0;
+        }
+        
+        #mindMapContainer {
+            width: 100%;
+            height: 100%;
+            background-color: #f0f8ff;
+        }
+        
+        .node rect {
+            fill: #ffe0b2;
+            stroke: #000;
+        }
+        
+        .node text {
+            font-family: Arial;
+            font-size: 12px;
+            text-anchor: middle;
+            alignment-baseline: middle;
+        }
+        
+        .relationship {
+            stroke: #000;
+            stroke-width: 2;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chatContainer">
+        <textarea id="textInput" rows="3" placeholder="Enter your text"></textarea>
+        <button id="submitButton">Submit</button>
+    </div>
+
+    <div id="drawingContainer">
+        <svg id="mindMapContainer"></svg>
+    </div>
+
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script>
+        let userInput = '';
+
+        function handleInputSubmit() {
+            userInput = document.getElementById('textInput').value;
+            sendChatMessage(userInput);
+        }
+
+        async function sendChatMessage(message) {
+            try {
+                const response = await fetch('http://localhost:3000/api/sendmsg', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: message
+                    })
+                });
+
+                if (response.ok) {
+                    const mindMapData = await response.json();
+                    console.log('Received mind map data:', mindMapData);
+                    // put back for chatGPT
+                    //const jsonMindObject = JSON.parse(mindMapData.trim());
+                    //console.log(jsonMindObject);
+                    //renderMindMap(jsonMindObject);
+
+                    // remove for chatGPT
+                    renderMindMap(mindMapData)
+                } else {
+                    console.error('Error sending chat message:', response.status);
+                }
+            } catch (error) {
+                console.error('Error sending chat message:', error);
+            }
+        }
+
+        document.getElementById('submitButton').addEventListener('click', handleInputSubmit);
+
+        const drawingContainer = document.getElementById('drawingContainer');
+
+        function resizeDrawingContainer() {
+            const windowHeight = window.innerHeight;
+            const chatContainerHeight = document.getElementById('chatContainer').offsetHeight;
+            drawingContainer.style.height = `${windowHeight - chatContainerHeight - 150}px`;
+        }
+
+        window.addEventListener('resize', resizeDrawingContainer);
+        resizeDrawingContainer();
+
+        function renderMindMap(mindMapData) {
+            const mindMapContainer = document.getElementById('mindMapContainer');
+            mindMapContainer.innerHTML = '';
+            console.log("mindMapData[0] are = ", mindMapData);
+            console.log("Nodes are = ", mindMapData.nodes);
+            console.log("Relationships are = ", mindMapData.relationships);
+
+
+            try {
+                const svg = d3.select('#mindMapContainer');
+
+                const nodes = svg.selectAll('.node')
+                    .data(mindMapData.nodes)
+                    .enter()
+                    .append('g')
+                    .attr('class', 'node')
+                    .attr('transform', (d) => `translate(${Math.random() * 600}, ${Math.random() * 400})`)
+                    .call(dragHandler);
+
+                nodes.append('rect')
+                    .attr('width', 100)
+                    .attr('height', 50)
+                    .attr('fill', (d) => d.color)
+                    .attr('stroke', (d) => d.textColor);
+
+                nodes.append('text')
+                    .attr('x', 50)
+                    .attr('y', 25)
+                    .text((d) => d.label);
+
+                const relationships = svg.selectAll('.relationship')
+                    .data(mindMapData.relationships)
+                    .enter()
+                    .append('line')
+                    .attr('class', 'relationship')
+                    .attr('x1', (d) => getCenterX(nodes, d.from))
+                    .attr('y1', (d) => getCenterY(nodes, d.from))
+                    .attr('x2', (d) => getCenterX(nodes, d.to))
+                    .attr('y2', (d) => getCenterY(nodes, d.to));
+
+                function dragHandler(selection) {
+                    const drag = d3.drag()
+                        .on('start', dragStart)
+                        .on('drag', dragMove);
+
+                    selection.call(drag);
+
+                    function dragStart(event, d) {
+                        d3.select(this).raise().classed('active', true);
+                    }
+
+                    function dragMove(event, d) {
+                        d3.select(this)
+                            .attr('transform', `translate(${event.x - 50}, ${event.y - 25})`);
+
+                        updateRelationships();
+                    }
+                }
+
+                function getCenterX(selection, nodeId) {
+                    const node = selection.filter((d) => d.id === nodeId).node();
+                    const rect = node.querySelector('rect');
+                    return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + parseFloat(rect.getAttribute('width')) / 2;
+                }
+
+                function getCenterY(selection, nodeId) {
+                    const node = selection.filter((d) => d.id === nodeId).node();
+                    const rect = node.querySelector('rect');
+                    return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]) + parseFloat(rect.getAttribute('height')) / 2;
+                }
+
+                function updateRelationships() {
+                    relationships
+                        .attr('x1', (d) => getCenterX(nodes, d.from))
+                        .attr('y1', (d) => getCenterY(nodes, d.from))
+                        .attr('x2', (d) => getCenterX(nodes, d.to))
+                        .attr('y2', (d) => getCenterY(nodes, d.to));
+                }
+            } catch (error) {
+                console.error('Failed to render mind map:', error);
+            }
+        }
+    </script>
+</body>
+
+</html>
