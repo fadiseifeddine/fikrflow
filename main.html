@@ -108,13 +108,7 @@
                 if (response.ok) {
                     const mindMapData = await response.json();
                     console.log('Received mind map data:', mindMapData);
-                    // put back for chatGPT
-                    //const jsonMindObject = JSON.parse(mindMapData.trim());
-                    //console.log(jsonMindObject);
-                    //renderMindMap(jsonMindObject);
-
-                    // remove for chatGPT
-                    renderMindMap(mindMapData)
+                    renderMindMap(mindMapData);
                 } else {
                     console.error('Error sending chat message:', response.status);
                 }
@@ -139,10 +133,6 @@
         function renderMindMap(mindMapData) {
             const mindMapContainer = document.getElementById('mindMapContainer');
             mindMapContainer.innerHTML = '';
-            console.log("mindMapData are = ", mindMapData);
-            console.log("Nodes are = ", mindMapData.nodes);
-            console.log("Relationships are = ", mindMapData.relationships);
-
 
             try {
                 const svg = d3.select('#mindMapContainer');
@@ -156,15 +146,35 @@
                     .call(dragHandler);
 
                 nodes.append('rect')
-                    .attr('width', 100)
+                    .attr('width', (d) => d.label.length * 10 + 20) // Adjust the box width based on the text length
                     .attr('height', 50)
                     .attr('fill', (d) => d.color)
                     .attr('stroke', (d) => d.textColor);
 
                 nodes.append('text')
-                    .attr('x', 50)
+                    .attr('x', (d) => (d.label.length * 10 + 20) / 2) // Center the text horizontally
                     .attr('y', 25)
-                    .text((d) => d.label);
+                    .text((d) => d.label)
+                    .attr('fill', '#000')
+                    .attr('text-anchor', 'middle')
+                    .attr('alignment-baseline', 'middle');
+
+                nodes.append('circle')
+                    .attr('cx', 5)
+                    .attr('cy', 5)
+                    .attr('r', 10)
+                    .attr('fill', '#0000FF') // Blue color for the circle
+                    .attr('stroke', '#FFFFFF') // White color for the circle stroke
+                    .attr('stroke-width', 2);
+
+                nodes.append('text')
+                    .attr('x', 5)
+                    .attr('y', 8)
+                    .text((d) => d.id)
+                    .attr('font-size', 10)
+                    .attr('fill', '#FFFFFF') // White color for the text
+                    .attr('text-anchor', 'middle')
+                    .attr('alignment-baseline', 'middle');
 
                 const relationships = svg.selectAll('.relationship')
                     .data(mindMapData.relationships)
