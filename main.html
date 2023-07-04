@@ -106,9 +106,16 @@
                 });
 
                 if (response.ok) {
-                    const mindMapData = await response.json();
-                    console.log('Received mind map data:', mindMapData);
-                    renderMindMap(mindMapData);
+                    const responseData = await response.json();
+                    const {
+                        sessionID,
+                        mindMapDataJson
+                    } = responseData;
+
+                    console.log('Session ID received:', sessionID);
+                    console.log('Received mind map data:', mindMapDataJson);
+
+                    renderMindMap(mindMapDataJson);
                 } else {
                     console.error('Error sending chat message:', response.status);
                 }
