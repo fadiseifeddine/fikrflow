@@ -30,7 +30,8 @@ function renderMindMap(mindMapData) {
             .enter()
             .append('g')
             .attr('class', 'node')
-            .attr('transform', (d) => `translate(${Math.random() * 600}, ${Math.random() * 400})`)
+            //.attr('transform', (d) => `translate(${Math.random() * 600}, ${Math.random() * 400})`)
+            .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
             .call(dragHandler)
             .on('click', (event, d) => selectNode(d.id)); // Attach click event listener to select the box
 
@@ -73,10 +74,10 @@ function renderMindMap(mindMapData) {
             .enter()
             .append('line')
             .attr('class', 'relationship')
-            .attr('x1', (d) => getCenterX(nodes, d.from))
-            .attr('y1', (d) => getCenterY(nodes, d.from))
-            .attr('x2', (d) => getCenterX(nodes, d.to))
-            .attr('y2', (d) => getCenterY(nodes, d.to));
+            .attr('x1', (d) => getCenterX(nodes, d.source))
+            .attr('y1', (d) => getCenterY(nodes, d.source))
+            .attr('x2', (d) => getCenterX(nodes, d.target))
+            .attr('y2', (d) => getCenterY(nodes, d.target));
 
         function dragHandler(selection) {
             const drag = d3.drag()
@@ -93,8 +94,16 @@ function renderMindMap(mindMapData) {
                 d3.select(this)
                     .attr('transform', `translate(${event.x - 50}, ${event.y - 25})`);
 
+                // Update the x and y positions in the mindMapData
+                const selectedNode = mindMapData.nodes.find((node) => node.id === d.id);
+                if (selectedNode) {
+                    selectedNode.x = event.x - 50;
+                    selectedNode.y = event.y - 25;
+                }
+
                 updateRelationships();
             }
+
         }
 
         function getCenterX(selection, nodeId) {
@@ -111,10 +120,10 @@ function renderMindMap(mindMapData) {
 
         function updateRelationships() {
             relationships
-                .attr('x1', (d) => getCenterX(nodes, d.from))
-                .attr('y1', (d) => getCenterY(nodes, d.from))
-                .attr('x2', (d) => getCenterX(nodes, d.to))
-                .attr('y2', (d) => getCenterY(nodes, d.to));
+                .attr('x1', (d) => getCenterX(nodes, d.source))
+                .attr('y1', (d) => getCenterY(nodes, d.source))
+                .attr('x2', (d) => getCenterX(nodes, d.target))
+                .attr('y2', (d) => getCenterY(nodes, d.target));
         }
     } catch (error) {
         console.error('Failed to render mind map:', error);
@@ -292,8 +301,12 @@ async function sendChatMessage(message) {
             } = responseData;
 
             console.log('Received mind map data:', mindMapDataJson);
-            jsondrw = mindMapDataJson;
-            renderMindMap(mindMapDataJson);
+            //jsondrw = mindMapDataJson;
+
+            jsondrw = calculateNodePositions(mindMapDataJson)
+            console.log('Adjusted mind map data with positions:', jsondrw);
+
+            renderMindMap(jsondrw);
         } else {
             console.error('Error sending chat message:', response.status);
         }
@@ -381,4 +394,64 @@ function populateFileList(fileList) {
         option.text = file.fileName;
         fileListSelect.appendChild(option);
     });
+}
+
+function calculateNodePositions(response) {
+    const nodes = response.nodes;
+    const relationships = response.relationships;
+
+    const nodePositions = new Map(); // Map to store the calculated positions
+
+    const nodeOrder = []; // Array to keep track of the node order
+
+    // Sort nodes based on the order of source nodes appearing first
+    nodes.sort((a, b) => {
+        const aIsSource = relationships.some((relationship) => relationship.source === a.id);
+        const bIsSource = relationships.some((relationship) => relationship.source === b.id);
+
+        if (aIsSource && !bIsSource) {
+            return -1;
+        } else if (!aIsSource && bIsSource) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+
+    // Calculate x and y positions for each node
+    nodes.forEach((node, index) => {
+        const rectWidth = node.label.length * 10 + 20; // Adjust the box width based on the text length
+        const rectHeight = 50;
+
+        const paddingX = 100; // Horizontal padding between nodes
+        const paddingY = 100; // Vertical padding between nodes
+
+        const row = Math.floor(index / 3); // Number of rows (adjust the value to control the layout)
+
+        const x = (index % 3) * (rectWidth + paddingX); // Calculate x position
+        const y = row * (rectHeight + paddingY); // Calculate y position
+
+        node.x = x; // Set x position
+        node.y = y; // Set y position
+
+        nodePositions.set(node.id, { x, y }); // Store the calculated position
+
+        nodeOrder.push(node.id); // Add node to the node order array
+    });
+
+    // Sort the nodes based on the node order
+    nodes.sort((a, b) => nodeOrder.indexOf(a.id) - nodeOrder.indexOf(b.id));
+
+    // Update the relationships with the calculated positions
+    relationships.forEach((relationship) => {
+        const sourcePosition = nodePositions.get(relationship.source);
+        const targetPosition = nodePositions.get(relationship.target);
+
+        relationship.x1 = sourcePosition.x; // Set x position for the relationship source
+        relationship.y1 = sourcePosition.y; // Set y position for the relationship source
+        relationship.x2 = targetPosition.x; // Set x position for the relationship target
+        relationship.y2 = targetPosition.y; // Set y position for the relationship target
+    });
+
+    return response;
 }
