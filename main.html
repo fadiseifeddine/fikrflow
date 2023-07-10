@@ -6,77 +6,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- Add Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.6.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="main.css">
 
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-        }
-        
-        #chatContainer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: stretch;
-            padding: 10px;
-            box-sizing: border-box;
-            background-color: #ffffe0;
-            z-index: 2;
-        }
-        
-        #textInput {
-            flex: 1;
-            width: 100%;
-            padding: 5px;
-            font-size: 14px;
-            resize: both;
-            box-sizing: border-box;
-        }
-        
-        #submitButton {
-            padding: 5px 10px;
-            font-size: 14px;
-        }
-        
-        #drawingContainer {
-            position: absolute;
-            top: 150px;
-            left: 0;
-            width: 100%;
-            height: calc(100% - 150px);
-            overflow-x: auto;
-            background-color: #f0f8ff;
-            z-index: 0;
-        }
-        
-        #mindMapContainer {
-            width: 100%;
-            height: 100%;
-            background-color: #f0f8ff;
-        }
-        
-        .node rect {
-            fill: #ffe0b2;
-            stroke: #000;
-        }
-        
-        .node text {
-            font-family: Arial;
-            font-size: 12px;
-            text-anchor: middle;
-            alignment-baseline: middle;
-        }
-        
-        .relationship {
-            stroke: #000;
-            stroke-width: 2;
-        }
-    </style>
+
 </head>
 
 <body>
@@ -86,166 +18,66 @@
             <button id="submitButton" class="btn btn-secondary"><i class="bi bi-check"></i></button>
             <button id="addButton" class="btn btn-secondary"><i class="bi bi-plus"></i></button>
             <button id="deleteButton" class="btn btn-secondary"><i class="bi bi-trash"></i></button>
+            <button id="editButton" class="btn btn-secondary"> <i class="bi bi-pencil-fill"></i></button>
             <button id="saveButton" class="btn btn-secondary"><i class="bi bi-save"></i></button>
+            <button id="openButton" class="btn btn-secondary"><i class="bi bi-folder2-open"></i></button>
         </div>
     </div>
 
+
     <div id="drawingContainer">
+        <div id="footerContainer">
+            <span id="selectedFileLabel">Selected File:</span>
+            <span id="selectedFileName"></span>
+        </div>
         <svg id="mindMapContainer"></svg>
+
     </div>
 
+    <!-- File Name Input Modal -->
+    <div class="modal fade" id="fileNameModal" tabindex="-1" aria-labelledby="fileNameModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileNameModalLabel">Enter File Name</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="fileNameInput" class="form-control" placeholder="File Name" autofocus required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveDrawing()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Select File Input Modal -->
+    <div class="modal fade" id="fileListModal" tabindex="-1" aria-labelledby="fileListModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileListModalLabel">Select File</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <select id="fileListSelect" class="form-select" size="5">
+                        <!-- Option elements will be dynamically added here -->
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="selectFileButton">Select</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script src="https://d3js.org/d3.v6.min.js"></script>
-    <script>
-        let userInput = '';
+    <script src="js/fikrmap.js"></script>
 
-        function handleInputSubmit() {
-            userInput = document.getElementById('textInput').value;
-            sendChatMessage(userInput);
-        }
-
-        async function sendChatMessage(message) {
-            try {
-                const response = await fetch('http://localhost:3000/api/sendmsg', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        text: message
-                    })
-                });
-
-                if (response.ok) {
-                    const responseData = await response.json();
-                    const {
-                        sessionID,
-                        mindMapDataJson
-                    } = responseData;
-
-                    console.log('Session ID received:', sessionID);
-                    console.log('Received mind map data:', mindMapDataJson);
-
-                    renderMindMap(mindMapDataJson);
-                } else {
-                    console.error('Error sending chat message:', response.status);
-                }
-            } catch (error) {
-                console.error('Error sending chat message:', error);
-            }
-        }
-
-        document.getElementById('submitButton').addEventListener('click', handleInputSubmit);
-
-        const drawingContainer = document.getElementById('drawingContainer');
-
-        function resizeDrawingContainer() {
-            const windowHeight = window.innerHeight;
-            const chatContainerHeight = document.getElementById('chatContainer').offsetHeight;
-            drawingContainer.style.height = `${windowHeight - chatContainerHeight - 150}px`;
-        }
-
-        window.addEventListener('resize', resizeDrawingContainer);
-        resizeDrawingContainer();
-
-        function renderMindMap(mindMapData) {
-            const mindMapContainer = document.getElementById('mindMapContainer');
-            mindMapContainer.innerHTML = '';
-
-            try {
-                const svg = d3.select('#mindMapContainer');
-
-                const nodes = svg.selectAll('.node')
-                    .data(mindMapData.nodes)
-                    .enter()
-                    .append('g')
-                    .attr('class', 'node')
-                    .attr('transform', (d) => `translate(${Math.random() * 600}, ${Math.random() * 400})`)
-                    .call(dragHandler);
-
-                nodes.append('rect')
-                    .attr('width', (d) => d.label.length * 10 + 20) // Adjust the box width based on the text length
-                    .attr('height', 50)
-                    .attr('fill', (d) => d.color)
-                    .attr('stroke', (d) => d.textColor);
-
-                nodes.append('text')
-                    .attr('x', (d) => (d.label.length * 10 + 20) / 2) // Center the text horizontally
-                    .attr('y', 25)
-                    .text((d) => d.label)
-                    .attr('fill', '#000')
-                    .attr('text-anchor', 'middle')
-                    .attr('alignment-baseline', 'middle');
-
-                nodes.append('circle')
-                    .attr('cx', 5)
-                    .attr('cy', 5)
-                    .attr('r', 10)
-                    .attr('fill', '#0000FF') // Blue color for the circle
-                    .attr('stroke', '#FFFFFF') // White color for the circle stroke
-                    .attr('stroke-width', 2);
-
-                nodes.append('text')
-                    .attr('x', 5)
-                    .attr('y', 8)
-                    .text((d) => d.id)
-                    .attr('font-size', 10)
-                    .attr('fill', '#FFFFFF') // White color for the text
-                    .attr('text-anchor', 'middle')
-                    .attr('alignment-baseline', 'middle');
-
-                const relationships = svg.selectAll('.relationship')
-                    .data(mindMapData.relationships)
-                    .enter()
-                    .append('line')
-                    .attr('class', 'relationship')
-                    .attr('x1', (d) => getCenterX(nodes, d.from))
-                    .attr('y1', (d) => getCenterY(nodes, d.from))
-                    .attr('x2', (d) => getCenterX(nodes, d.to))
-                    .attr('y2', (d) => getCenterY(nodes, d.to));
-
-                function dragHandler(selection) {
-                    const drag = d3.drag()
-                        .on('start', dragStart)
-                        .on('drag', dragMove);
-
-                    selection.call(drag);
-
-                    function dragStart(event, d) {
-                        d3.select(this).raise().classed('active', true);
-                    }
-
-                    function dragMove(event, d) {
-                        d3.select(this)
-                            .attr('transform', `translate(${event.x - 50}, ${event.y - 25})`);
-
-                        updateRelationships();
-                    }
-                }
-
-                function getCenterX(selection, nodeId) {
-                    const node = selection.filter((d) => d.id === nodeId).node();
-                    const rect = node.querySelector('rect');
-                    return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + parseFloat(rect.getAttribute('width')) / 2;
-                }
-
-                function getCenterY(selection, nodeId) {
-                    const node = selection.filter((d) => d.id === nodeId).node();
-                    const rect = node.querySelector('rect');
-                    return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]) + parseFloat(rect.getAttribute('height')) / 2;
-                }
-
-                function updateRelationships() {
-                    relationships
-                        .attr('x1', (d) => getCenterX(nodes, d.from))
-                        .attr('y1', (d) => getCenterY(nodes, d.from))
-                        .attr('x2', (d) => getCenterX(nodes, d.to))
-                        .attr('y2', (d) => getCenterY(nodes, d.to));
-                }
-            } catch (error) {
-                console.error('Failed to render mind map:', error);
-            }
-        }
-    </script>
     <!-- Add Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 
