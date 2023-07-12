@@ -155,6 +155,41 @@ document.getElementById('openButton').addEventListener('click', handleOpen);
 document.getElementById('editButton').addEventListener('click', function() {
     handleEdit(jsondrw);
 });
+document.getElementById('addNodeButton').addEventListener('click', function() {
+    handleAddNode(jsondrw);
+});
+
+
+function handleAddNode(mindMapData) {
+    if (selectedNode && mindMapData && mindMapData.nodes && mindMapData.nodes.length > 0) {
+        const newNodeId = `s${mindMapData.nodes.length + 1}`;
+        const selectedNodeData = mindMapData.nodes.find((node) => node.id === selectedNode);
+
+        if (selectedNodeData) {
+            const newNode = {
+                id: newNodeId,
+                label: 'Edit',
+                color: selectedNodeData.color,
+                textColor: selectedNodeData.textColor,
+                x: selectedNodeData.x + selectedNodeData.label.length * 10 + 80, // Adjust the x position of the new node
+                y: selectedNodeData.y,
+                children: [],
+            };
+
+            mindMapData.nodes.push(newNode);
+            mindMapData.relationships.push({
+                source: selectedNode,
+                target: newNodeId,
+            });
+
+            selectedNode = newNodeId; // Select the new node
+
+            // Re-render the mind map with the updated data
+            renderMindMap(mindMapData);
+        }
+    }
+}
+
 
 function handleEdit(mindMapData) {
     if (selectedNode) {
