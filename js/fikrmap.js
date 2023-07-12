@@ -166,13 +166,22 @@ function handleAddNode(mindMapData) {
         const selectedNodeData = mindMapData.nodes.find((node) => node.id === selectedNode);
 
         if (selectedNodeData) {
+            const existingChildrenCount = selectedNodeData.children ? selectedNodeData.children.length : 0;
+            const newNodeX = selectedNodeData.x + (existingChildrenCount + 1) * 100; // Adjust the x position of the new node
+
+            // Find the next available position for the new node
+            let nextX = newNodeX;
+            while (mindMapData.nodes.some((node) => node.x === nextX && node.y === selectedNodeData.y + 100)) {
+                nextX += 100;
+            }
+
             const newNode = {
                 id: newNodeId,
                 label: 'Edit',
                 color: selectedNodeData.color,
                 textColor: selectedNodeData.textColor,
-                x: selectedNodeData.x + selectedNodeData.label.length * 10 + 80, // Adjust the x position of the new node
-                y: selectedNodeData.y,
+                x: nextX,
+                y: selectedNodeData.y + 100, // Adjust the y position of the new node
                 children: [],
             };
 
@@ -189,6 +198,7 @@ function handleAddNode(mindMapData) {
         }
     }
 }
+
 
 
 function handleEdit(mindMapData) {
