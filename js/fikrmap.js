@@ -32,6 +32,7 @@ function renderMindMap(mindMapData) {
             .attr('class', 'node')
             //.attr('transform', (d) => `translate(${Math.random() * 600}, ${Math.random() * 400})`)
             .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
+            .attr('id', (d) => `node-${d.id}`) // Assign an id to each node
             .call(dragHandler)
             .on('click', (event, d) => selectNode(d.id)); // Attach click event listener to select the box
 
@@ -40,7 +41,8 @@ function renderMindMap(mindMapData) {
             .attr('width', (d) => d.label.length * 10 + 20) // Adjust the box width based on the text length
             .attr('height', 50)
             .attr('fill', (d) => d.color)
-            .attr('stroke', (d) => d.textColor);
+            .attr('stroke', (d) => d.textColor)
+            .attr('data-tag', 'rect'); // Add a data attribute to the rect element;
 
         nodes.classed('selected', (d) => d.id === selectedNode);
 
@@ -50,7 +52,8 @@ function renderMindMap(mindMapData) {
             .text((d) => d.label)
             .attr('fill', '#000')
             .attr('text-anchor', 'middle')
-            .attr('alignment-baseline', 'middle');
+            .attr('alignment-baseline', 'middle')
+            .attr('data-tag', 'recttext'); // Add a data attribute to the rect element;
 
         nodes.append('circle')
             .attr('cx', 5)
@@ -89,6 +92,8 @@ function renderMindMap(mindMapData) {
             function dragStart(event, d) {
                 d3.select(this).raise().classed('active', true);
             }
+
+            // Update the x and y positions in the mindMapData
 
             function dragMove(event, d) {
                 d3.select(this)
@@ -141,59 +146,80 @@ function selectNode(nodeId) {
 
 }
 
-// Function to handle editing the text of a selected box
-function editSelectedBoxText() {
-    if (selectedNodeId) {
-        const textElement = d3.select(`#${selectedNodeId} text`);
-        const newText = prompt('Enter new text:', textElement.text());
-        if (newText !== null) {
-            textElement.text(newText);
-
-            // Update the mindMapData with the new text
-            const selectedNode = mindMapData.nodes.find((node) => node.id === selectedNodeId);
-            if (selectedNode) {
-                selectedNode.label = newText;
-            }
-
-            // Render the updated mind map
-            renderMindMap(mindMapData);
-        }
-    }
-}
-
-
 // Listeners =============================
 
 
 document.getElementById('submitButton').addEventListener('click', handleInputSubmit);
 document.getElementById('saveButton').addEventListener('click', handleInputSave);
 document.getElementById('openButton').addEventListener('click', handleOpen);
-document.getElementById('editButton').addEventListener('click', handleEdit);
+document.getElementById('editButton').addEventListener('click', function() {
+    handleEdit(jsondrw);
+});
 
+function handleEdit(mindMapData) {
+    if (selectedNode) {
+        const selectedNodeId = selectedNode;
+        const selectedNodeElement = document.getElementById(`node-${selectedNodeId}`);
+        const rectext = selectedNodeElement.querySelector('text[data-tag="recttext"]');
 
+        if (rectext) {
+            const currentText = rectext.textContent;
+            const rectextStyle = window.getComputedStyle(rectext);
 
+            const rectextBox = rectext.getBBox();
 
-function handleEdit() {
-    console.log(" In handle Edit ...");
-    if (selectedNodeId) {
-        console.log(" Node Selected ...");
+            const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+            const inputElement = document.createElement('input');
+            inputElement.type = 'text';
+            inputElement.value = currentText;
 
-        const textElement = d3.select(`#${selectedNodeId} text`);
-        const newText = prompt('Enter new text:', textElement.text());
-        if (newText !== null) {
-            textElement.text(newText);
+            // Set attributes to match the width, height, x, and y of the original text element
+            foreignObject.setAttribute('width', rectextBox.width);
+            foreignObject.setAttribute('height', rectextBox.height);
+            foreignObject.setAttribute('x', rectextBox.x);
+            foreignObject.setAttribute('y', rectextBox.y);
+            foreignObject.setAttribute('style', 'overflow: visible');
 
-            // Update the mindMapData with the new text
-            const selectedNode = mindMapData.nodes.find((node) => node.id === selectedNodeId);
-            if (selectedNode) {
-                selectedNode.label = newText;
-            }
+            // Apply the same style as the original text element
+            inputElement.style.fontSize = rectextStyle.fontSize;
+            inputElement.style.fontWeight = rectextStyle.fontWeight;
+            inputElement.style.fontFamily = rectextStyle.fontFamily;
+            inputElement.style.textAnchor = rectextStyle.textAnchor;
+            inputElement.style.alignmentBaseline = rectextStyle.alignmentBaseline;
 
-            // Render the updated mind map
-            renderMindMap(mindMapData);
+            // Set the font color to black in the input element
+            inputElement.style.color = 'black';
+
+            foreignObject.appendChild(inputElement);
+            selectedNodeElement.appendChild(foreignObject);
+
+            // Hide the original text element while editing
+            rectext.style.visibility = 'hidden';
+
+            // Apply focus and selection after the input element is rendered
+            requestAnimationFrame(() => {
+                inputElement.focus();
+                inputElement.select();
+            });
+
+            inputElement.addEventListener('blur', () => {
+                const newText = inputElement.value;
+                rectext.textContent = newText;
+
+                const selectedNodeData = mindMapData.nodes.find((node) => node.id === selectedNodeId);
+                if (selectedNodeData) {
+                    selectedNodeData.label = newText;
+                }
+
+                // Show the original text element after editing is done
+                rectext.style.visibility = 'visible';
+
+                selectedNodeElement.removeChild(foreignObject);
+            });
         }
     }
 }
+
 
 
 
