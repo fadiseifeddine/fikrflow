@@ -175,10 +175,14 @@ function toggleCompletion(mindMapData, nodeId) {
     const node = mindMapData.nodes.find((node) => node.id === nodeId);
     if (node) {
         node.completed = !node.completed;
+        if (node.completed) {
+            node.compdate = Date.now(); // Set the compdate attribute to the current timestamp
+        } else {
+            node.compdate = null; // Clear the compdate attribute
+        }
         renderMindMap(mindMapData);
     }
 }
-
 
 // Function to handle selecting a box =============================
 function selectNode(nodeId) {
