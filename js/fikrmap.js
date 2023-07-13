@@ -81,7 +81,9 @@ function renderMindMap(mindMapData) {
             .attr('y', 25)
             .text((d) => d.label)
             .attr('fill', (d) => (d.completed ? '#999999' : '#000')) // Change the text color based on the completed status
-            .attr('text-decoration', (d) => (d.completed ? 'line-through' : 'none')); // Apply strike-through effect based on the completed status
+            .attr('text-decoration', (d) => (d.completed ? 'line-through' : 'none')) // Apply strike-through effect based on the completed status
+            .attr('alignment-baseline', 'middle')
+            .attr('data-tag', 'recttext'); // Add a data attribute to the rect element;
 
         nodes
             .append('circle')
@@ -262,7 +264,6 @@ function handleAddNode(mindMapData) {
     }
 }
 
-
 function handleEdit(mindMapData) {
     if (selectedNode) {
         const selectedNodeId = selectedNode;
@@ -333,8 +334,6 @@ function handleEdit(mindMapData) {
         }
     }
 }
-
-
 
 
 function handleInputSubmit() {
