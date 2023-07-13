@@ -69,6 +69,7 @@ function renderMindMap(mindMapData) {
             .attr('fill', '#FFFFFF')
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle');
+
         const relationships = svg
             .selectAll('.relationship')
             .data(mindMapData.relationships)
@@ -79,6 +80,13 @@ function renderMindMap(mindMapData) {
             .attr('y1', (d) => getCenterY(nodes, d.source)) // Set the starting y position to the center
             .attr('x2', (d) => getLeftEdgeX(nodes, d.target)) // Set the ending x position to the left edge
             .attr('y2', (d) => getCenterY(nodes, d.target)); // Set the ending y position to the center
+
+        // Add event listener to the image container to unselect nodes
+        svg.on('click', (event) => {
+            if (!event.target || !event.target.closest('.node')) {
+                selectNode(null); // Unselect all nodes
+            }
+        });
 
         function dragHandler(selection) {
             const drag = d3.drag()
@@ -105,20 +113,18 @@ function renderMindMap(mindMapData) {
             }
         }
 
-        // Helper function to get the x position of the right edge of a node
+        // Helper functions to get the x position of the edges and the y position of the center
         function getRightEdgeX(selection, nodeId) {
             const node = selection.filter((d) => d.id === nodeId).node();
             const rect = node.querySelector('rect');
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + parseFloat(rect.getAttribute('width'));
         }
 
-        // Helper function to get the x position of the left edge of a node
         function getLeftEdgeX(selection, nodeId) {
             const node = selection.filter((d) => d.id === nodeId).node();
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
         }
 
-        // Helper function to get the y position of the center of a node
         function getCenterY(selection, nodeId) {
             const node = selection.filter((d) => d.id === nodeId).node();
             const rect = node.querySelector('rect');
