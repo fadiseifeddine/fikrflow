@@ -146,10 +146,21 @@ function selectNode(nodeId) {
     renderMindMap(jsondrw); // Re-render the mind map to apply the selection highlight
 
     const addButton = document.getElementById('addNodeButton');
+    const editButton = document.getElementById('editButton');
+    const deleteButton = document.getElementById('deleteButton');
+
+
     if (selectedNode) {
         addButton.disabled = false; // Enable the "Add Node" button
+        editButton.disabled = false; // Enable the "Edit Node" button
+        deleteButton.disabled = false; // Enable the "Delete Node" button
+
+
     } else {
         addButton.disabled = true; // Disable the "Add Node" button
+        editButton.disabled = true; // Enable the "Edit Node" button
+        deleteButton.disabled = true; // Enable the "Delete Node" button
+
     }
 
 }
