@@ -208,7 +208,6 @@ function handleAddNode(mindMapData) {
 }
 
 
-
 function handleEdit(mindMapData) {
     if (selectedNode) {
         const selectedNodeId = selectedNode;
@@ -268,6 +267,13 @@ function handleEdit(mindMapData) {
                 rectext.style.visibility = 'visible';
 
                 selectedNodeElement.removeChild(foreignObject);
+            });
+
+            inputElement.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    inputElement.blur(); // Trigger blur event to save the entered text
+                }
             });
         }
     }
