@@ -30,21 +30,53 @@ function renderMindMap(mindMapData) {
             .enter()
             .append('g')
             .attr('class', 'node')
-            .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
+            .attr('transform', (d) => `translate(${d.x || 0}, ${d.y || 0})`) // Handle undefined coordinates
             .attr('id', (d) => `node-${d.id}`)
             .call(dragHandler)
             .on('click', (event, d) => selectNode(d.id));
 
-        nodes.append('rect')
+        const rectNodes = nodes
+            .append('rect')
             .attr('width', (d) => d.label.length * 10 + 20)
             .attr('height', 50)
             .attr('fill', (d) => d.color)
             .attr('stroke', (d) => d.textColor)
             .attr('data-tag', 'rect');
 
+        rectNodes.classed('completed', (d) => d.completed);
+
+        const foreignObjects = nodes
+            .append('foreignObject')
+            .attr('x', 5)
+            .attr('y', 12.5) // Adjust the y position to center the checkbox vertically
+            .attr('width', 30) // Increase the width to make the checkbox at least twice as big
+            .attr('height', 30) // Increase the height to make the checkbox at least twice as big;
+
+        const checkboxDivs = foreignObjects
+            .append('xhtml:div')
+            .style('width', '100%')
+            .style('height', '100%')
+            .style('display', 'flex')
+            .style('align-items', 'center')
+            .style('justify-content', 'center')
+            .on('click', (event, d) => {
+                event.stopPropagation(); // Prevent click event from bubbling to the parent nodes
+            });
+
+        checkboxDivs
+            .append('input')
+            .attr('type', 'checkbox')
+            .attr('style', 'transform: scale(1.5)') // Scale the checkbox by a factor of 1.5
+            .property('checked', (d) => d.completed)
+            .on('change', (event, d) => toggleCompletion(mindMapData, d.id))
+            .on('click', (event) => {
+                event.stopPropagation(); // Prevent click event from bubbling to the parent nodes
+            });
+
         nodes.classed('selected', (d) => d.id === selectedNode);
 
-        nodes.append('text')
+        nodes
+            .append('text')
             .attr('x', (d) => (d.label.length * 10 + 20) / 2)
             .attr('y', 25)
             .text((d) => d.label)
@@ -53,7 +85,8 @@ function renderMindMap(mindMapData) {
             .attr('alignment-baseline', 'middle')
             .attr('data-tag', 'recttext');
 
-        nodes.append('circle')
+        nodes
+            .append('circle')
             .attr('cx', 5)
             .attr('cy', 5)
             .attr('r', 10)
@@ -61,7 +94,8 @@ function renderMindMap(mindMapData) {
             .attr('stroke', '#FFFFFF')
             .attr('stroke-width', 2);
 
-        nodes.append('text')
+        nodes
+            .append('text')
             .attr('x', 6)
             .attr('y', 8)
             .text((d) => d.id)
@@ -76,22 +110,19 @@ function renderMindMap(mindMapData) {
             .enter()
             .append('line')
             .attr('class', 'relationship')
-            .attr('x1', (d) => getRightEdgeX(nodes, d.source)) // Set the starting x position to the right edge
-            .attr('y1', (d) => getCenterY(nodes, d.source)) // Set the starting y position to the center
-            .attr('x2', (d) => getLeftEdgeX(nodes, d.target)) // Set the ending x position to the left edge
-            .attr('y2', (d) => getCenterY(nodes, d.target)); // Set the ending y position to the center
+            .attr('x1', (d) => getRightEdgeX(nodes, d.source))
+            .attr('y1', (d) => getCenterY(nodes, d.source))
+            .attr('x2', (d) => getLeftEdgeX(nodes, d.target))
+            .attr('y2', (d) => getCenterY(nodes, d.target));
 
-        // Add event listener to the image container to unselect nodes
         svg.on('click', (event) => {
             if (!event.target || !event.target.closest('.node')) {
-                selectNode(null); // Unselect all nodes
+                selectNode(null);
             }
         });
 
         function dragHandler(selection) {
-            const drag = d3.drag()
-                .on('start', dragStart)
-                .on('drag', dragMove);
+            const drag = d3.drag().on('start', dragStart).on('drag', dragMove);
 
             selection.call(drag);
 
@@ -100,8 +131,7 @@ function renderMindMap(mindMapData) {
             }
 
             function dragMove(event, d) {
-                d3.select(this)
-                    .attr('transform', `translate(${event.x - 50}, ${event.y - 25})`);
+                d3.select(this).attr('transform', `translate(${event.x - 50}, ${event.y - 25})`);
 
                 const selectedNode = mindMapData.nodes.find((node) => node.id === d.id);
                 if (selectedNode) {
@@ -113,36 +143,41 @@ function renderMindMap(mindMapData) {
             }
         }
 
-        // Helper functions to get the x position of the edges and the y position of the center
         function getRightEdgeX(selection, nodeId) {
             const node = selection.filter((d) => d.id === nodeId).node();
-            const rect = node.querySelector('rect');
-            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + parseFloat(rect.getAttribute('width'));
+            const rect = node ? node.querySelector('rect') : null;
+            return node && rect ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + parseFloat(rect.getAttribute('width')) : 0;
         }
 
         function getLeftEdgeX(selection, nodeId) {
             const node = selection.filter((d) => d.id === nodeId).node();
-            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
+            return node ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) : 0;
         }
 
         function getCenterY(selection, nodeId) {
             const node = selection.filter((d) => d.id === nodeId).node();
-            const rect = node.querySelector('rect');
-            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]) + parseFloat(rect.getAttribute('height')) / 2;
+            const rect = node ? node.querySelector('rect') : null;
+            return node && rect ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]) + parseFloat(rect.getAttribute('height')) / 2 : 0;
         }
 
         function updateRelationships() {
-            relationships
-                .attr('x1', (d) => getRightEdgeX(nodes, d.source))
-                .attr('y1', (d) => getCenterY(nodes, d.source))
-                .attr('x2', (d) => getLeftEdgeX(nodes, d.target))
-                .attr('y2', (d) => getCenterY(nodes, d.target));
+            relationships.attr('x1', (d) => getRightEdgeX(nodes, d.source)).attr('y1', (d) => getCenterY(nodes, d.source)).attr('x2', (d) =>
+                getLeftEdgeX(nodes, d.target)
+            ).attr('y2', (d) => getCenterY(nodes, d.target));
         }
     } catch (error) {
         console.error('Failed to render mind map:', error);
     }
 }
 
+// Function to handle checkbox toggle
+function toggleCompletion(mindMapData, nodeId) {
+    const node = mindMapData.nodes.find((node) => node.id === nodeId);
+    if (node) {
+        node.completed = !node.completed;
+        renderMindMap(mindMapData);
+    }
+}
 
 
 // Function to handle selecting a box =============================
