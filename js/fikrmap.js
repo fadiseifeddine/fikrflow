@@ -39,18 +39,18 @@ function renderMindMap(mindMapData) {
             .append('rect')
             .attr('width', (d) => d.label.length * 10 + 20)
             .attr('height', 50)
-            .attr('fill', (d) => d.color)
-            .attr('stroke', (d) => d.textColor)
             .attr('data-tag', 'rect');
 
-        rectNodes.classed('completed', (d) => d.completed);
+        rectNodes
+            .classed('completed', (d) => d.completed)
+            .style('fill', (d) => (d.completed ? '#f2f2f2' : '#faffb8')); // Change the fill color based on the completed status
 
         const foreignObjects = nodes
             .append('foreignObject')
             .attr('x', 5)
             .attr('y', 12.5) // Adjust the y position to center the checkbox vertically
             .attr('width', 30) // Increase the width to make the checkbox at least twice as big
-            .attr('height', 30) // Increase the height to make the checkbox at least twice as big;
+            .attr('height', 30); // Increase the height to make the checkbox at least twice as big
 
         const checkboxDivs = foreignObjects
             .append('xhtml:div')
@@ -80,10 +80,8 @@ function renderMindMap(mindMapData) {
             .attr('x', (d) => (d.label.length * 10 + 20) / 2)
             .attr('y', 25)
             .text((d) => d.label)
-            .attr('fill', '#000')
-            .attr('text-anchor', 'middle')
-            .attr('alignment-baseline', 'middle')
-            .attr('data-tag', 'recttext');
+            .attr('fill', (d) => (d.completed ? '#999999' : '#000')) // Change the text color based on the completed status
+            .attr('text-decoration', (d) => (d.completed ? 'line-through' : 'none')); // Apply strike-through effect based on the completed status
 
         nodes
             .append('circle')
@@ -169,6 +167,7 @@ function renderMindMap(mindMapData) {
         console.error('Failed to render mind map:', error);
     }
 }
+
 
 // Function to handle checkbox toggle
 function toggleCompletion(mindMapData, nodeId) {
