@@ -18,69 +18,67 @@ resizeDrawingContainer();
 getsessionid();
 
 function renderMindMap(mindMapData) {
-
     const mindMapContainer = document.getElementById('mindMapContainer');
     mindMapContainer.innerHTML = '';
 
     try {
         const svg = d3.select('#mindMapContainer');
 
-        const nodes = svg.selectAll('.node')
+        const nodes = svg
+            .selectAll('.node')
             .data(mindMapData.nodes)
             .enter()
             .append('g')
             .attr('class', 'node')
-            //.attr('transform', (d) => `translate(${Math.random() * 600}, ${Math.random() * 400})`)
             .attr('transform', (d) => `translate(${d.x}, ${d.y})`)
-            .attr('id', (d) => `node-${d.id}`) // Assign an id to each node
+            .attr('id', (d) => `node-${d.id}`)
             .call(dragHandler)
-            .on('click', (event, d) => selectNode(d.id)); // Attach click event listener to select the box
-
+            .on('click', (event, d) => selectNode(d.id));
 
         nodes.append('rect')
-            .attr('width', (d) => d.label.length * 10 + 20) // Adjust the box width based on the text length
+            .attr('width', (d) => d.label.length * 10 + 20)
             .attr('height', 50)
             .attr('fill', (d) => d.color)
             .attr('stroke', (d) => d.textColor)
-            .attr('data-tag', 'rect'); // Add a data attribute to the rect element;
+            .attr('data-tag', 'rect');
 
         nodes.classed('selected', (d) => d.id === selectedNode);
 
         nodes.append('text')
-            .attr('x', (d) => (d.label.length * 10 + 20) / 2) // Center the text horizontally
+            .attr('x', (d) => (d.label.length * 10 + 20) / 2)
             .attr('y', 25)
             .text((d) => d.label)
             .attr('fill', '#000')
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle')
-            .attr('data-tag', 'recttext'); // Add a data attribute to the rect element;
+            .attr('data-tag', 'recttext');
 
         nodes.append('circle')
             .attr('cx', 5)
             .attr('cy', 5)
             .attr('r', 10)
-            .attr('fill', '#0000FF') // Blue color for the circle
-            .attr('stroke', '#FFFFFF') // White color for the circle stroke
+            .attr('fill', '#0000FF')
+            .attr('stroke', '#FFFFFF')
             .attr('stroke-width', 2);
 
         nodes.append('text')
-            .attr('x', 5)
+            .attr('x', 6)
             .attr('y', 8)
             .text((d) => d.id)
             .attr('font-size', 10)
-            .attr('fill', '#FFFFFF') // White color for the text
+            .attr('fill', '#FFFFFF')
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle');
-
-        const relationships = svg.selectAll('.relationship')
+        const relationships = svg
+            .selectAll('.relationship')
             .data(mindMapData.relationships)
             .enter()
             .append('line')
             .attr('class', 'relationship')
-            .attr('x1', (d) => getCenterX(nodes, d.source))
-            .attr('y1', (d) => getCenterY(nodes, d.source))
-            .attr('x2', (d) => getCenterX(nodes, d.target))
-            .attr('y2', (d) => getCenterY(nodes, d.target));
+            .attr('x1', (d) => getRightEdgeX(nodes, d.source)) // Set the starting x position to the right edge
+            .attr('y1', (d) => getCenterY(nodes, d.source)) // Set the starting y position to the center
+            .attr('x2', (d) => getLeftEdgeX(nodes, d.target)) // Set the ending x position to the left edge
+            .attr('y2', (d) => getCenterY(nodes, d.target)); // Set the ending y position to the center
 
         function dragHandler(selection) {
             const drag = d3.drag()
@@ -93,13 +91,10 @@ function renderMindMap(mindMapData) {
                 d3.select(this).raise().classed('active', true);
             }
 
-            // Update the x and y positions in the mindMapData
-
             function dragMove(event, d) {
                 d3.select(this)
                     .attr('transform', `translate(${event.x - 50}, ${event.y - 25})`);
 
-                // Update the x and y positions in the mindMapData
                 const selectedNode = mindMapData.nodes.find((node) => node.id === d.id);
                 if (selectedNode) {
                     selectedNode.x = event.x - 50;
@@ -108,15 +103,22 @@ function renderMindMap(mindMapData) {
 
                 updateRelationships();
             }
-
         }
 
-        function getCenterX(selection, nodeId) {
+        // Helper function to get the x position of the right edge of a node
+        function getRightEdgeX(selection, nodeId) {
             const node = selection.filter((d) => d.id === nodeId).node();
             const rect = node.querySelector('rect');
-            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + parseFloat(rect.getAttribute('width')) / 2;
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + parseFloat(rect.getAttribute('width'));
         }
 
+        // Helper function to get the x position of the left edge of a node
+        function getLeftEdgeX(selection, nodeId) {
+            const node = selection.filter((d) => d.id === nodeId).node();
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
+        }
+
+        // Helper function to get the y position of the center of a node
         function getCenterY(selection, nodeId) {
             const node = selection.filter((d) => d.id === nodeId).node();
             const rect = node.querySelector('rect');
@@ -125,9 +127,9 @@ function renderMindMap(mindMapData) {
 
         function updateRelationships() {
             relationships
-                .attr('x1', (d) => getCenterX(nodes, d.source))
+                .attr('x1', (d) => getRightEdgeX(nodes, d.source))
                 .attr('y1', (d) => getCenterY(nodes, d.source))
-                .attr('x2', (d) => getCenterX(nodes, d.target))
+                .attr('x2', (d) => getLeftEdgeX(nodes, d.target))
                 .attr('y2', (d) => getCenterY(nodes, d.target));
         }
     } catch (error) {
@@ -143,6 +145,12 @@ function selectNode(nodeId) {
     selectedNode = nodeId;
     renderMindMap(jsondrw); // Re-render the mind map to apply the selection highlight
 
+    const addButton = document.getElementById('addNodeButton');
+    if (selectedNode) {
+        addButton.disabled = false; // Enable the "Add Node" button
+    } else {
+        addButton.disabled = true; // Disable the "Add Node" button
+    }
 
 }
 
