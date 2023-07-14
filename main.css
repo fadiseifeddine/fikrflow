@@ -96,3 +96,19 @@ foreignObject input {
     background-color: transparent;
     outline: none;
 }
+
+.dash-relationship {
+    fill: none;
+    stroke: #000;
+    stroke-width: 2;
+    stroke-dasharray: 5, 5;
+    /* Dashed line style */
+    marker-end: url(#arrowhead);
+    /* Arrowhead on the right side */
+}
+
+.solid-relationship {
+    fill: none;
+    stroke: #000;
+    stroke-width: 2;
+}

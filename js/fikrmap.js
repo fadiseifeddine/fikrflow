@@ -1,8 +1,9 @@
 let userInput = '';
-let jsondrw = '';
+let mindMapData = '';
 let sessionID = ''; // Declare sessionID as a global variable
 let selectedNode = null;
-
+let isAddingRelation = false;
+let sourceNode = null;
 
 const drawingContainer = document.getElementById('drawingContainer');
 
@@ -17,11 +18,34 @@ resizeDrawingContainer();
 
 getsessionid();
 
-function renderMindMap(mindMapData) {
+
+function getRightEdgeX(selection, nodeId) {
+    const node = selection.filter((d) => d.id === nodeId).node();
+    const rect = node ? node.querySelector('rect') : null;
+    return node && rect ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + parseFloat(rect.getAttribute('width')) : 0;
+}
+
+
+
+function getLeftEdgeX(selection, nodeId) {
+    const node = selection.filter((d) => d.id === nodeId).node();
+    return node ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) : 0;
+}
+
+function getCenterY(selection, nodeId) {
+    const node = selection.filter((d) => d.id === nodeId).node();
+    const rect = node ? node.querySelector('rect') : null;
+    return node && rect ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]) + parseFloat(rect.getAttribute('height')) / 2 : 0;
+}
+
+
+function renderMindMap() {
     const mindMapContainer = document.getElementById('mindMapContainer');
     mindMapContainer.innerHTML = '';
 
     try {
+
+
         const svg = d3.select('#mindMapContainer');
 
         const nodes = svg
@@ -35,6 +59,7 @@ function renderMindMap(mindMapData) {
             .call(dragHandler)
             .on('click', (event, d) => selectNode(d.id));
 
+
         const rectNodes = nodes
             .append('rect')
             .attr('width', (d) => d.label.length * 10 + 20)
@@ -45,6 +70,7 @@ function renderMindMap(mindMapData) {
             .classed('completed', (d) => d.completed)
             .style('fill', (d) => (d.completed ? '#f2f2f2' : '#faffb8')); // Change the fill color based on the completed status
 
+        // used in the edit box then get replaced
         const foreignObjects = nodes
             .append('foreignObject')
             .attr('x', 5)
@@ -104,16 +130,54 @@ function renderMindMap(mindMapData) {
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle');
 
-        const relationships = svg
+        const solidrelationships = svg
             .selectAll('.relationship')
-            .data(mindMapData.relationships)
+            .data(mindMapData.relationships.filter(relation => relation.type === 'solid'))
             .enter()
             .append('line')
-            .attr('class', 'relationship')
+            .attr('class', 'solid-relationship ')
             .attr('x1', (d) => getRightEdgeX(nodes, d.source))
             .attr('y1', (d) => getCenterY(nodes, d.source))
             .attr('x2', (d) => getLeftEdgeX(nodes, d.target))
             .attr('y2', (d) => getCenterY(nodes, d.target));
+
+        const dashrelationships = svg
+            .selectAll('.relationship')
+            .data(mindMapData.relationships.filter(relation => relation.type === 'dash'))
+            .enter()
+            .append('line')
+            .attr('class', 'dash-relationship')
+            .attr('marker-end', 'url(#arrowhead)')
+            .attr('x1', (d) => getRightEdgeX(nodes, d.source))
+            .attr('y1', (d) => getCenterY(nodes, d.source))
+            .attr('x2', (d) => getLeftEdgeX(nodes, d.target))
+            .attr('y2', (d) => getCenterY(nodes, d.target));
+
+
+        //d:     It represents the relationship object for which the curved path is being calculated. The relationship object contains information about the source node and the target node of the relationship.
+        //nodes: It represents the selection of node elements in the SVG. It is used to access the node elements and retrieve their positions.
+        //nodePositions: It represents a map that stores the calculated positions (x, y coordinates) of each node in the mind map. The map is used to retrieve the positions of the source and target nodes for calculating the curved path.
+
+
+
+        // Append the <defs> element to the SVG
+        const defs = svg.append('defs');
+
+        // Create the arrowhead marker
+        defs
+            .append('marker')
+            .attr('id', 'arrowhead')
+            .attr('viewBox', '0 0 10 10')
+            .attr('refX', '10')
+            .attr('refY', '5')
+            .attr('markerUnits', 'strokeWidth')
+            .attr('markerWidth', '6')
+            .attr('markerHeight', '6')
+            .attr('orient', 'auto')
+            .append('path')
+            .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+            .attr('fill', '#000000');
+
 
         svg.on('click', (event) => {
             if (!event.target || !event.target.closest('.node')) {
@@ -130,6 +194,8 @@ function renderMindMap(mindMapData) {
                 d3.select(this).raise().classed('active', true);
             }
 
+
+
             function dragMove(event, d) {
                 d3.select(this).attr('transform', `translate(${event.x - 50}, ${event.y - 25})`);
 
@@ -139,32 +205,110 @@ function renderMindMap(mindMapData) {
                     selectedNode.y = event.y - 25;
                 }
 
-                updateRelationships();
+                console.log("node id" + d.id)
+                console.log("selectedNode.x  and y" + selectedNode.x + ", " + selectedNode.y)
+                console.log(mindMapData)
+
+                renderRelationships();
             }
+
         }
 
-        function getRightEdgeX(selection, nodeId) {
-            const node = selection.filter((d) => d.id === nodeId).node();
-            const rect = node ? node.querySelector('rect') : null;
-            return node && rect ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + parseFloat(rect.getAttribute('width')) : 0;
+
+
+
+        function updateSolidRelationships() {
+            const solidRelationships = svg.selectAll('.solid-relationship')
+                .data(mindMapData.relationships.filter(relation => relation.type === 'solid'));
+
+            solidRelationships
+                .enter()
+                .append('line')
+                .attr('class', 'solid-relationship')
+                .merge(solidRelationships)
+                .attr('x1', d => {
+                    if (d.source.dragging) {
+                        return d.source.x + getRightEdgeX(nodes, d.source);
+                    } else {
+                        return getRightEdgeX(nodes, d.source);
+                    }
+                })
+                .attr('y1', d => {
+                    if (d.source.dragging) {
+                        return d.source.y + getCenterY(nodes, d.source);
+                    } else {
+                        return getCenterY(nodes, d.source);
+                    }
+                })
+                .attr('x2', d => {
+                    if (d.target.dragging) {
+                        return d.target.x + getLeftEdgeX(nodes, d.target);
+                    } else {
+                        return getLeftEdgeX(nodes, d.target);
+                    }
+                })
+                .attr('y2', d => {
+                    if (d.target.dragging) {
+                        return d.target.y + getCenterY(nodes, d.target);
+                    } else {
+                        return getCenterY(nodes, d.target);
+                    }
+                });
+
+            solidRelationships.exit().remove();
         }
 
-        function getLeftEdgeX(selection, nodeId) {
-            const node = selection.filter((d) => d.id === nodeId).node();
-            return node ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) : 0;
+
+        function updateCurvedRelationships() {
+            console.log("updateCurvedRelationships .... Start")
+            const curvedRelationships = svg.selectAll('.dash-relationship')
+                .data(mindMapData.relationships.filter(relation => relation.type === 'dash'));
+
+            curvedRelationships
+                .enter()
+                .append('line')
+                .attr('class', 'dash-relationship')
+                .merge(curvedRelationships)
+                .attr('x1', d => {
+                    if (d.source.dragging) {
+                        return d.source.x + getRightEdgeX(nodes, d.source);
+                    } else {
+                        return getRightEdgeX(nodes, d.source);
+                    }
+                })
+                .attr('y1', d => {
+                    if (d.source.dragging) {
+                        return d.source.y + getCenterY(nodes, d.source);
+                    } else {
+                        return getCenterY(nodes, d.source);
+                    }
+                })
+                .attr('x2', d => {
+                    if (d.target.dragging) {
+                        return d.target.x + getLeftEdgeX(nodes, d.target);
+                    } else {
+                        return getLeftEdgeX(nodes, d.target);
+                    }
+                })
+                .attr('y2', d => {
+                    if (d.target.dragging) {
+                        return d.target.y + getCenterY(nodes, d.target);
+                    } else {
+                        return getCenterY(nodes, d.target);
+                    }
+                });
+
         }
 
-        function getCenterY(selection, nodeId) {
-            const node = selection.filter((d) => d.id === nodeId).node();
-            const rect = node ? node.querySelector('rect') : null;
-            return node && rect ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]) + parseFloat(rect.getAttribute('height')) / 2 : 0;
+
+        function renderRelationships() {
+            updateSolidRelationships();
+            updateCurvedRelationships();
         }
 
-        function updateRelationships() {
-            relationships.attr('x1', (d) => getRightEdgeX(nodes, d.source)).attr('y1', (d) => getCenterY(nodes, d.source)).attr('x2', (d) =>
-                getLeftEdgeX(nodes, d.target)
-            ).attr('y2', (d) => getCenterY(nodes, d.target));
-        }
+
+
+
     } catch (error) {
         console.error('Failed to render mind map:', error);
     }
@@ -181,31 +325,36 @@ function toggleCompletion(mindMapData, nodeId) {
         } else {
             node.compdate = null; // Clear the compdate attribute
         }
-        renderMindMap(mindMapData);
+        renderMindMap();
     }
 }
+
 
 // Function to handle selecting a box =============================
 function selectNode(nodeId) {
     console.log("Selecting a Node in graph ..." + nodeId);
     selectedNode = nodeId;
-    renderMindMap(jsondrw); // Re-render the mind map to apply the selection highlight
+    renderMindMap(); // Re-render the mind map to apply the selection highlight
 
     const addButton = document.getElementById('addNodeButton');
     const editButton = document.getElementById('editButton');
     const deleteButton = document.getElementById('deleteButton');
+    const relationButton = document.getElementById('addRelationButton');
 
 
     if (selectedNode) {
         addButton.disabled = false; // Enable the "Add Node" button
         editButton.disabled = false; // Enable the "Edit Node" button
         deleteButton.disabled = false; // Enable the "Delete Node" button
+        relationButton.disabled = false;
 
 
     } else {
         addButton.disabled = true; // Disable the "Add Node" button
         editButton.disabled = true; // Enable the "Edit Node" button
         deleteButton.disabled = true; // Enable the "Delete Node" button
+        relationButton.disabled = true;
+
 
     }
 
@@ -218,14 +367,75 @@ document.getElementById('submitButton').addEventListener('click', handleInputSub
 document.getElementById('saveButton').addEventListener('click', handleInputSave);
 document.getElementById('openButton').addEventListener('click', handleOpen);
 document.getElementById('editButton').addEventListener('click', function() {
-    handleEdit(jsondrw);
+    handleEdit();
 });
 document.getElementById('addNodeButton').addEventListener('click', function() {
-    handleAddNode(jsondrw);
+    handleAddNode();
+});
+document.getElementById('addRelationButton').addEventListener('click', function() {
+    handleAddRelation();
 });
 
+function handleAddRelation() {
+    const relationshipButton = document.getElementById('addRelationButton');
 
-function handleAddNode(mindMapData) {
+    const sourceNode = selectedNode;
+
+    // Prompt the user to click the target node
+    console.log('Please click the target node');
+
+
+    // Listen for the click event on the mind map container for the target node
+    const mindMapContainer = document.getElementById('mindMapContainer');
+    mindMapContainer.addEventListener('click', handleTargetNodeClick);
+
+    // Function to handle the click on the target node
+    function handleTargetNodeClick(event) {
+        const clickedNode = event.target.closest('.node');
+
+        // Check if a valid target node was clicked and it's not the source node
+        if (clickedNode && clickedNode.id && clickedNode.id !== `node-${sourceNode}`) {
+            const newRelationship = {
+                source: sourceNode,
+                target: clickedNode.id.replace('node-', ''),
+                type: 'dash'
+            };
+
+            // Add the new relationship to the mind map data
+            mindMapData.relationships.push(newRelationship);
+
+            // Re-render the mind map to show the new relationship
+            renderMindMap();
+
+
+            // Remove the click event listener from the target node
+            mindMapContainer.removeEventListener('click', handleTargetNodeClick);
+
+            // Deactivate the relationship button
+            relationshipButton.classList.remove('active');
+        }
+    }
+
+}
+
+
+function getCurvedPath(relationship, nodes, nodePositions) {
+    const sourcePosition = nodePositions.get(relationship.source);
+    const targetPosition = nodePositions.get(relationship.target);
+
+    const startX = getRightEdgeX(nodes, relationship.source);
+    const startY = getCenterY(nodes, relationship.source);
+    const endX = getLeftEdgeX(nodes, relationship.target);
+    const endY = getCenterY(nodes, relationship.target);
+
+    const curveX = startX + (endX - startX) / 2;
+    const curveY = startY + (endY - startY) * 0.5;
+
+    return `M ${startX},${startY} Q ${curveX},${curveY} ${endX},${endY}`;
+}
+
+function handleAddNode() {
+    console.log("handleAddNode .... Start")
     if (selectedNode && mindMapData && mindMapData.nodes && mindMapData.nodes.length > 0) {
         const newNodeId = `s${mindMapData.nodes.length + 1}`;
         const selectedNodeData = mindMapData.nodes.find((node) => node.id === selectedNode);
@@ -254,17 +464,18 @@ function handleAddNode(mindMapData) {
             mindMapData.relationships.push({
                 source: selectedNode,
                 target: newNodeId,
+                type: 'solid'
             });
 
             selectedNode = newNodeId; // Select the new node
 
             // Re-render the mind map with the updated data
-            renderMindMap(mindMapData);
+            renderMindMap();
         }
     }
 }
 
-function handleEdit(mindMapData) {
+function handleEdit() {
     if (selectedNode) {
         const selectedNodeId = selectedNode;
         const selectedNodeElement = document.getElementById(`node-${selectedNodeId}`);
@@ -381,7 +592,8 @@ async function handleOpen() {
             console.log('Selected jsondrw:', selectedJsondrw);
             const selectedFileNameElement = document.getElementById('selectedFileName');
             selectedFileNameElement.textContent = selectedFileName;
-            renderMindMap(selectedJsondrw);
+            mindMapData = selectedJsondrw
+            renderMindMap();
 
         } else {
             alert('Please select a file.'); // Show an alert to prompt the user to select a file
@@ -442,10 +654,10 @@ async function sendChatMessage(message) {
             console.log('Received mind map data:', mindMapDataJson);
             //jsondrw = mindMapDataJson;
 
-            jsondrw = calculateNodePositions(mindMapDataJson)
-            console.log('Adjusted mind map data with positions:', jsondrw);
+            mindMapData = calculateNodePositions(mindMapDataJson)
+            console.log('Adjusted mind map data with positions:', mindMapData);
 
-            renderMindMap(jsondrw);
+            renderMindMap();
         } else {
             console.error('Error sending chat message:', response.status);
         }
@@ -475,7 +687,7 @@ async function saveDrawing() {
                 method: 'POST',
                 body: JSON.stringify({
                     fileName: fileName,
-                    jsondrw: jsondrw
+                    jsondrw: mindMapData
                 }),
                 headers: {
                     'Content-Type': 'application/json'
