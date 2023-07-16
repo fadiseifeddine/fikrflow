@@ -64,11 +64,6 @@ body {
     alignment-baseline: middle;
 }
 
-.relationship {
-    stroke: #000;
-    stroke-width: 2;
-}
-
 #fileListModal .modal-content {
     background-color: #ffffe0;
 }
@@ -99,7 +94,7 @@ foreignObject input {
 
 .dash-relationship {
     fill: none;
-    stroke: #000;
+    stroke: black;
     stroke-width: 2;
     stroke-dasharray: 5, 5;
     /* Dashed line style */
@@ -107,8 +102,22 @@ foreignObject input {
     /* Arrowhead on the right side */
 }
 
-.solid-relationship {
+.dash-relationship:hover {
     fill: none;
-    stroke: #000;
-    stroke-width: 2;
+    stroke: darkred;
+    stroke-width: 5px;
+    stroke-dasharray: 5, 5;
+    /* Dashed line style */
+    marker-end: url(#arrowhead);
+    /* Arrowhead on the right side */
+}
+
+.solid-relationship {
+    stroke: lightsalmon;
+    stroke-width: 2px;
+}
+
+.solid-relationship:hover {
+    stroke: darkred;
+    stroke-width: 5px;
 }

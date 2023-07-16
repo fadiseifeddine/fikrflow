@@ -130,28 +130,8 @@ function renderMindMap() {
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle');
 
-        const solidrelationships = svg
-            .selectAll('.relationship')
-            .data(mindMapData.relationships.filter(relation => relation.type === 'solid'))
-            .enter()
-            .append('line')
-            .attr('class', 'solid-relationship ')
-            .attr('x1', (d) => getRightEdgeX(nodes, d.source))
-            .attr('y1', (d) => getCenterY(nodes, d.source))
-            .attr('x2', (d) => getLeftEdgeX(nodes, d.target))
-            .attr('y2', (d) => getCenterY(nodes, d.target));
 
-        const dashrelationships = svg
-            .selectAll('.relationship')
-            .data(mindMapData.relationships.filter(relation => relation.type === 'dash'))
-            .enter()
-            .append('line')
-            .attr('class', 'dash-relationship')
-            .attr('marker-end', 'url(#arrowhead)')
-            .attr('x1', (d) => getRightEdgeX(nodes, d.source))
-            .attr('y1', (d) => getCenterY(nodes, d.source))
-            .attr('x2', (d) => getLeftEdgeX(nodes, d.target))
-            .attr('y2', (d) => getCenterY(nodes, d.target));
+
 
 
         //d:     It represents the relationship object for which the curved path is being calculated. The relationship object contains information about the source node and the target node of the relationship.
@@ -178,12 +158,21 @@ function renderMindMap() {
             .attr('d', 'M 0 0 L 10 5 L 0 10 z')
             .attr('fill', '#000000');
 
+        renderRelationships();
+
+
+
 
         svg.on('click', (event) => {
             if (!event.target || !event.target.closest('.node')) {
                 selectNode(null);
             }
         });
+
+
+
+
+
 
         function dragHandler(selection) {
             const drag = d3.drag().on('start', dragStart).on('drag', dragMove);
@@ -209,105 +198,119 @@ function renderMindMap() {
                 console.log("selectedNode.x  and y" + selectedNode.x + ", " + selectedNode.y)
                 console.log(mindMapData)
 
-                renderRelationships();
+                renderMindMap();
             }
 
         }
 
 
-
-
         function updateSolidRelationships() {
-            const solidRelationships = svg.selectAll('.solid-relationship')
-                .data(mindMapData.relationships.filter(relation => relation.type === 'solid'));
+            solidRelationships = svg
+                .selectAll('.solid-relationship')
+                .data(mindMapData.relationships.filter((relation) => relation.type === 'solid'));
 
             solidRelationships
                 .enter()
                 .append('line')
                 .attr('class', 'solid-relationship')
-                .merge(solidRelationships)
-                .attr('x1', d => {
+                .merge(solidRelationships) // Merge enter and update selections
+                .attr('x1', (d) => {
                     if (d.source.dragging) {
                         return d.source.x + getRightEdgeX(nodes, d.source);
                     } else {
                         return getRightEdgeX(nodes, d.source);
                     }
                 })
-                .attr('y1', d => {
+                .attr('y1', (d) => {
                     if (d.source.dragging) {
                         return d.source.y + getCenterY(nodes, d.source);
                     } else {
                         return getCenterY(nodes, d.source);
                     }
                 })
-                .attr('x2', d => {
+                .attr('x2', (d) => {
                     if (d.target.dragging) {
                         return d.target.x + getLeftEdgeX(nodes, d.target);
                     } else {
                         return getLeftEdgeX(nodes, d.target);
                     }
                 })
-                .attr('y2', d => {
+                .attr('y2', (d) => {
                     if (d.target.dragging) {
                         return d.target.y + getCenterY(nodes, d.target);
                     } else {
-                        return getCenterY(nodes, d.target);
+                        return getCenterY(nodes, d.target)
                     }
+                });
+
+
+            solidRelationships.on("mouseover", function() {
+                    console.log("overrrrrrrrrr");
+                    d3.select(this).attr("class", "solid-relationship hover");
+                })
+                .on("mouseout", function() {
+                    console.log("outtttttttt");
+                    d3.select(this).attr("class", "solid-relationship");
                 });
 
             solidRelationships.exit().remove();
         }
 
-
         function updateCurvedRelationships() {
-            console.log("updateCurvedRelationships .... Start")
-            const curvedRelationships = svg.selectAll('.dash-relationship')
-                .data(mindMapData.relationships.filter(relation => relation.type === 'dash'));
+            curvedRelationships = svg
+                .selectAll('.dash-relationship')
+                .data(mindMapData.relationships.filter((relation) => relation.type === 'dash'));
 
             curvedRelationships
                 .enter()
                 .append('line')
                 .attr('class', 'dash-relationship')
-                .merge(curvedRelationships)
-                .attr('x1', d => {
+                .merge(curvedRelationships) // Merge enter and update selections
+                .attr('x1', (d) => {
                     if (d.source.dragging) {
                         return d.source.x + getRightEdgeX(nodes, d.source);
                     } else {
                         return getRightEdgeX(nodes, d.source);
                     }
                 })
-                .attr('y1', d => {
+                .attr('y1', (d) => {
                     if (d.source.dragging) {
                         return d.source.y + getCenterY(nodes, d.source);
                     } else {
                         return getCenterY(nodes, d.source);
                     }
                 })
-                .attr('x2', d => {
+                .attr('x2', (d) => {
                     if (d.target.dragging) {
                         return d.target.x + getLeftEdgeX(nodes, d.target);
                     } else {
                         return getLeftEdgeX(nodes, d.target);
                     }
                 })
-                .attr('y2', d => {
+                .attr('y2', (d) => {
                     if (d.target.dragging) {
                         return d.target.y + getCenterY(nodes, d.target);
                     } else {
                         return getCenterY(nodes, d.target);
                     }
+                }).on('mouseover', function() {
+                    console.log('mouseover');
+                    d3.select(this).attr('class', 'dash-relationship hover');
+                })
+                .on('mouseout', function() {
+                    console.log('mouseout');
+                    d3.select(this).attr('class', 'dash-relationship');
                 });
 
+            curvedRelationships.exit().remove();
         }
 
-
+        // Update the renderRelationships() function as shown below
         function renderRelationships() {
             updateSolidRelationships();
             updateCurvedRelationships();
+
         }
-
-
-
 
     } catch (error) {
         console.error('Failed to render mind map:', error);
@@ -332,7 +335,10 @@ function toggleCompletion(mindMapData, nodeId) {
 
 // Function to handle selecting a box =============================
 function selectNode(nodeId) {
+
     console.log("Selecting a Node in graph ..." + nodeId);
+
+
     selectedNode = nodeId;
     renderMindMap(); // Re-render the mind map to apply the selection highlight
 
@@ -367,7 +373,7 @@ document.getElementById('submitButton').addEventListener('click', handleInputSub
 document.getElementById('saveButton').addEventListener('click', handleInputSave);
 document.getElementById('openButton').addEventListener('click', handleOpen);
 document.getElementById('editButton').addEventListener('click', function() {
-    handleEdit();
+    handleRectEdit();
 });
 document.getElementById('addNodeButton').addEventListener('click', function() {
     handleAddNode();
@@ -475,7 +481,10 @@ function handleAddNode() {
     }
 }
 
-function handleEdit() {
+
+
+
+function handleRectEdit() {
     if (selectedNode) {
         const selectedNodeId = selectedNode;
         const selectedNodeElement = document.getElementById(`node-${selectedNodeId}`);
