@@ -5,6 +5,11 @@ let selectedNode = null;
 let isAddingRelation = false;
 let sourceNode = null;
 
+// relationship Box
+let relationshipBoxRef;
+let relationshipBoxWidth = 160;
+let relationshipBoxHeight = 100;
+
 const drawingContainer = document.getElementById('drawingContainer');
 
 function resizeDrawingContainer() {
@@ -164,13 +169,15 @@ function renderMindMap() {
 
 
         svg.on('click', (event) => {
-            if (!event.target || !event.target.closest('.node')) {
+            console.log('svg on click');
+
+            const targetClass = event.target.getAttribute("class");
+            console.log(targetClass);
+
+            if (!targetClass) {
                 selectNode(null);
             }
         });
-
-
-
 
 
 
@@ -241,16 +248,20 @@ function renderMindMap() {
                     } else {
                         return getCenterY(nodes, d.target)
                     }
-                });
-
-
-            solidRelationships.on("mouseover", function() {
+                })
+                .on("mouseover", function() {
                     console.log("overrrrrrrrrr");
                     d3.select(this).attr("class", "solid-relationship hover");
                 })
                 .on("mouseout", function() {
                     console.log("outtttttttt");
                     d3.select(this).attr("class", "solid-relationship");
+                })
+                .on('click', function() {
+                    console.log('Click event triggered');
+                    toggleRelationshipBox(d3.select(this));
+
+
                 });
 
             solidRelationships.exit().remove();
@@ -293,7 +304,12 @@ function renderMindMap() {
                     } else {
                         return getCenterY(nodes, d.target);
                     }
-                }).on('mouseover', function() {
+                })
+                .on('click', function() {
+                    console.log("on click relationship");
+                    toggleRelationshipBox(d3.select(this));
+                })
+                .on('mouseover', function() {
                     console.log('mouseover');
                     d3.select(this).attr('class', 'dash-relationship hover');
                 })
@@ -305,13 +321,100 @@ function renderMindMap() {
             curvedRelationships.exit().remove();
         }
 
+
+        function renderRelationBox() {
+            console.log("renderRelationBox ...... start");
+            // Create the relationship box
+            const rectWidth = 100;
+            const rectHeight = 50;
+            const rectMargin = 20;
+            const lineStrokeWidth = 2;
+            const relationshipLineLength = 80;
+            // Create the relationship box
+            const relationshipBox = svg
+                .append("g")
+                .attr("class", "relationship-box")
+                .style("display", "none");
+
+            relationshipBox
+                .append("rect")
+                .attr("class", "relationship-box-rect")
+                .attr("width", relationshipBoxWidth)
+                .attr("height", relationshipBoxHeight);
+
+            const boxContainer = relationshipBox
+                .append("foreignObject")
+                .attr("width", relationshipBoxWidth)
+                .attr("height", relationshipBoxHeight);
+
+            const boxContent = boxContainer
+                .append("xhtml:div")
+                .attr("class", "relationship-box-content");
+
+
+            const icons = [
+                { icon: "bi bi-palette", text: "Color" },
+                { icon: "bi bi-arrow-left-right", text: "Type" },
+                { icon: "bi bi-arrows-collapse", text: "Thinner" },
+                { icon: "bi-arrows-expand", text: "Thicker" },
+                { icon: "bi bi-trash", text: "Delete" },
+                { icon: "bi bi-textarea-t", text: "Label" },
+            ];
+            // Create the nodes inside the relationship box
+            const relationshipNodes = boxContent
+                .selectAll("div")
+                .data(icons)
+                .enter()
+                .append("div");
+
+            relationshipNodes
+                .append("i")
+                .attr("class", d => `relationship-box-icons ${d.icon}`)
+                .style("display", "inline-block");
+
+            relationshipNodes
+                .append("span")
+                .text(d => d.text)
+                .style("margin-left", "5px");
+
+
+            relationshipBoxRef = relationshipBox;
+
+        }
+
+        // Function to toggle the relationship box
+        function toggleRelationshipBox(line) {
+            console.log("In the ToggleRelationshipBox ....");
+            console.log(line.attr("x1"));
+            const display = relationshipBoxRef.style("display");
+            if (display === "none") {
+                const lineX1 = +line.attr("x1");
+                const lineX2 = +line.attr("x2");
+                const lineY1 = +line.attr("y1") + 60;
+                const lineY2 = +line.attr("y2") + 60;
+                const middleX = (lineX1 + lineX2) / 2;
+                const middleY = (lineY1 + lineY2) / 2;
+
+                relationshipBoxRef
+                    .attr("transform", `translate(${middleX - relationshipBoxWidth / 2}, ${middleY - relationshipBoxHeight / 2})`)
+                    .style("display", "block");
+            } else {
+                relationshipBoxRef.style("display", "none");
+            }
+        }
+
+
         // Update the renderRelationships() function as shown below
         function renderRelationships() {
             updateSolidRelationships();
             updateCurvedRelationships();
-
+            renderRelationBox();
         }
 
+
+
+
+        // end of try
     } catch (error) {
         console.error('Failed to render mind map:', error);
     }
@@ -338,7 +441,11 @@ function selectNode(nodeId) {
 
     console.log("Selecting a Node in graph ..." + nodeId);
 
-
+    // Close the relationship box when a node is selected
+    if (nodeId === null) {
+        console.log("Hiding the Relationship Box ....")
+        hideRelationshipBox();
+    }
     selectedNode = nodeId;
     renderMindMap(); // Re-render the mind map to apply the selection highlight
 
@@ -365,6 +472,14 @@ function selectNode(nodeId) {
     }
 
 }
+
+// Function to hide the relationship box
+function hideRelationshipBox() {
+    relationshipBoxRef.style("display", "none");
+}
+
+
+
 
 // Listeners =============================
 
@@ -423,6 +538,9 @@ function handleAddRelation() {
     }
 
 }
+
+
+
 
 
 function getCurvedPath(relationship, nodes, nodePositions) {
