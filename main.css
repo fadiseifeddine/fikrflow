@@ -101,7 +101,6 @@ foreignObject input {
 .dash-relationship {
     fill: none;
     stroke: black;
-    stroke-width: 2;
     stroke-dasharray: 5, 5;
     /* Dashed line style */
     marker-end: url(#arrowhead);
@@ -120,7 +119,6 @@ foreignObject input {
 
 .solid-relationship {
     stroke: lightsalmon;
-    stroke-width: 2px;
 }
 
 .solid-relationship:hover {
@@ -151,11 +149,16 @@ foreignObject input {
     gap: 5px;
 }
 
+.relationship-box-content span {
+    cursor: pointer;
+}
+
 .relationship-box-icons {
     font-size: 16px;
     color: #333;
     display: flex;
     align-items: center;
+    cursor: pointer;
 }
 
 .relationship-box-rect {

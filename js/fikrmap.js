@@ -7,6 +7,7 @@ let sourceNode = null;
 
 // relationship Box
 let relationshipBoxRef;
+let selectedLine = null;
 let relationshipBoxWidth = 160;
 let relationshipBoxHeight = 100;
 
@@ -104,6 +105,7 @@ function renderMindMap() {
                 event.stopPropagation(); // Prevent click event from bubbling to the parent nodes
             });
 
+        // make selected nodes highlighted
         nodes.classed('selected', (d) => d.id === selectedNode);
 
         nodes
@@ -172,9 +174,24 @@ function renderMindMap() {
             console.log('svg on click');
 
             const targetClass = event.target.getAttribute("class");
-            console.log(targetClass);
+            console.log("Target Class = " + targetClass);
 
-            if (!targetClass) {
+            //          if (!targetClass) {
+            //               selectNode(null);
+            //          }
+
+            //The event.target.closest('.node') expression is used to find the closest ancestor element of the event target 
+            // that matches the specified CSS selector .node. It returns the closest element that matches the selector, 
+            // or null if no matching ancestor is found.
+
+            if (targetClass == 'solid-relationship hover' || targetClass == 'dash-relationship hover') {
+                console.log("hitting line so no null ")
+
+                return;
+            }
+
+            if (!event.target || !event.target.closest('.node')) {
+                console.log("going with null selection")
                 selectNode(null);
             }
         });
@@ -219,7 +236,8 @@ function renderMindMap() {
             solidRelationships
                 .enter()
                 .append('line')
-                .attr('class', 'solid-relationship')
+                .attr("id", (d) => (d.source + '-' + d.target))
+                .attr('class', 'relationship solid-relationship')
                 .merge(solidRelationships) // Merge enter and update selections
                 .attr('x1', (d) => {
                     if (d.source.dragging) {
@@ -249,7 +267,10 @@ function renderMindMap() {
                         return getCenterY(nodes, d.target)
                     }
                 })
-                .on("mouseover", function() {
+                .attr("stroke-width", (d) => {
+                    console.log(`Stroke width: ${d.width}px`);
+                    return d.width + "px";
+                }).on("mouseover", function() {
                     console.log("overrrrrrrrrr");
                     d3.select(this).attr("class", "solid-relationship hover");
                 })
@@ -257,11 +278,11 @@ function renderMindMap() {
                     console.log("outtttttttt");
                     d3.select(this).attr("class", "solid-relationship");
                 })
-                .on('click', function() {
-                    console.log('Click event triggered');
-                    toggleRelationshipBox(d3.select(this));
-
-
+                .on("click", function() {
+                    console.log("Line Clicked ....");
+                    selectedLine = d3.select(this);
+                    console.log(selectedLine);
+                    toggleRelationshipBox(selectedLine);
                 });
 
             solidRelationships.exit().remove();
@@ -275,7 +296,8 @@ function renderMindMap() {
             curvedRelationships
                 .enter()
                 .append('line')
-                .attr('class', 'dash-relationship')
+                .attr("id", (d) => (d.source + '-' + d.target))
+                .attr('class', 'relationship dash-relationship')
                 .merge(curvedRelationships) // Merge enter and update selections
                 .attr('x1', (d) => {
                     if (d.source.dragging) {
@@ -305,9 +327,14 @@ function renderMindMap() {
                         return getCenterY(nodes, d.target);
                     }
                 })
-                .on('click', function() {
-                    console.log("on click relationship");
-                    toggleRelationshipBox(d3.select(this));
+                .attr("stroke-width", (d) => {
+                    console.log(`Stroke width: ${d.width}px`);
+                    return d.width + "px";
+                })
+                .on("click", function() {
+                    console.log("Line Clicked ....");
+                    selectedLine = d3.select(this);
+                    toggleRelationshipBox(selectedLine);
                 })
                 .on('mouseover', function() {
                     console.log('mouseover');
@@ -365,22 +392,76 @@ function renderMindMap() {
                 .selectAll("div")
                 .data(icons)
                 .enter()
-                .append("div");
+                .append("div")
+                .on("click", handleRelationshipNodesClick);
+
 
             relationshipNodes
                 .append("i")
                 .attr("class", d => `relationship-box-icons ${d.icon}`)
-                .style("display", "inline-block");
+                .style("display", "inline-block")
+                .on("click", handleRelationshipNodesClick);
+
 
             relationshipNodes
                 .append("span")
                 .text(d => d.text)
-                .style("margin-left", "5px");
+                .style("margin-left", "5px")
+                .on("click", handleRelationshipNodesClick);
+
 
 
             relationshipBoxRef = relationshipBox;
 
         }
+
+
+
+        function handleRelationshipNodesClick(event, d) {
+            console.log(`Clicked ${d.text}`);
+            console.log('-----------------------------------');
+
+            const lineId = selectedLine.attr("id");
+            console.log(`Current Line Id ${lineId}`);
+
+            const lineElement = d3.select(`#${lineId}`);
+
+            if (d.text === "Thicker" || d.text === "Thinner") {
+
+                const currentStrokeWidth = parseFloat(lineElement.style("stroke-width"));
+                newStrokeWidth = 0;
+                if (d.text === "Thicker") {
+                    newStrokeWidth = currentStrokeWidth + 1;
+                } else if (d.text === "Thinner") {
+                    newStrokeWidth = currentStrokeWidth - 1;
+                }
+
+                console.log("currentStrokeWidth=" + currentStrokeWidth);
+                console.log("newStrokeWidth=" + newStrokeWidth);
+
+                lineElement.style("stroke-width", `${newStrokeWidth}px`);
+
+                // Update the stroke-width in the mind map data
+                const relationship = mindMapData.relationships.find((relation) => {
+                    const slineId = `${relation.source}-${relation.target}`;
+                    return slineId === lineId;
+                });
+
+
+                console.log('relationship =' + relationship);
+                if (relationship) {
+                    relationship.width = newStrokeWidth;
+                    console.log('Setting the mindMapData width');
+                }
+                console.log('-----------------------------------');
+
+            }
+
+
+        }
+
+
+
 
         // Function to toggle the relationship box
         function toggleRelationshipBox(line) {
