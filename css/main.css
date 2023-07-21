@@ -100,7 +100,6 @@ foreignObject input {
 
 .dash-relationship {
     fill: none;
-    stroke: black;
     stroke-dasharray: 5, 5;
     /* Dashed line style */
     marker-end: url(#arrowhead);
@@ -109,7 +108,6 @@ foreignObject input {
 
 .dash-relationship:hover {
     fill: none;
-    stroke: darkred;
     stroke-width: 5px;
     stroke-dasharray: 5, 5;
     /* Dashed line style */
@@ -117,12 +115,9 @@ foreignObject input {
     /* Arrowhead on the right side */
 }
 
-.solid-relationship {
-    stroke: lightsalmon;
-}
+.solid-relationship {}
 
 .solid-relationship:hover {
-    stroke: darkred;
     stroke-width: 5px;
 }
 
@@ -165,4 +160,28 @@ foreignObject input {
     fill: lightyellow;
     stroke: #666;
     stroke-width: 1px;
+}
+
+.color-palette {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 250px;
+    background-color: white;
+    border: 1px solid black;
+    padding: 10px;
+}
+
+.color-palette-color {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+#selectedColorCode {
+    margin-top: 10px;
 }

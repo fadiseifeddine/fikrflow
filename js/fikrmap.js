@@ -238,6 +238,7 @@ function renderMindMap() {
                 .append('line')
                 .attr("id", (d) => (d.source + '-' + d.target))
                 .attr('class', 'relationship solid-relationship')
+                .attr('stroke', (d) => { return d.color }) // Set the color of the line to blue (you can use any color you like)
                 .merge(solidRelationships) // Merge enter and update selections
                 .attr('x1', (d) => {
                     if (d.source.dragging) {
@@ -298,6 +299,7 @@ function renderMindMap() {
                 .append('line')
                 .attr("id", (d) => (d.source + '-' + d.target))
                 .attr('class', 'relationship dash-relationship')
+                .attr('stroke', (d) => { return d.color }) // Set the color of the line to blue (you can use any color you like)
                 .merge(curvedRelationships) // Merge enter and update selections
                 .attr('x1', (d) => {
                     if (d.source.dragging) {
@@ -454,6 +456,9 @@ function renderMindMap() {
                     console.log('Setting the mindMapData width');
                 }
                 console.log('-----------------------------------');
+
+            } else if (d.text === "Color") {
+                handleColorPalette('line', lineId);
 
             }
 
@@ -770,6 +775,96 @@ function handleInputSave() {
     const fileNameInput = document.getElementById('fileNameInput');
     const fileName = fileNameInput.value.trim();
     saveDrawing(fileName);
+}
+
+
+function handleColorPalette(type, id) {
+    const colorPalette = document.getElementById("colorPalette");
+    showColorPalette(type, id);
+
+}
+
+// Function to generate a random hexadecimal color code
+function generateRandomColorCode() {
+    const letters = "0123456789ABCDEF";
+    let colorCode = "#";
+    for (let i = 0; i < 6; i++) {
+        colorCode += letters[Math.floor(Math.random() * 16)];
+    }
+    return colorCode;
+}
+
+// Show color palette when a box is clicked
+function showColorPalette(type, id) {
+    // Set the clicked box as the active box
+
+    console.log("showColorPalette for id =" + id, 'type =' + type);
+
+    // Show the color palette
+    colorPalette.innerHTML = "";
+
+    for (let i = 0; i < 50; i++) {
+        const colorCode = generateRandomColorCode();
+        const colorPaletteColor = document.createElement("div");
+        colorPaletteColor.className = "color-palette-color";
+        colorPaletteColor.style.backgroundColor = colorCode;
+        colorPaletteColor.addEventListener("click", function() {
+            // Hide the color palette
+            colorPalette.style.display = "none";
+
+            if (type == 'line') {
+                console.log("Changing the Line Color");
+                const lineId = selectedLine.attr("id");
+                console.log(`Current Line Id ${lineId}`);
+                const lineElement = d3.select(`#${lineId}`);
+
+                lineElement.style("stroke", colorCode);
+
+                // Update the stroke-width in the mind map data
+                const relationship = mindMapData.relationships.find((relation) => {
+                    const slineId = `${relation.source}-${relation.target}`;
+                    return slineId === lineId;
+                });
+
+
+                if (relationship) {
+                    console.log('relationship =');
+                    console.log(relationship);
+                    relationship.color = colorCode;
+                    console.log('Setting the mindMapData Color');
+                }
+
+            } else {
+
+                // Set the selected color as the fill color of the active box
+                if (id) {
+                    console.log("Changing the Node Color");
+                    selectNode.style("fill", colorCode);
+                    id = null;
+                }
+            }
+
+
+
+
+        });
+        colorPalette.appendChild(colorPaletteColor);
+    }
+
+    // Position the color palette next to the active box
+    const activeobj = d3.select("#" + id);
+    const boxX = parseFloat(activeobj.attr("x"));
+    const boxY = parseFloat(activeobj.attr("y"));
+    const boxHeight = parseFloat(activeobj.attr("height"));
+
+    const paletteX = boxX + 100 + 10;
+    const paletteY = boxY + boxHeight / 2 - colorPalette.offsetHeight / 2;
+
+    colorPalette.style.top = paletteY + "px";
+    colorPalette.style.left = paletteX + "px";
+
+    // Show the color palette
+    colorPalette.style.display = "block";
 }
 
 async function handleOpen() {
