@@ -5,11 +5,19 @@ let selectedNode = null;
 let isAddingRelation = false;
 let sourceNode = null;
 
+// Box itself
+let rectWidth = 250;
+let rectHeight = 50;
+
 // relationship Box
 let relationshipBoxRef;
 let selectedLine = null;
 let relationshipBoxWidth = 160;
 let relationshipBoxHeight = 100;
+
+// 3dot Button
+let dotCircle = null; // Define the variable to hold the dot circle element
+
 
 const drawingContainer = document.getElementById('drawingContainer');
 
@@ -63,13 +71,21 @@ function renderMindMap() {
             .attr('transform', (d) => `translate(${d.x || 0}, ${d.y || 0})`) // Handle undefined coordinates
             .attr('id', (d) => `node-${d.id}`)
             .call(dragHandler)
-            .on('click', (event, d) => selectNode(d.id));
-
+            .on("click", function(event, d) {
+                // On click event, show the circle and dots for the clicked box and hide them for other boxes
+                selectNode(d.id);
+            }).on("mouseover", function(event, d) {
+                //console.log("overrrrrrrrrr");
+                //d3.select(this).attr("class", "solid-relationship hover");
+                ToggleDotButton(event, d);
+            });
 
         const rectNodes = nodes
             .append('rect')
-            .attr('width', (d) => d.label.length * 10 + 20)
-            .attr('height', 50)
+            .attr('width', rectWidth)
+            .attr('height', rectHeight)
+            //.attr('width', (d) => d.label.length * 10 + 20)
+            //.attr('height', 50)
             .attr('data-tag', 'rect');
 
         rectNodes
@@ -110,7 +126,7 @@ function renderMindMap() {
 
         nodes
             .append('text')
-            .attr('x', (d) => (d.label.length * 10 + 20) / 2)
+            .attr('x', (d) => (rectWidth) / 2)
             .attr('y', 25)
             .text((d) => d.label)
             .attr('fill', (d) => (d.completed ? '#999999' : '#000')) // Change the text color based on the completed status
@@ -138,9 +154,6 @@ function renderMindMap() {
             .attr('alignment-baseline', 'middle');
 
 
-
-
-
         //d:     It represents the relationship object for which the curved path is being calculated. The relationship object contains information about the source node and the target node of the relationship.
         //nodes: It represents the selection of node elements in the SVG. It is used to access the node elements and retrieve their positions.
         //nodePositions: It represents a map that stores the calculated positions (x, y coordinates) of each node in the mind map. The map is used to retrieve the positions of the source and target nodes for calculating the curved path.
@@ -164,6 +177,8 @@ function renderMindMap() {
             .append('path')
             .attr('d', 'M 0 0 L 10 5 L 0 10 z')
             .attr('fill', '#000000');
+
+
 
         renderRelationships();
 
@@ -196,7 +211,11 @@ function renderMindMap() {
             }
         });
 
+        function click3dotbutton(event, d) {
+            console.log("3 Dot Clicked....");
+            dotCircle.attr("visibility", "hidden");
 
+        }
 
         function dragHandler(selection) {
             const drag = d3.drag().on('start', dragStart).on('drag', dragMove);
@@ -222,7 +241,15 @@ function renderMindMap() {
                 console.log("selectedNode.x  and y" + selectedNode.x + ", " + selectedNode.y)
                 console.log(mindMapData)
 
+                d3x = event.x;
+                d3y = event.y;
+
+                console.log("d3x = " + d3x + ", d3y =" + d3y);
                 renderMindMap();
+
+                ToggleDotButton(event, d); // so the 3 dots move with the box
+
+
             }
 
         }
@@ -269,14 +296,15 @@ function renderMindMap() {
                     }
                 })
                 .attr("stroke-width", (d) => {
-                    console.log(`Stroke width: ${d.width}px`);
+                    //console.log(`Stroke width: ${d.width}px`);
                     return d.width + "px";
-                }).on("mouseover", function() {
-                    console.log("overrrrrrrrrr");
+                }).on("mouseover", function(event, d) {
+                    //console.log("overrrrrrrrrr");
                     d3.select(this).attr("class", "solid-relationship hover");
+                    ToggleDotButton(event, d);
                 })
                 .on("mouseout", function() {
-                    console.log("outtttttttt");
+                    //console.log("outtttttttt");
                     d3.select(this).attr("class", "solid-relationship");
                 })
                 .on("click", function() {
@@ -338,9 +366,10 @@ function renderMindMap() {
                     selectedLine = d3.select(this);
                     toggleRelationshipBox(selectedLine);
                 })
-                .on('mouseover', function() {
+                .on('mouseover', function(event, d) {
                     console.log('mouseover');
                     d3.select(this).attr('class', 'dash-relationship hover');
+                    ToggleDotButton(event, d);
                 })
                 .on('mouseout', function() {
                     console.log('mouseout');
@@ -418,6 +447,86 @@ function renderMindMap() {
         }
 
 
+        // Function to toggle the visibility of the dot button for a selected box
+        function ToggleDotButton(event, d) {
+            console.log(d)
+            var calcX = 0
+            var calcY = 0
+
+            // Remove any existing circles with the "three-dots-circle" class
+            svg.selectAll(".three-dots-group").remove();
+
+            // Create a group for the circle and text
+            const dotGroup = svg
+                .append("g")
+                .attr("class", "three-dots-group pointer-cursor")
+                .attr("visibility", "visible")
+                .on('click', (event, d) => click3dotbutton(event, id))
+                .on('mouseover', () => dotGroup.attr("cursor", "pointer"))
+                .on('mouseout', () => dotGroup.attr("cursor", "default"));
+
+            // Create the circle with "..." text in the middle of the line
+            const dotCircle = dotGroup
+                .append("circle")
+                .attr("cx", 150) // Set the initial position, you can change this value if needed
+                .attr("cy", 150) // Set the initial position, you can change this value if needed
+                .attr("r", 15)
+                .attr("fill", "yellow")
+                .attr("stroke", "black")
+                .attr("stroke-width", 2);
+
+            // Append the "..." text to the circle's parent group
+            // Append a foreignObject to the circle to embed HTML content
+            // Append the text inside the circle
+            const dotsText = dotGroup
+                .append("text")
+                .attr("font-size", "18px")
+                .attr("text-anchor", "middle")
+                .attr("alignment-baseline", "middle")
+                .text("...");
+
+            if (d.label) // Rectangle / Box
+            {
+
+                //calcX = d.x + (d.label.length * 10 + 20) / 2;
+                calcX = d.x + (rectWidth) / 2;
+                calcY = d.y - 15;
+
+
+            }
+            if (d.source) // line
+            {
+                console.log(" My d.source = " + d.source)
+                console.log(" My d.target = " + d.target)
+                console.log(" My d.type = " + d.type)
+                console.log(" My d.lineid = " + d.source + '-' + d.target)
+
+                // Find the source and target node objects
+                const sourceNode = mindMapData.nodes.find((node) => node.id === d.source);
+                const targetNode = mindMapData.nodes.find((node) => node.id === d.target);
+
+                // Calculate the middle point between the source and target nodes
+                const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                calcX = (sourceX + targetX) / 2;
+                calcY = (sourceY + targetY) / 2;
+
+            }
+
+            console.log("making the dotCircle visible");
+            console.log(calcX);
+            console.log(calcY);
+            console.log(dotCircle.attr('cx'));
+            console.log(dotCircle.attr('cy'));
+
+            dotCircle.attr("cx", calcX).attr("cy", calcY).attr("visibility", "visible");
+            dotsText.attr("x", calcX).attr("y", calcY - 2).attr("visibility", "visible");
+
+
+
+        }
 
         function handleRelationshipNodesClick(event, d) {
             console.log(`Clicked ${d.text}`);
@@ -526,13 +635,18 @@ function toggleCompletion(mindMapData, nodeId) {
 function selectNode(nodeId) {
 
     console.log("Selecting a Node in graph ..." + nodeId);
+    console.log("selectedNode=" + selectedNode);
+
+
+    selectedNode = nodeId;
 
     // Close the relationship box when a node is selected
     if (nodeId === null) {
-        console.log("Hiding the Relationship Box ....")
+        console.log("Hiding the Relationship Box ....");
         hideRelationshipBox();
+
     }
-    selectedNode = nodeId;
+
     renderMindMap(); // Re-render the mind map to apply the selection highlight
 
     const addButton = document.getElementById('addNodeButton');
@@ -556,6 +670,8 @@ function selectNode(nodeId) {
 
 
     }
+
+
 
 }
 
