@@ -211,11 +211,7 @@ function renderMindMap() {
             }
         });
 
-        function click3dotbutton(event, d) {
-            console.log("3 Dot Clicked....");
-            dotCircle.attr("visibility", "hidden");
 
-        }
 
         function dragHandler(selection) {
             const drag = d3.drag().on('start', dragStart).on('drag', dragMove);
@@ -237,14 +233,26 @@ function renderMindMap() {
                     selectedNode.y = event.y - 25;
                 }
 
-                console.log("node id" + d.id)
-                console.log("selectedNode.x  and y" + selectedNode.x + ", " + selectedNode.y)
-                console.log(mindMapData)
+                // console.log("node id" + d.id)
+                // console.log("selectedNode.x  and y" + selectedNode.x + ", " + selectedNode.y)
+                // console.log(mindMapData)
+
+                // Update the positions of the associated lines in the mindMapData
+                mindMapData.relationships.forEach((relation) => {
+                    if (relation.source === d.id) {
+                        relation.x1 = selectedNode.x + getRightEdgeX(nodes, selectedNode);
+                        relation.y1 = selectedNode.y + getCenterY(nodes, selectedNode);
+                    }
+                    if (relation.target === d.id) {
+                        relation.x2 = selectedNode.x + getLeftEdgeX(nodes, selectedNode);
+                        relation.y2 = selectedNode.y + getCenterY(nodes, selectedNode);
+                    }
+                });
 
                 d3x = event.x;
                 d3y = event.y;
 
-                console.log("d3x = " + d3x + ", d3y =" + d3y);
+                //  console.log("d3x = " + d3x + ", d3y =" + d3y);
                 renderMindMap();
 
                 ToggleDotButton(event, d); // so the 3 dots move with the box
@@ -310,8 +318,7 @@ function renderMindMap() {
                 .on("click", function() {
                     console.log("Line Clicked ....");
                     selectedLine = d3.select(this);
-                    console.log(selectedLine);
-                    toggleRelationshipBox(selectedLine);
+
                 });
 
             solidRelationships.exit().remove();
@@ -364,7 +371,6 @@ function renderMindMap() {
                 .on("click", function() {
                     console.log("Line Clicked ....");
                     selectedLine = d3.select(this);
-                    toggleRelationshipBox(selectedLine);
                 })
                 .on('mouseover', function(event, d) {
                     console.log('mouseover');
@@ -381,10 +387,9 @@ function renderMindMap() {
 
 
         function renderRelationBox() {
-            console.log("renderRelationBox ...... start");
+            //console.log("renderRelationBox ...... start");
             // Create the relationship box
-            const rectWidth = 100;
-            const rectHeight = 50;
+
             const rectMargin = 20;
             const lineStrokeWidth = 2;
             const relationshipLineLength = 80;
@@ -449,7 +454,7 @@ function renderMindMap() {
 
         // Function to toggle the visibility of the dot button for a selected box
         function ToggleDotButton(event, d) {
-            console.log(d)
+            //console.log(d)
             var calcX = 0
             var calcY = 0
 
@@ -461,13 +466,18 @@ function renderMindMap() {
                 .append("g")
                 .attr("class", "three-dots-group pointer-cursor")
                 .attr("visibility", "visible")
-                .on('click', (event, d) => click3dotbutton(event, id))
                 .on('mouseover', () => dotGroup.attr("cursor", "pointer"))
-                .on('mouseout', () => dotGroup.attr("cursor", "default"));
+                .on('mouseout', () => dotGroup.attr("cursor", "default"))
+                .on('click', (event, d) => click3dotbutton(event, d));
+
+
+            // Get the id of the box or line and use it as the id for the circle
+            const circleId = d.id || (d.source && d.target ? `${d.source}-${d.target}` : null);
 
             // Create the circle with "..." text in the middle of the line
             const dotCircle = dotGroup
                 .append("circle")
+                .attr("id", circleId) // Set the id of the circle to the box or line id
                 .attr("cx", 150) // Set the initial position, you can change this value if needed
                 .attr("cy", 150) // Set the initial position, you can change this value if needed
                 .attr("r", 15)
@@ -496,10 +506,10 @@ function renderMindMap() {
             }
             if (d.source) // line
             {
-                console.log(" My d.source = " + d.source)
-                console.log(" My d.target = " + d.target)
-                console.log(" My d.type = " + d.type)
-                console.log(" My d.lineid = " + d.source + '-' + d.target)
+                // console.log(" My d.source = " + d.source)
+                // console.log(" My d.target = " + d.target)
+                // console.log(" My d.type = " + d.type)
+                // console.log(" My d.lineid = " + d.source + '-' + d.target)
 
                 // Find the source and target node objects
                 const sourceNode = mindMapData.nodes.find((node) => node.id === d.source);
@@ -515,16 +525,38 @@ function renderMindMap() {
 
             }
 
-            console.log("making the dotCircle visible");
-            console.log(calcX);
-            console.log(calcY);
-            console.log(dotCircle.attr('cx'));
-            console.log(dotCircle.attr('cy'));
+            //console.log("making the dotCircle visible");
+            //console.log(calcX);
+            // console.log(calcY);
+            // console.log(dotCircle.attr('cx'));
+            // console.log(dotCircle.attr('cy'));
 
             dotCircle.attr("cx", calcX).attr("cy", calcY).attr("visibility", "visible");
             dotsText.attr("x", calcX).attr("y", calcY - 2).attr("visibility", "visible");
 
+            function click3dotbutton(event, d) {
+                console.log("3 Dot Clicked........................");
+                event.stopPropagation();
 
+                console.log('circleId ' + circleId);
+
+                const targetobj = findBoxOrLine(circleId);
+                if (circleId.includes('-')) { // line
+                    // console.log("Found  Line id:", targetobj.id);
+                    //  console.log("Found  Line x1:", targetobj.x1);
+
+                    // console.log(targetobj);
+                    toggleRelationshipBox(targetobj);
+                } else {
+                    console.log("Found  Box:", targetobj.id);
+
+                }
+
+
+
+                dotCircle.attr("visibility", "hidden");
+
+            }
 
         }
 
@@ -532,7 +564,8 @@ function renderMindMap() {
             console.log(`Clicked ${d.text}`);
             console.log('-----------------------------------');
 
-            const lineId = selectedLine.attr("id");
+            const lineId = selectedLine.id;
+
             console.log(`Current Line Id ${lineId}`);
 
             const lineElement = d3.select(`#${lineId}`);
@@ -575,24 +608,55 @@ function renderMindMap() {
         }
 
 
+        // Function to find a box or line based on the circleId
+        function findBoxOrLine(targetid) {
+            targetobj = null;
+            // Check if the circleId contains a hyphen to identify it as a line
+            if (targetid.includes('-')) { // line
+                // console.log("findObject Line with ID =" + targetid);
+                // Update the stroke-width in the mind map data
+                targetobj = mindMapData.relationships.find((relation) => {
+                    const slineId = `${relation.source}-${relation.target}`;
+                    return slineId === targetid;
+                });
+                selectedLine = targetobj;
+                //console.log("findObject Line Object has ID =", targetobj);
+
+            } else { // box
+                // If the circleId does not contain a hyphen, it is for a box
+                // Find the box with the given id in the mindMapData
+                console.log("findObject Box with Target ID =" + targetid);
+                targetobj = mindMapData.nodes.find((node) => node.id === targetid);
+            }
+            return targetobj;
+        }
 
 
         // Function to toggle the relationship box
         function toggleRelationshipBox(line) {
-            console.log("In the ToggleRelationshipBox ....");
-            console.log(line.attr("x1"));
+            // console.log("In the ToggleRelationshipBox ....");
+            console.log('line.id=' + line.id);
+            console.log('line.source.x=' + line.source.x);
+            // console.log('line.y1=' + line.y1);
+            // console.log('line.y2=' + line.y2);
+
             const display = relationshipBoxRef.style("display");
+            // console.log('display=' + display);
+
             if (display === "none") {
-                const lineX1 = +line.attr("x1");
-                const lineX2 = +line.attr("x2");
-                const lineY1 = +line.attr("y1") + 60;
-                const lineY2 = +line.attr("y2") + 60;
+                const lineX1 = +line.x1 + 130;
+                const lineX2 = +line.x2 + 130;
+                const lineY1 = +line.y1 + 30;
+                const lineY2 = +line.y2 + 30;
                 const middleX = (lineX1 + lineX2) / 2;
                 const middleY = (lineY1 + lineY2) / 2;
 
                 relationshipBoxRef
                     .attr("transform", `translate(${middleX - relationshipBoxWidth / 2}, ${middleY - relationshipBoxHeight / 2})`)
                     .style("display", "block");
+
+                console.log("relationshipBoxRef should now be displayed");
+
             } else {
                 relationshipBoxRef.style("display", "none");
             }
