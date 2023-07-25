@@ -144,11 +144,11 @@ foreignObject input {
     gap: 5px;
 }
 
-.relationship-box-content span {
+.relationship-toolbox-content span {
     cursor: pointer;
 }
 
-.relationship-box-icons {
+.relationship-toolbox-icons {
     font-size: 16px;
     color: #333;
     display: flex;
@@ -156,7 +156,7 @@ foreignObject input {
     cursor: pointer;
 }
 
-.relationship-box-rect {
+.relationship-toolbox-rect {
     fill: lightyellow;
     stroke: #666;
     stroke-width: 1px;

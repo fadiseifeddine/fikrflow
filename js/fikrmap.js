@@ -10,13 +10,17 @@ let rectWidth = 250;
 let rectHeight = 50;
 
 // relationship Box
-let relationshipBoxRef;
+let relationshipToolBoxRef;
 let selectedLine = null;
 let relationshipBoxWidth = 160;
 let relationshipBoxHeight = 100;
 
+let BoxToolBoxRef;
+
+
 // 3dot Button
 let dotCircle = null; // Define the variable to hold the dot circle element
+let dotsText = null;
 
 
 const drawingContainer = document.getElementById('drawingContainer');
@@ -178,7 +182,7 @@ function renderMindMap() {
             .attr('d', 'M 0 0 L 10 5 L 0 10 z')
             .attr('fill', '#000000');
 
-
+        renderBoxToolBox();
 
         renderRelationships();
 
@@ -386,33 +390,33 @@ function renderMindMap() {
         }
 
 
-        function renderRelationBox() {
-            //console.log("renderRelationBox ...... start");
+        function renderRelationToolBox() {
+            //console.log("renderRelationToolBox ...... start");
             // Create the relationship box
 
             const rectMargin = 20;
             const lineStrokeWidth = 2;
             const relationshipLineLength = 80;
             // Create the relationship box
-            const relationshipBox = svg
+            const relationshipToolBox = svg
                 .append("g")
                 .attr("class", "relationship-box")
                 .style("display", "none");
 
-            relationshipBox
+            relationshipToolBox
                 .append("rect")
                 .attr("class", "relationship-box-rect")
-                .attr("width", relationshipBoxWidth)
-                .attr("height", relationshipBoxHeight);
+                .attr("width", relationshipToolBoxWidth)
+                .attr("height", relationshipToolBoxHeight);
 
-            const boxContainer = relationshipBox
+            const boxContainer = relationshipToolBox
                 .append("foreignObject")
-                .attr("width", relationshipBoxWidth)
-                .attr("height", relationshipBoxHeight);
+                .attr("width", relationshipToolBoxWidth)
+                .attr("height", relationshipToolBoxHeight);
 
-            const boxContent = boxContainer
+            const toolboxContent = boxContainer
                 .append("xhtml:div")
-                .attr("class", "relationship-box-content");
+                .attr("class", "relationship-toolbox-content");
 
 
             const icons = [
@@ -424,33 +428,40 @@ function renderMindMap() {
                 { icon: "bi bi-textarea-t", text: "Label" },
             ];
             // Create the nodes inside the relationship box
-            const relationshipNodes = boxContent
+            const relationshipTooBoxNodes = toolboxContent
                 .selectAll("div")
                 .data(icons)
                 .enter()
                 .append("div")
-                .on("click", handleRelationshipNodesClick);
+                .on("click", handleRelationshipToolboxNodesClick);
 
 
-            relationshipNodes
+            relationshipTooBoxNodes
                 .append("i")
-                .attr("class", d => `relationship-box-icons ${d.icon}`)
+                .attr("class", d => `relationship-toolbox-icons ${d.icon}`)
                 .style("display", "inline-block")
-                .on("click", handleRelationshipNodesClick);
+                .on("click", handleRelationshipToolboxNodesClick);
 
 
-            relationshipNodes
+            relationshipTooBoxNodes
                 .append("span")
                 .text(d => d.text)
                 .style("margin-left", "5px")
-                .on("click", handleRelationshipNodesClick);
+                .on("click", handleRelationshipToolboxNodesClick);
 
 
 
-            relationshipBoxRef = relationshipBox;
+            relationshipToolBoxRef = relationshipToolBox;
 
         }
 
+        function renderRelationToolBox() {
+            //console.log("renderBoxToolBox ...... start");
+            // Create the relationship bo
+
+            BoxToolBoxRef = BoxToolBox;
+
+        }
 
         // Function to toggle the visibility of the dot button for a selected box
         function ToggleDotButton(event, d) {
@@ -475,7 +486,7 @@ function renderMindMap() {
             const circleId = d.id || (d.source && d.target ? `${d.source}-${d.target}` : null);
 
             // Create the circle with "..." text in the middle of the line
-            const dotCircle = dotGroup
+            dotCircle = dotGroup
                 .append("circle")
                 .attr("id", circleId) // Set the id of the circle to the box or line id
                 .attr("cx", 150) // Set the initial position, you can change this value if needed
@@ -488,7 +499,7 @@ function renderMindMap() {
             // Append the "..." text to the circle's parent group
             // Append a foreignObject to the circle to embed HTML content
             // Append the text inside the circle
-            const dotsText = dotGroup
+            dotsText = dotGroup
                 .append("text")
                 .attr("font-size", "18px")
                 .attr("text-anchor", "middle")
@@ -546,7 +557,7 @@ function renderMindMap() {
                     //  console.log("Found  Line x1:", targetobj.x1);
 
                     // console.log(targetobj);
-                    toggleRelationshipBox(targetobj);
+                    toggleRelationshipToolBox(targetobj);
                 } else {
                     console.log("Found  Box:", targetobj.id);
 
@@ -555,12 +566,19 @@ function renderMindMap() {
 
 
                 dotCircle.attr("visibility", "hidden");
+                dotsText.attr("visibility", "hidden");
+
 
             }
 
         }
 
-        function handleRelationshipNodesClick(event, d) {
+        function handleBoxToolboxNodesClick(event, d) {
+            console.log(`Clicked ${d.text}`);
+            console.log('-----------------------------------');
+        }
+
+        function handleRelationshipToolboxNodesClick(event, d) {
             console.log(`Clicked ${d.text}`);
             console.log('-----------------------------------');
 
@@ -632,15 +650,15 @@ function renderMindMap() {
         }
 
 
-        // Function to toggle the relationship box
-        function toggleRelationshipBox(line) {
-            // console.log("In the ToggleRelationshipBox ....");
+        // Function to toggle the relationship tool box trigerred on 3 dots from line
+        function toggleRelationshipToolBox(line) {
+            // console.log("In the ToggleRelationshipToolBox ....");
             console.log('line.id=' + line.id);
             console.log('line.source.x=' + line.source.x);
             // console.log('line.y1=' + line.y1);
             // console.log('line.y2=' + line.y2);
 
-            const display = relationshipBoxRef.style("display");
+            const display = relationshipToolBoxRef.style("display");
             // console.log('display=' + display);
 
             if (display === "none") {
@@ -651,23 +669,50 @@ function renderMindMap() {
                 const middleX = (lineX1 + lineX2) / 2;
                 const middleY = (lineY1 + lineY2) / 2;
 
-                relationshipBoxRef
+                relationshipToolBoxRef
                     .attr("transform", `translate(${middleX - relationshipBoxWidth / 2}, ${middleY - relationshipBoxHeight / 2})`)
                     .style("display", "block");
 
-                console.log("relationshipBoxRef should now be displayed");
+                console.log("relationshipToolBoxRef should now be displayed");
 
             } else {
-                relationshipBoxRef.style("display", "none");
+                relationshipToolBoxRef.style("display", "none");
             }
         }
 
+        // Function to toggle the relationship tool box trigerred on 3 dots from line
+        function toggleBoxToolBox(box) {
+            // console.log("In the ToggleRelationshipToolBox ....");
+            console.log('box.id=' + box.id);
+
+
+            const display = BoxToolBoxRef.style("display");
+            // console.log('display=' + display);
+
+            if (display === "none") {
+                const lineX1 = +line.x1 + 130;
+                const lineX2 = +line.x2 + 130;
+                const lineY1 = +line.y1 + 30;
+                const lineY2 = +line.y2 + 30;
+                const middleX = (lineX1 + lineX2) / 2;
+                const middleY = (lineY1 + lineY2) / 2;
+
+                BoxToolBoxRef
+                    .attr("transform", `translate(${middleX - relationshipBoxWidth / 2}, ${middleY - relationshipBoxHeight / 2})`)
+                    .style("display", "block");
+
+                console.log("BoxToolBoxRef should now be displayed");
+
+            } else {
+                BoxToolBoxRef.style("display", "none");
+            }
+        }
 
         // Update the renderRelationships() function as shown below
         function renderRelationships() {
             updateSolidRelationships();
             updateCurvedRelationships();
-            renderRelationBox();
+            renderRelationToolBox();
         }
 
 
@@ -704,10 +749,11 @@ function selectNode(nodeId) {
 
     selectedNode = nodeId;
 
-    // Close the relationship box when a node is selected
+    // Close the relationship tool box when a node is selected
     if (nodeId === null) {
         console.log("Hiding the Relationship Box ....");
-        hideRelationshipBox();
+        hideRelationshipToolBox();
+        hideBoxToolBox();
 
     }
 
@@ -740,10 +786,13 @@ function selectNode(nodeId) {
 }
 
 // Function to hide the relationship box
-function hideRelationshipBox() {
-    relationshipBoxRef.style("display", "none");
+function hideRelationshipToolBox() {
+    relationshipToolBoxRef.style("display", "none");
 }
-
+// Function to hide the relationship box
+function hideBoxToolBox() {
+    BoxToolBoxRef.style("display", "none");
+}
 
 
 
