@@ -121,20 +121,20 @@ foreignObject input {
     stroke-width: 5px;
 }
 
-.relationship-box {
+.relationship-toolbox {
     fill: #fff;
     stroke: #666;
     stroke-width: 2px;
     display: none;
 }
 
-.relationship-box-text {
+.relationship-toolbox-text {
     font-size: 12px;
     text-anchor: middle;
     pointer-events: none;
 }
 
-.relationship-box-content {
+.relationship-toolbox-content {
     font-family: sans-serif;
     font-size: 12px;
     padding: 10px;
@@ -160,6 +160,46 @@ foreignObject input {
     fill: lightyellow;
     stroke: #666;
     stroke-width: 1px;
+}
+
+.box-toolbox {
+    fill: #fff;
+    stroke: #666;
+    stroke-width: 2px;
+    display: none;
+}
+
+.box-toolbox-text {
+    font-size: 12px;
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+.box-toolbox-content {
+    font-family: sans-serif;
+    font-size: 12px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 5px;
+}
+
+.box-toolbox-content span {
+    cursor: pointer;
+}
+
+.box-toolbox-icons {
+    font-size: 16px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.box-toolbox-rect {
+    fill: lightyellow;
+    stroke: #666;
 }
 
 .color-palette {

@@ -12,11 +12,12 @@ let rectHeight = 50;
 // relationship Box
 let relationshipToolBoxRef;
 let selectedLine = null;
-let relationshipBoxWidth = 160;
-let relationshipBoxHeight = 100;
+let relationshipToolBoxWidth = 160;
+let relationshipToolBoxHeight = 100;
 
 let BoxToolBoxRef;
-
+let boxToolBoxWidth = 160;
+let boxToolBoxHeight = 100;
 
 // 3dot Button
 let dotCircle = null; // Define the variable to hold the dot circle element
@@ -73,7 +74,7 @@ function renderMindMap() {
             .append('g')
             .attr('class', 'node')
             .attr('transform', (d) => `translate(${d.x || 0}, ${d.y || 0})`) // Handle undefined coordinates
-            .attr('id', (d) => `node-${d.id}`)
+            .attr('id', (d) => `${d.id}`)
             .call(dragHandler)
             .on("click", function(event, d) {
                 // On click event, show the circle and dots for the clicked box and hide them for other boxes
@@ -90,7 +91,10 @@ function renderMindMap() {
             .attr('height', rectHeight)
             //.attr('width', (d) => d.label.length * 10 + 20)
             //.attr('height', 50)
-            .attr('data-tag', 'rect');
+            .attr('data-tag', 'rect')
+            .attr("stroke-width", (d) => {
+                return d.strokewidth;
+            });
 
         rectNodes
             .classed('completed', (d) => d.completed)
@@ -277,7 +281,7 @@ function renderMindMap() {
                 .append('line')
                 .attr("id", (d) => (d.source + '-' + d.target))
                 .attr('class', 'relationship solid-relationship')
-                .attr('stroke', (d) => { return d.color }) // Set the color of the line to blue (you can use any color you like)
+                .attr('stroke', (d) => { return d.stroke }) // Set the color of the line to blue (you can use any color you like)
                 .merge(solidRelationships) // Merge enter and update selections
                 .attr('x1', (d) => {
                     if (d.source.dragging) {
@@ -308,8 +312,7 @@ function renderMindMap() {
                     }
                 })
                 .attr("stroke-width", (d) => {
-                    //console.log(`Stroke width: ${d.width}px`);
-                    return d.width + "px";
+                    return d.strokewidth;
                 }).on("mouseover", function(event, d) {
                     //console.log("overrrrrrrrrr");
                     d3.select(this).attr("class", "solid-relationship hover");
@@ -338,7 +341,7 @@ function renderMindMap() {
                 .append('line')
                 .attr("id", (d) => (d.source + '-' + d.target))
                 .attr('class', 'relationship dash-relationship')
-                .attr('stroke', (d) => { return d.color }) // Set the color of the line to blue (you can use any color you like)
+                .attr('stroke', (d) => { return d.stroke }) // Set the color of the line to blue (you can use any color you like)
                 .merge(curvedRelationships) // Merge enter and update selections
                 .attr('x1', (d) => {
                     if (d.source.dragging) {
@@ -368,13 +371,12 @@ function renderMindMap() {
                         return getCenterY(nodes, d.target);
                     }
                 })
-                .attr("stroke-width", (d) => {
-                    console.log(`Stroke width: ${d.width}px`);
-                    return d.width + "px";
-                })
                 .on("click", function() {
                     console.log("Line Clicked ....");
                     selectedLine = d3.select(this);
+                })
+                .attr("stroke-width", (d) => {
+                    return d.strokewidth;
                 })
                 .on('mouseover', function(event, d) {
                     console.log('mouseover');
@@ -400,12 +402,12 @@ function renderMindMap() {
             // Create the relationship box
             const relationshipToolBox = svg
                 .append("g")
-                .attr("class", "relationship-box")
+                .attr("class", "relationship-toolbox")
                 .style("display", "none");
 
             relationshipToolBox
                 .append("rect")
-                .attr("class", "relationship-box-rect")
+                .attr("class", "relationship-toolbox-rect")
                 .attr("width", relationshipToolBoxWidth)
                 .attr("height", relationshipToolBoxHeight);
 
@@ -455,9 +457,65 @@ function renderMindMap() {
 
         }
 
-        function renderRelationToolBox() {
+        function renderBoxToolBox() {
             //console.log("renderBoxToolBox ...... start");
             // Create the relationship bo
+
+            const rectMargin = 20;
+            const lineStrokeWidth = 2;
+            const relationshipLineLength = 80;
+            // Create the relationship box
+            const BoxToolBox = svg
+                .append("g")
+                .attr("class", "box-toolbox-box")
+                .style("display", "none");
+
+            BoxToolBox
+                .append("rect")
+                .attr("class", "box-toolbox-rect")
+                .attr("width", boxToolBoxWidth)
+                .attr("height", boxToolBoxHeight);
+
+            const boxContainer = BoxToolBox
+                .append("foreignObject")
+                .attr("width", boxToolBoxWidth)
+                .attr("height", boxToolBoxWidth);
+
+            const toolboxContent = boxContainer
+                .append("xhtml:div")
+                .attr("class", "box-toolbox-content");
+
+
+            const icons = [
+                { icon: "bi bi-palette", text: "Color" },
+                { icon: "bi bi-arrow-left-right", text: "Shape" },
+                { icon: "bi bi-arrows-collapse", text: "Thinner" },
+                { icon: "bi-arrows-expand", text: "Thicker" },
+                { icon: "bi bi-trash", text: "Delete" },
+            ];
+            // Create the nodes inside the relationship box
+            const boxTooBoxNodes = toolboxContent
+                .selectAll("div")
+                .data(icons)
+                .enter()
+                .append("div")
+                .on("click", handleBoxToolboxNodesClick);
+
+
+            boxTooBoxNodes
+                .append("i")
+                .attr("class", d => `relationship-toolbox-icons ${d.icon}`)
+                .style("display", "inline-block")
+                .on("click", handleBoxToolboxNodesClick);
+
+
+            boxTooBoxNodes
+                .append("span")
+                .text(d => d.text)
+                .style("margin-left", "5px")
+                .on("click", handleBoxToolboxNodesClick);
+
+
 
             BoxToolBoxRef = BoxToolBox;
 
@@ -560,7 +618,7 @@ function renderMindMap() {
                     toggleRelationshipToolBox(targetobj);
                 } else {
                     console.log("Found  Box:", targetobj.id);
-
+                    toggleBoxToolBox(targetobj);
                 }
 
 
@@ -576,6 +634,49 @@ function renderMindMap() {
         function handleBoxToolboxNodesClick(event, d) {
             console.log(`Clicked ${d.text}`);
             console.log('-----------------------------------');
+
+            const nodeId = selectedNode.id;
+
+            console.log(`Current/Target Box Id ${nodeId}`);
+
+            //const nodeelement = d3.select(`#${nodeId}`);
+            const nodeelement = d3.select(`#${nodeId}`);
+            console.log(nodeelement);
+            console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
+
+
+            if (d.text === "Thicker" || d.text === "Thinner") {
+
+                const existingStrokeWidth = parseFloat(nodeelement.select('rect').style('stroke-width'));
+                console.log('-----------------------------------');
+                newStrokeWidth = 0;
+                if (d.text === "Thicker") {
+                    newStrokeWidth = existingStrokeWidth + 1;
+                } else if (d.text === "Thinner") {
+                    newStrokeWidth = existingStrokeWidth - 1;
+                }
+
+                console.log("existingStrokeWidth=" + existingStrokeWidth);
+                console.log("newStrokeWidth=" + newStrokeWidth);
+
+                nodeelement.select('rect').style('stroke-width', `${newStrokeWidth}`);
+
+
+
+                // Update the strokewidth property of the node data
+                const nodeData = mindMapData.nodes.find((node) => node.id === nodeId);
+                if (nodeData) {
+                    console.log("updating mind map with new stroke width")
+                    nodeData.strokewidth = newStrokeWidth;
+                }
+
+            } else if (d.text === "Color") {
+                handleColorPalette('line', lineId);
+
+            }
+
+            renderMindMap();
+
         }
 
         function handleRelationshipToolboxNodesClick(event, d) {
@@ -584,7 +685,7 @@ function renderMindMap() {
 
             const lineId = selectedLine.id;
 
-            console.log(`Current Line Id ${lineId}`);
+            console.log(`Current/Target Line Id ${lineId}`);
 
             const lineElement = d3.select(`#${lineId}`);
 
@@ -601,7 +702,7 @@ function renderMindMap() {
                 console.log("currentStrokeWidth=" + currentStrokeWidth);
                 console.log("newStrokeWidth=" + newStrokeWidth);
 
-                lineElement.style("stroke-width", `${newStrokeWidth}px`);
+                lineElement.style("stroke-width", `${newStrokeWidth}`);
 
                 // Update the stroke-width in the mind map data
                 const relationship = mindMapData.relationships.find((relation) => {
@@ -612,7 +713,7 @@ function renderMindMap() {
 
                 console.log('relationship =' + relationship);
                 if (relationship) {
-                    relationship.width = newStrokeWidth;
+                    relationship.strokewidth = newStrokeWidth;
                     console.log('Setting the mindMapData width');
                 }
                 console.log('-----------------------------------');
@@ -645,6 +746,7 @@ function renderMindMap() {
                 // Find the box with the given id in the mindMapData
                 console.log("findObject Box with Target ID =" + targetid);
                 targetobj = mindMapData.nodes.find((node) => node.id === targetid);
+                selectedNode = targetobj;
             }
             return targetobj;
         }
@@ -670,7 +772,7 @@ function renderMindMap() {
                 const middleY = (lineY1 + lineY2) / 2;
 
                 relationshipToolBoxRef
-                    .attr("transform", `translate(${middleX - relationshipBoxWidth / 2}, ${middleY - relationshipBoxHeight / 2})`)
+                    .attr("transform", `translate(${middleX - relationshipToolBoxWidth / 2}, ${middleY - relationshipToolBoxHeight / 2})`)
                     .style("display", "block");
 
                 console.log("relationshipToolBoxRef should now be displayed");
@@ -682,7 +784,7 @@ function renderMindMap() {
 
         // Function to toggle the relationship tool box trigerred on 3 dots from line
         function toggleBoxToolBox(box) {
-            // console.log("In the ToggleRelationshipToolBox ....");
+            // console.log("In the ToggleBoxToolBox ....");
             console.log('box.id=' + box.id);
 
 
@@ -690,15 +792,15 @@ function renderMindMap() {
             // console.log('display=' + display);
 
             if (display === "none") {
-                const lineX1 = +line.x1 + 130;
-                const lineX2 = +line.x2 + 130;
-                const lineY1 = +line.y1 + 30;
-                const lineY2 = +line.y2 + 30;
-                const middleX = (lineX1 + lineX2) / 2;
-                const middleY = (lineY1 + lineY2) / 2;
+
+
+                //calcX = d.x + (d.label.length * 10 + 20) / 2;
+                calcX = box.x + (rectWidth) / 2 - 70;
+                calcY = box.y - 70;
+
 
                 BoxToolBoxRef
-                    .attr("transform", `translate(${middleX - relationshipBoxWidth / 2}, ${middleY - relationshipBoxHeight / 2})`)
+                    .attr("transform", `translate(${calcX}, ${calcY})`)
                     .style("display", "block");
 
                 console.log("BoxToolBoxRef should now be displayed");
@@ -830,10 +932,10 @@ function handleAddRelation() {
         const clickedNode = event.target.closest('.node');
 
         // Check if a valid target node was clicked and it's not the source node
-        if (clickedNode && clickedNode.id && clickedNode.id !== `node-${sourceNode}`) {
+        if (clickedNode && clickedNode.id && clickedNode.id !== `${sourceNode}`) {
             const newRelationship = {
                 source: sourceNode,
-                target: clickedNode.id.replace('node-', ''),
+                target: clickedNode.id,
                 type: 'dash'
             };
 
@@ -882,12 +984,12 @@ function handleAddNode() {
         if (selectedNodeData) {
             const existingChildrenCount = selectedNodeData.children ? selectedNodeData.children.length : 0;
             const newNodeX = selectedNodeData.x + (existingChildrenCount + 1) * 100; // Adjust the x position of the new node
-
             // Find the next available position for the new node
             let nextX = newNodeX;
             while (mindMapData.nodes.some((node) => node.x === nextX && node.y === selectedNodeData.y + 100)) {
                 nextX += 100;
             }
+
 
             const newNode = {
                 id: newNodeId,
@@ -899,12 +1001,19 @@ function handleAddNode() {
                 children: [],
             };
 
+            console.log("newNodeID=" + newNodeId);
+            console.log("selectedNode=" + selectedNode);
+
             mindMapData.nodes.push(newNode);
             mindMapData.relationships.push({
+                id: `${selectedNode}-${newNodeId}`,
                 source: selectedNode,
                 target: newNodeId,
-                type: 'solid'
+                type: 'solid',
+                strokewidth: '1',
+                stroke: 'black'
             });
+
 
             selectedNode = newNodeId; // Select the new node
 
@@ -920,7 +1029,7 @@ function handleAddNode() {
 function handleRectEdit() {
     if (selectedNode) {
         const selectedNodeId = selectedNode;
-        const selectedNodeElement = document.getElementById(`node-${selectedNodeId}`);
+        const selectedNodeElement = document.getElementById(`${selectedNodeId}`);
         const rectext = selectedNodeElement.querySelector('text[data-tag="recttext"]');
 
         if (rectext) {
