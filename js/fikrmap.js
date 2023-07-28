@@ -79,11 +79,18 @@ function renderMindMap() {
             .on("click", function(event, d) {
                 // On click event, show the circle and dots for the clicked box and hide them for other boxes
                 selectNode(d.id);
-            }).on("mouseover", function(event, d) {
+            })
+            .on("mouseover", function(event, d) {
                 //console.log("overrrrrrrrrr");
                 //d3.select(this).attr("class", "solid-relationship hover");
                 ToggleDotButton(event, d);
             });
+
+        nodes.on('dblclick', function(event, d) {
+            // Your double-click event handling code here
+            console.log('Double-clicked on node:', d);
+            handleRectEdit();
+        });
 
         const rectNodes = nodes
             .append('rect')
