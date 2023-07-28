@@ -43,7 +43,7 @@ body {
     width: 100%;
     height: calc(100% - 150px);
     overflow-x: auto;
-    background-color: #f0f8ff;
+    background-color: #FFFFFF;
     z-index: 0;
 }
 
@@ -55,7 +55,7 @@ body {
     /* Adjust the top margin as desired */
     left: 50px;
     /* Adjust the left margin as desired */
-    background-color: #f0f8ff;
+    background-color: #FFFFFF;
 }
 
 .node rect {

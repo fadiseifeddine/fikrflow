@@ -98,8 +98,11 @@ function renderMindMap() {
 
         rectNodes
             .classed('completed', (d) => d.completed)
-            .style('fill', (d) => (d.completed ? '#f2f2f2' : '#faffb8')); // Change the fill color based on the completed status
-
+            .style('fill', (d) => {
+                //console.log(`Node ID: ${d.id}, Completed: ${d.completed}`);
+                return d.completed ? '#D3D3D3' : d.fill;
+                // Completed True then 
+            });
         // used in the edit box then get replaced
         const foreignObjects = nodes
             .append('foreignObject')
@@ -199,13 +202,6 @@ function renderMindMap() {
             const targetClass = event.target.getAttribute("class");
             console.log("Target Class = " + targetClass);
 
-            //          if (!targetClass) {
-            //               selectNode(null);
-            //          }
-
-            //The event.target.closest('.node') expression is used to find the closest ancestor element of the event target 
-            // that matches the specified CSS selector .node. It returns the closest element that matches the selector, 
-            // or null if no matching ancestor is found.
 
             if (targetClass == 'solid-relationship hover' || targetClass == 'dash-relationship hover') {
                 console.log("hitting line so no null ")
@@ -671,7 +667,7 @@ function renderMindMap() {
                 }
 
             } else if (d.text === "Color") {
-                handleColorPalette('line', lineId);
+                handleColorPalette('box', nodeId);
 
             }
 
@@ -1132,16 +1128,14 @@ function generateRandomColorCode() {
     return colorCode;
 }
 
-// Show color palette when a box is clicked
 function showColorPalette(type, id) {
     // Set the clicked box as the active box
-
     console.log("showColorPalette for id =" + id, 'type =' + type);
 
     // Show the color palette
     colorPalette.innerHTML = "";
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 42; i++) {
         const colorCode = generateRandomColorCode();
         const colorPaletteColor = document.createElement("div");
         colorPaletteColor.className = "color-palette-color";
@@ -1152,9 +1146,9 @@ function showColorPalette(type, id) {
 
             if (type == 'line') {
                 console.log("Changing the Line Color");
-                const lineId = selectedLine.attr("id");
-                console.log(`Current Line Id ${lineId}`);
-                const lineElement = d3.select(`#${lineId}`);
+                const lineId = selectedLine.id;
+                console.log(`Current Line Id ${id}`);
+                const lineElement = d3.select(`#${id}`);
 
                 lineElement.style("stroke", colorCode);
 
@@ -1164,46 +1158,68 @@ function showColorPalette(type, id) {
                     return slineId === lineId;
                 });
 
-
                 if (relationship) {
-                    console.log('relationship =');
-                    console.log(relationship);
-                    relationship.color = colorCode;
+                    relationship.stroke = colorCode;
                     console.log('Setting the mindMapData Color');
                 }
 
             } else {
-
                 // Set the selected color as the fill color of the active box
                 if (id) {
-                    console.log("Changing the Node Color");
-                    selectNode.style("fill", colorCode);
-                    id = null;
+                    console.log("Change Color - Changing the Node Color id=" + id);
+                    const boxElement = d3.select(`#${id} rect`);
+                    boxElement.style("fill", colorCode);
+
+                    // Update the color property in the mind map data
+                    const nodeData = mindMapData.nodes.find((node) => node.id === id);
+                    if (nodeData) {
+                        console.log('Updating mindMapData Color for Id =' + id);
+                        nodeData.fill = colorCode;
+                    }
                 }
             }
-
-
-
-
         });
         colorPalette.appendChild(colorPaletteColor);
     }
 
-    // Position the color palette next to the active box
-    const activeobj = d3.select("#" + id);
-    const boxX = parseFloat(activeobj.attr("x"));
-    const boxY = parseFloat(activeobj.attr("y"));
-    const boxHeight = parseFloat(activeobj.attr("height"));
+    // Calculate the midpoint of the line or box
+    if (type === 'line') {
+        const lineId = id;
+        const lineElement = d3.select(`#${id}`);
+        const x1 = parseFloat(lineElement.attr("x1"));
+        const y1 = parseFloat(lineElement.attr("y1"));
+        const x2 = parseFloat(lineElement.attr("x2"));
+        const y2 = parseFloat(lineElement.attr("y2"));
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
 
-    const paletteX = boxX + 100 + 10;
-    const paletteY = boxY + boxHeight / 2 - colorPalette.offsetHeight / 2;
+        // Position the color palette next to the midpoint of the line
+        const paletteX = midX - 70; //- colorPalette.offsetWidth / 2;
+        const paletteY = midY - 70; //- colorPalette.offsetHeight / 2;
 
-    colorPalette.style.top = paletteY + "px";
-    colorPalette.style.left = paletteX + "px";
+        colorPalette.style.top = paletteY + "px";
+        colorPalette.style.left = paletteX + "px";
+    } else {
+        // Position the color palette on top of the box
+        const boxElement = d3.select(`#${id}`);
+        console.log("boxElement =" + boxElement.attr('id'))
+            // Get the x and y attributes
+        const x = parseFloat(boxElement.attr('transform').split(',')[0].split('(')[1]);
+        const y = parseFloat(boxElement.attr('transform').split(',')[1].split(')')[0]);
+
+        console.log(x);
+        const paletteX = x + rectHeight;
+        const paletteY = y - rectHeight;
+
+        colorPalette.style.top = paletteY + "px";
+        colorPalette.style.left = paletteX + "px";
+    }
 
     // Show the color palette
     colorPalette.style.display = "block";
 }
+
+
 
 async function handleOpen() {
     const fileList = await getDrawings();
