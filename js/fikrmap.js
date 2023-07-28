@@ -937,9 +937,12 @@ function handleAddRelation() {
         // Check if a valid target node was clicked and it's not the source node
         if (clickedNode && clickedNode.id && clickedNode.id !== `${sourceNode}`) {
             const newRelationship = {
+                id: `${sourceNode}-${clickedNode.id}`,
                 source: sourceNode,
                 target: clickedNode.id,
-                type: 'dash'
+                type: 'dash',
+                stroke: 'black',
+                strokewidth: 1
             };
 
             // Add the new relationship to the mind map data
@@ -996,7 +999,7 @@ function handleAddNode() {
 
             const newNode = {
                 id: newNodeId,
-                label: 'Edit',
+                label: 'Double Click to Edit',
                 color: selectedNodeData.color,
                 textColor: selectedNodeData.textColor,
                 x: nextX,
