@@ -2,7 +2,6 @@ let userInput = '';
 let mindMapData = '';
 let sessionID = ''; // Declare sessionID as a global variable
 let selectedNode = null;
-let isAddingRelation = false;
 let sourceNode = null;
 
 // Box itself
@@ -22,6 +21,12 @@ let boxToolBoxHeight = 100;
 // 3dot Button
 let dotCircle = null; // Define the variable to hold the dot circle element
 let dotsText = null;
+
+let nodes = null;
+
+let addingrel = false;
+let addingrelsource = null;
+let addingreltarget = null;
 
 
 const drawingContainer = document.getElementById('drawingContainer');
@@ -67,7 +72,7 @@ function renderMindMap() {
 
         const svg = d3.select('#mindMapContainer');
 
-        const nodes = svg
+        nodes = svg
             .selectAll('.node')
             .data(mindMapData.nodes)
             .enter()
@@ -75,22 +80,9 @@ function renderMindMap() {
             .attr('class', 'node')
             .attr('transform', (d) => `translate(${d.x || 0}, ${d.y || 0})`) // Handle undefined coordinates
             .attr('id', (d) => `${d.id}`)
-            .call(dragHandler)
-            .on("click", function(event, d) {
-                // On click event, show the circle and dots for the clicked box and hide them for other boxes
-                selectNode(d.id);
-            })
-            .on("mouseover", function(event, d) {
-                //console.log("overrrrrrrrrr");
-                //d3.select(this).attr("class", "solid-relationship hover");
-                ToggleDotButton(event, d);
-            });
+            .call(dragHandler);
 
-        nodes.on('dblclick', function(event, d) {
-            // Your double-click event handling code here
-            console.log('Double-clicked on node:', d);
-            handleRectEdit();
-        });
+
 
         const rectNodes = nodes
             .append('rect')
@@ -125,9 +117,11 @@ function renderMindMap() {
             .style('display', 'flex')
             .style('align-items', 'center')
             .style('justify-content', 'center')
-            .on('click', (event, d) => {
-                event.stopPropagation(); // Prevent click event from bubbling to the parent nodes
-            });
+            // .on('click', (event, d) => {
+            //     console.log('in the check box click ....');
+            //     event.stopPropagation(); // Prevent click event from bubbling to the parent nodes
+            // })
+        ;
 
         checkboxDivs
             .append('input')
@@ -135,15 +129,17 @@ function renderMindMap() {
             .attr('style', 'transform: scale(1.5)') // Scale the checkbox by a factor of 1.5
             .property('checked', (d) => d.completed)
             .on('change', (event, d) => toggleCompletion(mindMapData, d.id))
-            .on('click', (event) => {
-                event.stopPropagation(); // Prevent click event from bubbling to the parent nodes
-            });
+            // .on('click', (event) => {
+            //     event.stopPropagation(); // Prevent click event from bubbling to the parent nodes
+            // })
+        ;
 
         // make selected nodes highlighted
         nodes.classed('selected', (d) => d.id === selectedNode);
 
-        nodes
+        const nodeText = nodes
             .append('text')
+            .attr("class", "pointer-cursor")
             .attr('x', (d) => (rectWidth) / 2)
             .attr('y', 25)
             .text((d) => d.label)
@@ -170,6 +166,7 @@ function renderMindMap() {
             .attr('fill', '#FFFFFF')
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle');
+
 
 
         //d:     It represents the relationship object for which the curved path is being calculated. The relationship object contains information about the source node and the target node of the relationship.
@@ -200,27 +197,67 @@ function renderMindMap() {
 
         renderRelationships();
 
+        // Now, after creating and updating the relationships and nodes, adjust the SVG stack
+        // to ensure that nodes appear on top of relationships
+        svg.selectAll('.node').each(function() {
+            const node = this;
+            const parentNode = node.parentNode;
+            parentNode.appendChild(node); // Move the node to the end of its parent (SVG) to bring it to the front
+        });
 
+
+
+        nodes.on("mouseover", function(event, d) {
+            // console.log("A- OVERRRRRR NODES");
+            //event.stopPropagation(); // Stop the mousedown event from propagating
+            //d3.select(this).attr("class", "solid-relationship hover");
+            ToggleDotButton(event, d);
+        })
+
+
+        // Add the mousedown event listener to the parent container
+        // the click didn't fire on the first time / it is binding on first and firing on second
+        rectNodes.on('mousedown', function(event) {
+            //         console.log('LLLL2-Node clicked:');
+            const clickedNode = event.target.closest('.node');
+            //         console.log('LLLL3-Node clicked:', clickedNode.id);
+            selectNode(clickedNode.id);
+
+        });
+
+
+
+
+        // Add the mousedown event listener to the parent container
+        // the click didn't fire on the first time / it is binding on first and firing on second
+        nodeText.on('mousedown', function(event) {
+            // console.log('LLLL2-Node clicked:');
+            const clickedNode = event.target.closest('.node');
+            //   console.log('LLLL3-Node clicked:', clickedNode.id);
+            selectNode(clickedNode.id);
+        });
 
 
         svg.on('click', (event) => {
-            console.log('svg on click');
+            //   console.log("B - SVG CLICK");
 
             const targetClass = event.target.getAttribute("class");
             console.log("Target Class = " + targetClass);
 
-
-            if (targetClass == 'solid-relationship hover' || targetClass == 'dash-relationship hover') {
-                console.log("hitting line so no null ")
-
+            if (targetClass === 'solid-relationship hover' || targetClass === 'dash-relationship hover') {
+                console.log("Hitting line, do nothing");
                 return;
-            }
-
-            if (!event.target || !event.target.closest('.node')) {
-                console.log("going with null selection")
+            } else {
+                console.log("Clicked outside nodes, deselecting...");
                 selectNode(null);
             }
+
+            // if (!event.target || !event.target.closest('.node')) {
+            //     console.log("going with null selection")
+            //     selectNode(null);
+            // }
         });
+
 
 
 
@@ -290,6 +327,8 @@ function renderMindMap() {
                     if (d.source.dragging) {
                         return d.source.x + getRightEdgeX(nodes, d.source);
                     } else {
+                        // console.log('x1');
+                        // console.log(getRightEdgeX(nodes, d.source));
                         return getRightEdgeX(nodes, d.source);
                     }
                 })
@@ -350,6 +389,8 @@ function renderMindMap() {
                     if (d.source.dragging) {
                         return d.source.x + getRightEdgeX(nodes, d.source);
                     } else {
+                        // console.log('x11111111 =' + d.source + '-' + d.target);
+                        // console.log(getRightEdgeX(nodes, d.source));
                         return getRightEdgeX(nodes, d.source);
                     }
                 })
@@ -526,7 +567,7 @@ function renderMindMap() {
 
         // Function to toggle the visibility of the dot button for a selected box
         function ToggleDotButton(event, d) {
-            //console.log(d)
+            console.log(' Mouse Over ToggleDotButton');
             var calcX = 0
             var calcY = 0
 
@@ -605,6 +646,7 @@ function renderMindMap() {
 
             dotCircle.attr("cx", calcX).attr("cy", calcY).attr("visibility", "visible");
             dotsText.attr("x", calcX).attr("y", calcY - 2).attr("visibility", "visible");
+
 
             function click3dotbutton(event, d) {
                 console.log("3 Dot Clicked........................");
@@ -686,7 +728,7 @@ function renderMindMap() {
             console.log(`Clicked ${d.text}`);
             console.log('-----------------------------------');
 
-            const lineId = selectedLine.id;
+            const lineId = selectedLine.attr('id');
 
             console.log(`Current/Target Line Id ${lineId}`);
 
@@ -737,10 +779,15 @@ function renderMindMap() {
             if (targetid.includes('-')) { // line
                 // console.log("findObject Line with ID =" + targetid);
                 // Update the stroke-width in the mind map data
-                targetobj = mindMapData.relationships.find((relation) => {
-                    const slineId = `${relation.source}-${relation.target}`;
-                    return slineId === targetid;
-                });
+
+                targetobj = d3.select(`#${targetid}`);
+                console.log('targetobj=')
+                console.log(targetobj)
+
+                // targetobj = mindMapData.relationships.find((relation) => {
+                //     const slineId = `${relation.source}-${relation.target}`;
+                //     return slineId === targetid;
+                // });
                 selectedLine = targetobj;
                 //console.log("findObject Line Object has ID =", targetobj);
 
@@ -757,9 +804,11 @@ function renderMindMap() {
 
         // Function to toggle the relationship tool box trigerred on 3 dots from line
         function toggleRelationshipToolBox(line) {
-            // console.log("In the ToggleRelationshipToolBox ....");
-            console.log('line.id=' + line.id);
-            console.log('line.source.x=' + line.source.x);
+            console.log("In the ToggleRelationshipToolBox ....");
+            console.log('line.id=' + line.attr('id'));
+            console.log(line);
+            console.log('line.x1=' + line.attr('x1'));
+
             // console.log('line.y1=' + line.y1);
             // console.log('line.y2=' + line.y2);
 
@@ -767,10 +816,10 @@ function renderMindMap() {
             // console.log('display=' + display);
 
             if (display === "none") {
-                const lineX1 = +line.x1 + 130;
-                const lineX2 = +line.x2 + 130;
-                const lineY1 = +line.y1 + 30;
-                const lineY2 = +line.y2 + 30;
+                const lineX1 = +line.attr('x1') + 130;
+                const lineX2 = +line.attr('x2') + 130;
+                const lineY1 = +line.attr('y1') + 30;
+                const lineY2 = +line.attr('y2') + 30;
                 const middleX = (lineX1 + lineX2) / 2;
                 const middleY = (lineY1 + lineY2) / 2;
 
@@ -850,42 +899,89 @@ function selectNode(nodeId) {
 
     console.log("Selecting a Node in graph ..." + nodeId);
     console.log("selectedNode=" + selectedNode);
+    console.log("addingrel=" + addingrel);
 
-
-    selectedNode = nodeId;
-
-    // Close the relationship tool box when a node is selected
-    if (nodeId === null) {
-        console.log("Hiding the Relationship Box ....");
-        hideRelationshipToolBox();
-        hideBoxToolBox();
-
-    }
-
-    renderMindMap(); // Re-render the mind map to apply the selection highlight
-
-    const addButton = document.getElementById('addNodeButton');
-    const editButton = document.getElementById('editButton');
-    const deleteButton = document.getElementById('deleteButton');
-    const relationButton = document.getElementById('addRelationButton');
-
-
-    if (selectedNode) {
-        addButton.disabled = false; // Enable the "Add Node" button
-        editButton.disabled = false; // Enable the "Edit Node" button
-        deleteButton.disabled = false; // Enable the "Delete Node" button
-        relationButton.disabled = false;
-
-
+    selectionType = '';
+    if (addingrel == true) {
+        selectionType = 'target';
     } else {
-        addButton.disabled = true; // Disable the "Add Node" button
-        editButton.disabled = true; // Enable the "Edit Node" button
-        deleteButton.disabled = true; // Enable the "Delete Node" button
-        relationButton.disabled = true;
-
+        selectionType = 'source';
 
     }
 
+    console.log("selectionType=" + selectionType);
+
+    if (selectionType === 'source') {
+
+        // first selection does not edit, second click will edit
+        if (selectedNode == nodeId) {
+            console.log('Handling Edit ...');
+            // Call handleRectEdit with a slight delay to ensure proper registration of the blur event listener
+            setTimeout(function() {
+                handleRectEdit();
+            }, 100);
+        }
+
+        selectedNode = nodeId;
+
+        // Close the relationship tool box when a node is selected
+        if (nodeId === null) {
+            console.log("Hiding the Relationship Box ....");
+            hideRelationshipToolBox();
+            hideBoxToolBox();
+        } else {
+
+            renderMindMap(); // Re-render the mind map to apply the selection highlight
+
+            const addButton = document.getElementById('addNodeButton');
+            const editButton = document.getElementById('editButton');
+            const deleteButton = document.getElementById('deleteButton');
+            const relationButton = document.getElementById('addRelationButton');
+
+
+            if (selectedNode) {
+                addButton.disabled = false; // Enable the "Add Node" button
+                editButton.disabled = false; // Enable the "Edit Node" button
+                deleteButton.disabled = false; // Enable the "Delete Node" button
+                relationButton.disabled = false;
+
+
+            } else {
+                addButton.disabled = true; // Disable the "Add Node" button
+                editButton.disabled = true; // Enable the "Edit Node" button
+                deleteButton.disabled = true; // Enable the "Delete Node" button
+                relationButton.disabled = true;
+
+
+            }
+
+            addingrelsource = nodeId;
+
+        }
+
+    } else if (selectionType === 'target') {
+
+        // Get the target node ID and return it to handleAddRelation
+        addingreltarget = nodeId;
+
+        const newRelationship = {
+            id: `${addingrelsource}-${addingreltarget}`,
+            source: addingrelsource,
+            target: addingreltarget,
+            type: 'dash',
+            strokewidth: 1,
+            stroke: 'black'
+        };
+
+        // Add the new relationship to the mind map data
+        mindMapData.relationships.push(newRelationship);
+
+        // Re-render the mind map to show the new relationship
+        renderMindMap();
+        addingrelsource = null;
+        addingreltarget = null;
+        addingrel = null;
+    }
 
 
 }
@@ -918,47 +1014,9 @@ document.getElementById('addRelationButton').addEventListener('click', function(
 });
 
 function handleAddRelation() {
-    const relationshipButton = document.getElementById('addRelationButton');
 
-    const sourceNode = selectedNode;
-
-    // Prompt the user to click the target node
-    console.log('Please click the target node');
-
-
-    // Listen for the click event on the mind map container for the target node
-    const mindMapContainer = document.getElementById('mindMapContainer');
-    mindMapContainer.addEventListener('click', handleTargetNodeClick);
-
-    // Function to handle the click on the target node
-    function handleTargetNodeClick(event) {
-        const clickedNode = event.target.closest('.node');
-
-        // Check if a valid target node was clicked and it's not the source node
-        if (clickedNode && clickedNode.id && clickedNode.id !== `${sourceNode}`) {
-            const newRelationship = {
-                id: `${sourceNode}-${clickedNode.id}`,
-                source: sourceNode,
-                target: clickedNode.id,
-                type: 'dash',
-                stroke: 'black',
-                strokewidth: 1
-            };
-
-            // Add the new relationship to the mind map data
-            mindMapData.relationships.push(newRelationship);
-
-            // Re-render the mind map to show the new relationship
-            renderMindMap();
-
-
-            // Remove the click event listener from the target node
-            mindMapContainer.removeEventListener('click', handleTargetNodeClick);
-
-            // Deactivate the relationship button
-            relationshipButton.classList.remove('active');
-        }
-    }
+    console.log('In  handleAddRelation .......');
+    addingrel = true;
 
 }
 
@@ -1016,7 +1074,7 @@ function handleAddNode() {
                 source: selectedNode,
                 target: newNodeId,
                 type: 'solid',
-                strokewidth: '1',
+                strokewidth: 1,
                 stroke: 'black'
             });
 
@@ -1033,13 +1091,16 @@ function handleAddNode() {
 
 
 function handleRectEdit() {
+    console.log('Handling Edit for ' + selectedNode);
     if (selectedNode) {
         const selectedNodeId = selectedNode;
         const selectedNodeElement = document.getElementById(`${selectedNodeId}`);
         const rectext = selectedNodeElement.querySelector('text[data-tag="recttext"]');
 
         if (rectext) {
+            console.log('Rect Text Foud ..');
             const currentText = rectext.textContent;
+            console.log(currentText);
             const rectextStyle = window.getComputedStyle(rectext);
 
             const rectextBox = rectext.getBBox();
@@ -1072,13 +1133,17 @@ function handleRectEdit() {
             // Hide the original text element while editing
             rectext.style.visibility = 'hidden';
 
+            console.log('handleEdit 1');
             // Apply focus and selection after the input element is rendered
             requestAnimationFrame(() => {
+                console.log('handleEdit 2');
                 inputElement.focus();
                 inputElement.select();
             });
 
             inputElement.addEventListener('blur', () => {
+                console.log('handleEdit 3');
+
                 const newText = inputElement.value;
                 rectext.textContent = newText;
 
@@ -1156,7 +1221,6 @@ function showColorPalette(type, id) {
 
             if (type == 'line') {
                 console.log("Changing the Line Color");
-                const lineId = selectedLine.id;
                 console.log(`Current Line Id ${id}`);
                 const lineElement = d3.select(`#${id}`);
 
@@ -1165,7 +1229,7 @@ function showColorPalette(type, id) {
                 // Update the stroke-width in the mind map data
                 const relationship = mindMapData.relationships.find((relation) => {
                     const slineId = `${relation.source}-${relation.target}`;
-                    return slineId === lineId;
+                    return slineId === id;
                 });
 
                 if (relationship) {
