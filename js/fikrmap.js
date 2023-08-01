@@ -82,12 +82,15 @@ function renderMindMap() {
             .attr('id', (d) => `${d.id}`)
             .call(dragHandler);
 
+        const cornerRadius = 10; // Adjust the corner radius as needed
 
 
         const rectNodes = nodes
             .append('rect')
             .attr('width', rectWidth)
             .attr('height', rectHeight)
+            .attr('rx', cornerRadius) // Set the horizontal radius of the rounded corners
+            .attr('ry', cornerRadius) // Set the vertical radius of the rounded corners
             //.attr('width', (d) => d.label.length * 10 + 20)
             //.attr('height', 50)
             .attr('data-tag', 'rect')
@@ -172,8 +175,6 @@ function renderMindMap() {
         //d:     It represents the relationship object for which the curved path is being calculated. The relationship object contains information about the source node and the target node of the relationship.
         //nodes: It represents the selection of node elements in the SVG. It is used to access the node elements and retrieve their positions.
         //nodePositions: It represents a map that stores the calculated positions (x, y coordinates) of each node in the mind map. The map is used to retrieve the positions of the source and target nodes for calculating the curved path.
-
-
 
         // Append the <defs> element to the SVG
         const defs = svg.append('defs');
@@ -735,6 +736,33 @@ function renderMindMap() {
 
         }
 
+        function deleteNodeAndRelatedNodes(nodeId) {
+            const nodeIndex = mindMapData.nodes.findIndex((node) => node.id === nodeId);
+            if (nodeIndex === -1) {
+                // Node not found, return or throw an error
+                return;
+            }
+
+            // Find solid relationships originating from the node to be deleted
+            const solidRelationshipsToDelete = mindMapData.relationships.filter(
+                (relationship) => relationship.source === nodeId && relationship.type === 'solid'
+            );
+
+            // Recursively delete target nodes with solid relationships
+            solidRelationshipsToDelete.forEach((relationship) => {
+                deleteNodeAndRelatedNodes(relationship.target);
+            });
+
+            // Delete the node and its solid relationships
+            mindMapData.nodes.splice(nodeIndex, 1); // Remove the node from the nodes array
+            solidRelationshipsToDelete.forEach((relationship) => {
+                const relationshipIndex = mindMapData.relationships.indexOf(relationship);
+                if (relationshipIndex !== -1) {
+                    mindMapData.relationships.splice(relationshipIndex, 1); // Remove the solid relationship
+                }
+            });
+        }
+
         function handleBoxToolboxNodesClick(event, d) {
             console.log(`Clicked ${d.text}`);
             console.log('-----------------------------------');
@@ -777,7 +805,11 @@ function renderMindMap() {
             } else if (d.text === "Color") {
                 handleColorPalette('box', nodeId);
 
+            } else if (d.text === "Delete") {
+                deleteNodeAndRelatedNodes(nodeId);
+
             }
+
 
             renderMindMap();
 
@@ -792,6 +824,10 @@ function renderMindMap() {
             console.log(`Current/Target Line Id ${lineId}`);
 
             const lineElement = d3.select(`#${lineId}`);
+
+            if (d.text === "Type") {
+                console.log("Type .... ");
+            }
 
             if (d.text === "Thicker" || d.text === "Thinner") {
 
