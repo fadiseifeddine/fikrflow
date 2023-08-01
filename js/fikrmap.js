@@ -205,7 +205,13 @@ function renderMindMap() {
             parentNode.appendChild(node); // Move the node to the end of its parent (SVG) to bring it to the front
         });
 
-
+        // adding the ToolBox on top
+        renderRelationToolBox();
+        svg.selectAll('.box-toolbox-box').each(function() {
+            const node = this;
+            const parentNode = node.parentNode;
+            parentNode.appendChild(node); // Move the node to the end of its parent (SVG) to bring it to the front
+        });
 
         nodes.on("mouseover", function(event, d) {
             // console.log("A- OVERRRRRR NODES");
@@ -919,7 +925,6 @@ function renderMindMap() {
         function renderRelationships() {
             updateSolidRelationships();
             updateCurvedRelationships();
-            renderRelationToolBox();
         }
 
 
