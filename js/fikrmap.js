@@ -211,7 +211,7 @@ function renderMindMap() {
             // console.log("A- OVERRRRRR NODES");
             //event.stopPropagation(); // Stop the mousedown event from propagating
             //d3.select(this).attr("class", "solid-relationship hover");
-            ToggleDotButton(event, d);
+            ToggleButtons(event, d);
         })
 
 
@@ -303,7 +303,7 @@ function renderMindMap() {
                 //  console.log("d3x = " + d3x + ", d3y =" + d3y);
                 renderMindMap();
 
-                ToggleDotButton(event, d); // so the 3 dots move with the box
+                ToggleButtons(event, d); // so the 3 dots move with the box
 
 
             }
@@ -358,7 +358,7 @@ function renderMindMap() {
                 }).on("mouseover", function(event, d) {
                     //console.log("overrrrrrrrrr");
                     d3.select(this).attr("class", "solid-relationship hover");
-                    ToggleDotButton(event, d);
+                    ToggleButtons(event, d);
                 })
                 .on("mouseout", function() {
                     //console.log("outtttttttt");
@@ -425,7 +425,7 @@ function renderMindMap() {
                 .on('mouseover', function(event, d) {
                     console.log('mouseover');
                     d3.select(this).attr('class', 'dash-relationship hover');
-                    ToggleDotButton(event, d);
+                    ToggleButtons(event, d);
                 })
                 .on('mouseout', function() {
                     console.log('mouseout');
@@ -566,13 +566,19 @@ function renderMindMap() {
         }
 
         // Function to toggle the visibility of the dot button for a selected box
-        function ToggleDotButton(event, d) {
-            console.log(' Mouse Over ToggleDotButton');
-            var calcX = 0
-            var calcY = 0
+        function ToggleButtons(event, d) {
+            console.log(' Mouse Over ToggleButtons');
+            var dotcalcX = 0
+            var dotcalcY = 0
+            var pluscalcX = 0
+            var pluscalcY = 0
+
 
             // Remove any existing circles with the "three-dots-circle" class
             svg.selectAll(".three-dots-group").remove();
+
+            svg.selectAll(".plus-button").remove();
+
 
             // Create a group for the circle and text
             const dotGroup = svg
@@ -608,12 +614,50 @@ function renderMindMap() {
                 .attr("alignment-baseline", "middle")
                 .text("...");
 
+
+
+            // Create the "+" button
+            const plusGroup = svg
+                .append("g")
+                .attr("class", "plus-button pointer-cursor")
+                .attr("visibility", "visible")
+                .on('mouseover', () => dotGroup.attr("cursor", "pointer"))
+                .on('mouseout', () => dotGroup.attr("cursor", "default"))
+                .on('click', (event, d) => clickplusbutton(event, d));
+
+            // Create the circle with "..." text in the middle of the line
+            plusCircle = plusGroup
+                .append("circle")
+                .attr("id", circleId) // Set the id of the circle to the box or line id
+                .attr("cx", 150) // Set the initial position, you can change this value if needed
+                .attr("cy", 150) // Set the initial position, you can change this value if needed
+                .attr("r", 10)
+                .attr("fill", "yellow")
+                .attr("stroke", "black")
+                .attr("stroke-width", 2);
+
+
+            plusText = plusGroup
+                .append("text")
+                .attr("font-size", "18px")
+                .attr("text-anchor", "middle")
+                .attr("alignment-baseline", "middle")
+                .text("+");
+
+
             if (d.label) // Rectangle / Box
             {
 
                 //calcX = d.x + (d.label.length * 10 + 20) / 2;
-                calcX = d.x + (rectWidth) / 2;
-                calcY = d.y - 15;
+                dotcalcX = d.x + (rectWidth) / 2;
+                dotcalcY = d.y - 15;
+
+                pluscalcX = d.x + (rectWidth);
+                pluscalcY = d.y + rectHeight;
+
+
+                plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
+                plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
 
 
             }
@@ -633,8 +677,8 @@ function renderMindMap() {
                 const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
                 const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
                 const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
-                calcX = (sourceX + targetX) / 2;
-                calcY = (sourceY + targetY) / 2;
+                dotcalcX = (sourceX + targetX) / 2;
+                dotcalcY = (sourceY + targetY) / 2;
 
             }
 
@@ -644,9 +688,18 @@ function renderMindMap() {
             // console.log(dotCircle.attr('cx'));
             // console.log(dotCircle.attr('cy'));
 
-            dotCircle.attr("cx", calcX).attr("cy", calcY).attr("visibility", "visible");
-            dotsText.attr("x", calcX).attr("y", calcY - 2).attr("visibility", "visible");
+            dotCircle.attr("cx", dotcalcX).attr("cy", dotcalcY).attr("visibility", "visible");
+            dotsText.attr("x", dotcalcX).attr("y", dotcalcY - 2).attr("visibility", "visible");
 
+            function clickplusbutton(event, d) {
+                console.log("Plus Button Clicked........................");
+                event.stopPropagation();
+                console.log('circleId ' + circleId);
+                selectedNode = circleId;
+                handleAddNode();
+
+
+            }
 
             function click3dotbutton(event, d) {
                 console.log("3 Dot Clicked........................");
@@ -998,8 +1051,6 @@ function hideBoxToolBox() {
 
 
 // Listeners =============================
-
-
 document.getElementById('submitButton').addEventListener('click', handleInputSubmit);
 document.getElementById('saveButton').addEventListener('click', handleInputSave);
 document.getElementById('openButton').addEventListener('click', handleOpen);
