@@ -45,22 +45,60 @@ getsessionid();
 
 function getRightEdgeX(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
-    const rect = node ? node.querySelector('rect') : null;
-    return node && rect ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + parseFloat(rect.getAttribute('width')) : 0;
+    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"]') : null;
+
+    if (shape) {
+        if (shape.getAttribute('data-tag') === 'ellipse') {
+            const cx = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
+            const rx = parseFloat(shape.getAttribute('rx'));
+            return cx + rx;
+        } else if (shape.getAttribute('data-tag') === 'rect') {
+            // Get the width of the rectangle
+            const width = parseFloat(shape.getAttribute('width'));
+            // Calculate the X position to the right edge, in the middle of the edge
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + width;
+        }
+    }
+    return 0;
 }
-
-
 
 function getLeftEdgeX(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
-    return node ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) : 0;
+    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"]') : null;
+
+    if (shape) {
+        if (shape.getAttribute('data-tag') === 'ellipse') {
+            const cx = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
+            const rx = parseFloat(shape.getAttribute('rx'));
+            return cx - rx;
+        } else if (shape.getAttribute('data-tag') === 'rect') {
+            // Get the width of the rectangle
+            const width = parseFloat(shape.getAttribute('width'));
+            // Calculate the X position to the left edge, in the middle of the edge
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + width / 2;
+        }
+    }
+    return 0;
 }
 
+// coordinates for the left and right edge (middle of the rectangle / ellipse)
 function getCenterY(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
-    const rect = node ? node.querySelector('rect') : null;
-    return node && rect ? parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]) + parseFloat(rect.getAttribute('height')) / 2 : 0;
+    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"]') : null;
+
+    if (shape) {
+        if (shape.getAttribute('data-tag') === 'ellipse') {
+            const cy = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]);
+            const ry = parseFloat(shape.getAttribute('ry'));
+            return cy;
+        } else if (shape.getAttribute('data-tag') === 'rect') {
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + rectHeight / 2;
+        }
+    }
+    return 0;
 }
+
+
 
 
 function renderMindMap() {
@@ -70,7 +108,34 @@ function renderMindMap() {
     try {
 
 
-        const svg = d3.select('#mindMapContainer');
+
+        const width = mindMapContainer.clientWidth;
+        const height = mindMapContainer.clientHeight;
+
+        // Create the SVG element
+        const svg = d3.select('#mindMapContainer')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height);
+
+
+        // Create the D3 force simulation
+        const simulation = d3
+            .forceSimulation(mindMapData.nodes)
+            .force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2))
+            // Add other forces here as needed (e.g., forceCollide, forceX, forceY, etc.)
+            .on('tick', ticked);
+
+
+
+        // Function to update node positions on each tick of the simulation
+        function ticked() {
+            nodes.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
+            renderRelationships();
+            // Also update the links (curved paths) here if you have them
+        }
+
+
 
         nodes = svg
             .selectAll('.node')
@@ -83,20 +148,28 @@ function renderMindMap() {
             .call(dragHandler);
 
         const cornerRadius = 10; // Adjust the corner radius as needed
+        // Define the ellipse dimensions
+        const ellipseRx = 120; // Set the horizontal radius of the ellipse
+        const ellipseRy = 40; // Set the vertical radius of the ellipse
 
 
         const rectNodes = nodes
-            .append('rect')
-            .attr('width', rectWidth)
-            .attr('height', rectHeight)
-            .attr('rx', cornerRadius) // Set the horizontal radius of the rounded corners
-            .attr('ry', cornerRadius) // Set the vertical radius of the rounded corners
-            //.attr('width', (d) => d.label.length * 10 + 20)
-            //.attr('height', 50)
-            .attr('data-tag', 'rect')
-            .attr("stroke-width", (d) => {
-                return d.strokewidth;
-            });
+            //.append('rect')
+            .append((d) => {
+                // If shape is 'ellipse', create an ellipse element; otherwise, create a rect element
+                return d.shape === 'ellipse' ? document.createElementNS('http://www.w3.org/2000/svg', 'ellipse') : document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            })
+            .attr('width', (d) => (d.shape === 'ellipse' ? ellipseRx * 2 : rectWidth))
+            .attr('height', (d) => (d.shape === 'ellipse' ? ellipseRy * 2 : rectHeight))
+            .attr('rx', (d) => (d.shape === 'ellipse' ? ellipseRx : cornerRadius)) // Set the horizontal radius of the rounded corners or ellipse
+            .attr('ry', (d) => (d.shape === 'ellipse' ? ellipseRy : cornerRadius)) // Set the vertical radius of the rounded corners or ellipse
+            .attr('data-tag', (d) => (d.shape === 'ellipse' ? 'ellipse' : 'rect'))
+            .attr("stroke-width", (d) => d.strokewidth);
+        //.attr('width', (d) => d.label.length * 10 + 20)
+        //.attr('height', 50)
+
+
+
 
         rectNodes
             .classed('completed', (d) => d.completed)
@@ -108,8 +181,21 @@ function renderMindMap() {
         // used in the edit box then get replaced
         const foreignObjects = nodes
             .append('foreignObject')
-            .attr('x', 5)
-            .attr('y', 12.5) // Adjust the y position to center the checkbox vertically
+            .attr('x', (d) => {
+                if (d.shape === 'ellipse') {
+                    // For ellipses, move the checkbox inside the ellipse on the left side
+                    return -ellipseRx + 15; // Adjust the value as needed
+                } else {
+                    return 5; // For rectangles, keep the x-coordinate as it was
+                }
+            })
+            .attr('y', (d) => {
+                if (d.shape === 'ellipse') {
+                    return -15; // Adjust the y position to center the checkbox vertically inside the ellipse
+                } else {
+                    return 12.5; // For rectangles, keep the y-coordinate as it was
+                }
+            })
             .attr('width', 30) // Increase the width to make the checkbox at least twice as big
             .attr('height', 30); // Increase the height to make the checkbox at least twice as big
 
@@ -119,23 +205,15 @@ function renderMindMap() {
             .style('height', '100%')
             .style('display', 'flex')
             .style('align-items', 'center')
-            .style('justify-content', 'center')
-            // .on('click', (event, d) => {
-            //     console.log('in the check box click ....');
-            //     event.stopPropagation(); // Prevent click event from bubbling to the parent nodes
-            // })
-        ;
+            .style('justify-content', 'center');
 
         checkboxDivs
             .append('input')
             .attr('type', 'checkbox')
             .attr('style', 'transform: scale(1.5)') // Scale the checkbox by a factor of 1.5
             .property('checked', (d) => d.completed)
-            .on('change', (event, d) => toggleCompletion(mindMapData, d.id))
-            // .on('click', (event) => {
-            //     event.stopPropagation(); // Prevent click event from bubbling to the parent nodes
-            // })
-        ;
+            .on('change', (event, d) => toggleCompletion(mindMapData, d.id));
+
 
         // make selected nodes highlighted
         nodes.classed('selected', (d) => d.id === selectedNode);
@@ -143,18 +221,46 @@ function renderMindMap() {
         const nodeText = nodes
             .append('text')
             .attr("class", "pointer-cursor")
-            .attr('x', (d) => (rectWidth) / 2)
-            .attr('y', 25)
+            .attr('x', (d) => {
+                if (d.shape === 'ellipse') {
+                    return 0; // For ellipse, keep the x-coordinate at the center
+                } else {
+                    return rectWidth / 2; // For rectangle, adjust the x-coordinate to be centered within the rectangle
+                }
+            })
+            .attr('y', (d) => {
+                if (d.shape === 'ellipse') {
+                    return 0; // For ellipse, keep the y-coordinate at the center
+                } else {
+                    return 25; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
+                }
+            })
             .text((d) => d.label)
-            .attr('fill', (d) => (d.completed ? '#999999' : '#000')) // Change the text color based on the completed status
-            .attr('text-decoration', (d) => (d.completed ? 'line-through' : 'none')) // Apply strike-through effect based on the completed status
+            .attr('fill', (d) => (d.completed ? '#999999' : '#000'))
+            .attr('text-decoration', (d) => (d.completed ? 'line-through' : 'none'))
             .attr('alignment-baseline', 'middle')
-            .attr('data-tag', 'recttext'); // Add a data attribute to the rect element;
+            .attr('text-anchor', 'middle') // For both rectangle and ellipse, anchor the text at the center
+            .attr('data-tag', (d) => d.shape === 'ellipse' ? 'ellipsetext' : 'recttext'); // Add a data attribute to the nodeText element
+
 
         nodes
             .append('circle')
-            .attr('cx', 5)
-            .attr('cy', 5)
+            .attr('cx', (d) => {
+                if (d.shape === 'ellipse') {
+                    // For ellipses, move the circle to the left side
+                    return -ellipseRx + 10; // Adjust the value as needed
+                } else {
+                    return 5; // For rectangles, keep the x-coordinate as it was
+                }
+            })
+            .attr('cy', (d) => {
+                if (d.shape === 'ellipse') {
+                    // For ellipses, move the circle up to the top side
+                    return -ellipseRy + 10; // Adjust the value as needed
+                } else {
+                    return 5; // For rectangles, keep the y-coordinate as it was
+                }
+            })
             .attr('r', 10)
             .attr('fill', '#0000FF')
             .attr('stroke', '#FFFFFF')
@@ -162,15 +268,27 @@ function renderMindMap() {
 
         nodes
             .append('text')
-            .attr('x', 6)
-            .attr('y', 8)
+            .attr('x', (d) => {
+                if (d.shape === 'ellipse') {
+                    // For ellipses, move the text to the left side
+                    return -ellipseRx + 10; // Adjust the value as needed
+                } else {
+                    return 6; // For rectangles, keep the x-coordinate as it was
+                }
+            })
+            .attr('y', (d) => {
+                if (d.shape === 'ellipse') {
+                    // For ellipses, move the text up to the top side
+                    return -ellipseRy + 13; // Adjust the value as needed
+                } else {
+                    return 8; // For rectangles, keep the y-coordinate as it was
+                }
+            })
             .text((d) => d.id)
             .attr('font-size', 10)
             .attr('fill', '#FFFFFF')
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle');
-
-
 
         //d:     It represents the relationship object for which the curved path is being calculated. The relationship object contains information about the source node and the target node of the relationship.
         //nodes: It represents the selection of node elements in the SVG. It is used to access the node elements and retrieve their positions.
@@ -196,8 +314,8 @@ function renderMindMap() {
 
         renderBoxToolBox();
 
+        // After creating the nodes and starting the simulation, update the relationships
         renderRelationships();
-
         // Now, after creating and updating the relationships and nodes, adjust the SVG stack
         // to ensure that nodes appear on top of relationships
         svg.selectAll('.node').each(function() {
@@ -318,67 +436,111 @@ function renderMindMap() {
         }
 
 
+        function getCenterX(selection, nodeId) {
+            const node = selection.filter((d) => d.id === nodeId).node();
+            const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"]') : null;
+
+            if (shape) {
+                if (shape.getAttribute('data-tag') === 'ellipse') {
+                    const cx = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
+                    const rx = parseFloat(shape.getAttribute('rx'));
+                    return cx;
+                } else if (shape.getAttribute('data-tag') === 'rect') {
+                    return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
+                }
+            }
+            return 0;
+        }
+
         function updateSolidRelationships() {
             solidRelationships = svg
                 .selectAll('.solid-relationship')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'solid'));
 
-            solidRelationships
-                .enter()
+            solidRelationships.enter()
                 .append('line')
                 .attr("id", (d) => (d.source + '-' + d.target))
                 .attr('class', 'relationship solid-relationship')
-                .attr('stroke', (d) => { return d.stroke }) // Set the color of the line to blue (you can use any color you like)
-                .merge(solidRelationships) // Merge enter and update selections
+                .attr('stroke', (d) => d.stroke)
+                .merge(solidRelationships)
                 .attr('x1', (d) => {
-                    if (d.source.dragging) {
-                        return d.source.x + getRightEdgeX(nodes, d.source);
-                    } else {
-                        // console.log('x1');
-                        // console.log(getRightEdgeX(nodes, d.source));
-                        return getRightEdgeX(nodes, d.source);
+                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
+                    const shape = sourceNode ? sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"]') : null;
+
+                    if (shape) {
+                        if (shape.getAttribute('data-tag') === 'ellipse') {
+                            const cx = parseFloat(sourceNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                            const rx = parseFloat(shape.getAttribute('rx'));
+                            return cx + rx; // Set x1 to the right edge of the ellipse
+                        } else if (shape.getAttribute('data-tag') === 'rect') {
+                            return getRightEdgeX(nodes, d.source); // Set x1 to the right edge of the rectangle
+                        }
                     }
+                    return 0;
                 })
                 .attr('y1', (d) => {
-                    if (d.source.dragging) {
-                        return d.source.y + getCenterY(nodes, d.source);
-                    } else {
-                        return getCenterY(nodes, d.source);
+                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
+                    const shape = sourceNode ? sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"]') : null;
+
+                    if (shape) {
+                        if (shape.getAttribute('data-tag') === 'ellipse') {
+                            const cy = parseFloat(sourceNode.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]);
+                            const ry = parseFloat(shape.getAttribute('ry'));
+                            return cy; // Set y1 to the center of the top edge of the ellipse
+                        } else if (shape.getAttribute('data-tag') === 'rect') {
+                            return getCenterY(nodes, d.source); // Set y1 to the center of the top edge of the rectangle
+                        }
                     }
+                    return 0;
                 })
                 .attr('x2', (d) => {
-                    if (d.target.dragging) {
-                        return d.target.x + getLeftEdgeX(nodes, d.target);
-                    } else {
-                        return getLeftEdgeX(nodes, d.target);
+                    const targetNode = nodes.filter((node) => node.id === d.target).node();
+                    const shape = targetNode ? targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"]') : null;
+
+                    if (shape) {
+                        if (shape.getAttribute('data-tag') === 'ellipse') {
+                            const cx = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                            const rx = parseFloat(shape.getAttribute('rx'));
+                            return cx - rx; // Set x2 to the left edge of the ellipse
+                        } else if (shape.getAttribute('data-tag') === 'rect') {
+                            return getLeftEdgeX(nodes, d.target); // Set x2 to the left edge of the rectangle
+                        }
                     }
+                    return 0;
                 })
                 .attr('y2', (d) => {
-                    if (d.target.dragging) {
-                        return d.target.y + getCenterY(nodes, d.target);
-                    } else {
-                        return getCenterY(nodes, d.target)
+                    const targetNode = nodes.filter((node) => node.id === d.target).node();
+                    const shape = targetNode ? targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"]') : null;
+
+                    if (shape) {
+                        if (shape.getAttribute('data-tag') === 'ellipse') {
+                            const cy = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]);
+                            const ry = parseFloat(shape.getAttribute('ry'));
+                            return cy; // Set y2 to the center of the top edge of the ellipse
+                        } else if (shape.getAttribute('data-tag') === 'rect') {
+                            return getCenterY(nodes, d.target); // Set y2 to the center of the top edge of the rectangle
+                        }
                     }
+                    return 0;
                 })
-                .attr("stroke-width", (d) => {
-                    return d.strokewidth;
-                }).on("mouseover", function(event, d) {
-                    //console.log("overrrrrrrrrr");
+                .attr("stroke-width", (d) => d.strokewidth)
+                .on("mouseover", function(event, d) {
                     d3.select(this).attr("class", "solid-relationship hover");
                     ToggleButtons(event, d);
                 })
                 .on("mouseout", function() {
-                    //console.log("outtttttttt");
                     d3.select(this).attr("class", "solid-relationship");
                 })
                 .on("click", function() {
                     console.log("Line Clicked ....");
                     selectedLine = d3.select(this);
-
                 });
 
             solidRelationships.exit().remove();
         }
+
+
+
 
         function updateCurvedRelationships() {
             curvedRelationships = svg
@@ -655,16 +817,24 @@ function renderMindMap() {
             if (d.label) // Rectangle / Box
             {
 
-                //calcX = d.x + (d.label.length * 10 + 20) / 2;
-                dotcalcX = d.x + (rectWidth) / 2;
-                dotcalcY = d.y - 15;
+                if (d.shape === 'ellipse') {
+                    const bbox = dotGroup.node().getBBox();
+                    dotcalcX = d.x;
+                    dotcalcY = d.y - bbox.height / 2 + 35; // Adjust the value as needed for the vertical position above the ellipse
+                    pluscalcX = d.x;
+                    pluscalcY = d.y + rectHeight;
+                    plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
+                    plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
 
-                pluscalcX = d.x + (rectWidth);
-                pluscalcY = d.y + rectHeight;
+                } else {
+                    dotcalcX = d.x + rectWidth / 2;
+                    dotcalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
+                    pluscalcX = d.x + rectWidth / 2;
+                    pluscalcY = d.y + rectHeight;
+                    plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
+                    plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
 
-
-                plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
-                plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
+                }
 
 
             }
@@ -810,7 +980,7 @@ function renderMindMap() {
 
             }
 
-
+            console.log('Rendering the MindMap...')
             renderMindMap();
 
         }
@@ -959,6 +1129,7 @@ function renderMindMap() {
 
         // Update the renderRelationships() function as shown below
         function renderRelationships() {
+            console.log('Rendering the Relationships');
             updateSolidRelationships();
             updateCurvedRelationships();
         }
@@ -1187,15 +1358,16 @@ function handleRectEdit() {
     if (selectedNode) {
         const selectedNodeId = selectedNode;
         const selectedNodeElement = document.getElementById(`${selectedNodeId}`);
-        const rectext = selectedNodeElement.querySelector('text[data-tag="recttext"]');
+        const textElement = selectedNodeElement.querySelector('text[data-tag="recttext"], text[data-tag="ellipsetext"]');
 
-        if (rectext) {
+
+        if (textElement) {
             console.log('Rect Text Foud ..');
-            const currentText = rectext.textContent;
+            const currentText = textElement.textContent;
             console.log(currentText);
-            const rectextStyle = window.getComputedStyle(rectext);
+            const rectextStyle = window.getComputedStyle(textElement);
 
-            const rectextBox = rectext.getBBox();
+            const rectextBox = textElement.getBBox();
 
             const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
             const inputElement = document.createElement('input');
@@ -1223,7 +1395,7 @@ function handleRectEdit() {
             selectedNodeElement.appendChild(foreignObject);
 
             // Hide the original text element while editing
-            rectext.style.visibility = 'hidden';
+            textElement.style.visibility = 'hidden';
 
             console.log('handleEdit 1');
             // Apply focus and selection after the input element is rendered
@@ -1237,7 +1409,7 @@ function handleRectEdit() {
                 console.log('handleEdit 3');
 
                 const newText = inputElement.value;
-                rectext.textContent = newText;
+                textElement.textContent = newText;
 
                 const selectedNodeData = mindMapData.nodes.find((node) => node.id === selectedNodeId);
                 if (selectedNodeData) {
@@ -1245,7 +1417,7 @@ function handleRectEdit() {
                 }
 
                 // Show the original text element after editing is done
-                rectext.style.visibility = 'visible';
+                textElement.style.visibility = 'visible';
 
                 selectedNodeElement.removeChild(foreignObject);
             });
@@ -1342,6 +1514,7 @@ function showColorPalette(type, id) {
                         console.log('Updating mindMapData Color for Id =' + id);
                         nodeData.fill = colorCode;
                     }
+                    renderMindMap();
                 }
             }
         });

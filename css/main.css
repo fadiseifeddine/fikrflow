@@ -50,16 +50,28 @@ body {
 #mindMapContainer {
     width: 100%;
     height: 100%;
-    position: absolute;
-    top: 50px;
-    /* Adjust the top margin as desired */
-    left: 50px;
-    /* Adjust the left margin as desired */
     background-color: #FFFFFF;
     pointer-events: all;
+    position: relative;
+}
+
+#mindMapContainer svg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 100;
+    /* Set margin to 0 */
+    padding: 0;
+    /* Set padding to 0 */
 }
 
 .node rect {
+    fill: #ffe0b2;
+    stroke: #000;
+}
+
+.node ellipse {
     fill: #ffe0b2;
     stroke: #000;
 }
@@ -83,6 +95,10 @@ body {
     background-color: #f0f8ff;
     color: #000;
     overflow-y: auto;
+}
+
+.node.selected rect {
+    stroke-dasharray: 3 3;
 }
 
 .node.selected rect {
