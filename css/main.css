@@ -219,6 +219,46 @@ foreignObject input {
     stroke: #666;
 }
 
+.box-shapebox {
+    fill: #fff;
+    stroke: #666;
+    stroke-width: 2px;
+    display: none;
+}
+
+.box-shapebox-text {
+    font-size: 12px;
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+.box-shapebox-content {
+    font-family: sans-serif;
+    font-size: 12px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 5px;
+}
+
+.box-shapebox-content span {
+    cursor: pointer;
+}
+
+.box-shapebox-icons {
+    font-size: 16px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.box-shapebox-rect {
+    fill: lightyellow;
+    stroke: #666;
+}
+
 .color-palette {
     display: none;
     position: absolute;

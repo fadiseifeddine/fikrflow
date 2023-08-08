@@ -18,6 +18,11 @@ let BoxToolBoxRef;
 let boxToolBoxWidth = 160;
 let boxToolBoxHeight = 100;
 
+let BoxShapeBoxRef;
+let boxShapeBoxWidth = 180;
+let boxShapeBoxHeight = 80;
+
+
 // 3dot Button
 let dotCircle = null; // Define the variable to hold the dot circle element
 let dotsText = null;
@@ -734,6 +739,65 @@ function renderMindMap() {
 
         }
 
+        function renderBoxShapeBox() {
+            console.log("renderBoxShapeBox ...... start");
+            const rectMargin = 20;
+            const lineStrokeWidth = 2;
+            const relationshipLineLength = 80;
+            // Create the relationship box
+            const BoxShapeBox = svg
+                .append("g")
+                .attr("class", "box-shapebox-box")
+                .style("display", "none");
+
+            BoxShapeBox
+                .append("rect")
+                .attr("class", "box-shapebox-rect")
+                .attr("width", boxShapeBoxWidth)
+                .attr("height", boxShapeBoxHeight);
+
+            const boxContainer = BoxShapeBox
+                .append("foreignObject")
+                .attr("width", boxShapeBoxWidth)
+                .attr("height", boxShapeBoxHeight);
+
+            const shapeboxContent = boxContainer
+                .append("xhtml:div")
+                .attr("class", "box-toolbox-content");
+
+
+            const icons = [
+                { icon: "bi bi-cloudy", text: "Cloudy" },
+                { icon: "bi bi-square", text: "Rectangle" },
+                { icon: "bi bi-circle", text: "Ellipse" }
+            ];
+            const boxShapeBoxNodes = shapeboxContent
+                .selectAll("div")
+                .data(icons)
+                .enter()
+                .append("div")
+                .on("click", handleBoxShapeboxNodesClick);
+
+
+            boxShapeBoxNodes
+                .append("i")
+                .attr("class", d => `relationship-toolbox-icons ${d.icon}`)
+                .style("display", "inline-block")
+                .on("click", handleBoxShapeboxNodesClick);
+
+
+            boxShapeBoxNodes
+                .append("span")
+                .text(d => d.text)
+                .style("margin-left", "5px")
+                .on("click", handleBoxShapeboxNodesClick);
+
+            console.log("The new div for Shape Box rendered ....");
+
+            BoxShapeBoxRef = BoxShapeBox;
+
+        }
+
         // Function to toggle the visibility of the dot button for a selected box
         function ToggleButtons(event, d) {
             console.log(' Mouse Over ToggleButtons');
@@ -933,6 +997,29 @@ function renderMindMap() {
             });
         }
 
+        function handleBoxShapeboxNodesClick(event, d) {
+            console.log(`Clicked ${d.text}`);
+            console.log('-----------------------------------');
+
+            const nodeId = selectedNode.id;
+
+            console.log(`Current/Target Box Id ${nodeId}`);
+
+            //const nodeelement = d3.select(`#${nodeId}`);
+            const nodeelement = d3.select(`#${nodeId}`);
+            console.log(nodeelement);
+            console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
+            shp = null;
+            if (d.text == "Rectangle") { shp = 'rectangle' };
+            if (d.text == "Ellipse") { shp = 'ellipse' };
+
+
+            const selectedNode4ShapeChange = mindMapData.nodes.find(node => node.id === nodeId);
+            selectedNode4ShapeChange.shape = shp;
+            renderMindMap();
+
+        }
+
         function handleBoxToolboxNodesClick(event, d) {
             console.log(`Clicked ${d.text}`);
             console.log('-----------------------------------');
@@ -978,10 +1065,19 @@ function renderMindMap() {
             } else if (d.text === "Delete") {
                 deleteNodeAndRelatedNodes(nodeId);
 
+            } else if (d.text === "Shape") {
+                console.log('rendering the shape options ....');
+                event.stopPropagation();
+
+                const targetobj = findBoxOrLine(nodeId);
+                hideBoxToolBox();
+                renderBoxShapeBox();
+                toggleBoxShapeBox(targetobj);
+
             }
 
-            console.log('Rendering the MindMap...')
-            renderMindMap();
+            //console.log('Rendering the MindMap...')
+            //renderMindMap();
 
         }
 
@@ -1127,6 +1223,35 @@ function renderMindMap() {
             }
         }
 
+
+        // Function to toggle the relationship tool box trigerred on 3 dots from line
+        function toggleBoxShapeBox(box) {
+            console.log("In the toggleBoxShapeBox ....");
+            console.log('box.id=' + box.id);
+
+
+            const display = BoxShapeBoxRef.style("display");
+            console.log('display=' + display);
+
+            if (display === "none") {
+
+                console.log("Display of Shape is None, we are setting x and y to display ...");
+                //calcX = d.x + (d.label.length * 10 + 20) / 2;
+                calcX = box.x + (rectWidth) / 2 - 70;
+                calcY = box.y - 70;
+
+
+                BoxShapeBoxRef
+                    .attr("transform", `translate(${calcX}, ${calcY})`)
+                    .style("display", "block");
+
+                console.log("BoxShapeBoxRef should now be displayed");
+
+            } else {
+                BoxShapeBoxRef.style("display", "none");
+            }
+        }
+
         // Update the renderRelationships() function as shown below
         function renderRelationships() {
             console.log('Rendering the Relationships');
@@ -1194,6 +1319,7 @@ function selectNode(nodeId) {
             console.log("Hiding the Relationship Box ....");
             hideRelationshipToolBox();
             hideBoxToolBox();
+            hideBoxShapeBox();
         } else {
 
             renderMindMap(); // Re-render the mind map to apply the selection highlight
@@ -1259,6 +1385,12 @@ function hideRelationshipToolBox() {
 function hideBoxToolBox() {
     BoxToolBoxRef.style("display", "none");
 }
+
+// Function to hide the relationship box
+function hideBoxShapeBox() {
+    BoxShapeBoxRef.style("display", "none");
+}
+
 
 
 
