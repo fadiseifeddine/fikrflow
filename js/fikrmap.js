@@ -544,6 +544,7 @@ function renderMindMap() {
                 if (selectedNode) {
                     selectedNode.x = event.x - 50;
                     selectedNode.y = event.y - 25;
+
                 }
 
                 // console.log("node id" + d.id)
@@ -1317,13 +1318,12 @@ function renderMindMap() {
 
             //const nodeelement = d3.select(`#${nodeId}`);
             const nodeelement = d3.select(`#${nodeId}`);
-            console.log(nodeelement);
             console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
 
-
             if (d.text === "Thicker" || d.text === "Thinner") {
+                console.log('d.shape in Thicker / Thiner =' + nodeelement.attr('data-tag'));
 
-                const existingStrokeWidth = parseFloat(nodeelement.select('rect').style('stroke-width'));
+                const existingStrokeWidth = parseFloat(nodeelement.select('[data-tag="ellipse"], [data-tag="cloud"], [data-tag="rect"]').style('stroke-width'));
                 console.log('-----------------------------------');
                 newStrokeWidth = 0;
                 if (d.text === "Thicker") {
@@ -1335,7 +1335,7 @@ function renderMindMap() {
                 console.log("existingStrokeWidth=" + existingStrokeWidth);
                 console.log("newStrokeWidth=" + newStrokeWidth);
 
-                nodeelement.select('rect').style('stroke-width', `${newStrokeWidth}`);
+                nodeelement.select('[data-tag="ellipse"], [data-tag="cloud"], [data-tag="rect"]').style('stroke-width', `${newStrokeWidth}`);
 
 
 
