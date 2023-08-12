@@ -1110,13 +1110,101 @@ function renderMindMap() {
                 const sourceNode = mindMapData.nodes.find((node) => node.id === d.source);
                 const targetNode = mindMapData.nodes.find((node) => node.id === d.target);
 
-                // Calculate the middle point between the source and target nodes
-                const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
-                const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
-                dotcalcX = (sourceX + targetX) / 2;
-                dotcalcY = (sourceY + targetY) / 2;
+                console.log("sourceNode shape=" + sourceNode.shape);
+                console.log("targetNode shape=" + targetNode.shape);
+
+
+                if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'rectangle')) {
+                    console.log('both source and target are rectangle ');
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'rectangle')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'ellipse')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'cloud')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'ellipse')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'rectangle')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'cloud')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'cloud') && (targetNode.shape === 'ellipse')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'cloud') && (targetNode.shape === 'cloud')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'cloud') && (targetNode.shape === 'rectangle')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                }
+
 
             }
 
