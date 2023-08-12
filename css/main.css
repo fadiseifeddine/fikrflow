@@ -71,6 +71,11 @@ body {
     stroke: #000;
 }
 
+.node path {
+    fill: #ffe0b2;
+    stroke: #000;
+}
+
 .node ellipse {
     fill: #ffe0b2;
     stroke: #000;
@@ -97,7 +102,11 @@ body {
     overflow-y: auto;
 }
 
-.node.selected rect {
+.node.selected ellipse {
+    stroke-dasharray: 3 3;
+}
+
+.node.selected path {
     stroke-dasharray: 3 3;
 }
 
