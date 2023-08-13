@@ -1263,25 +1263,36 @@ function renderMindMap() {
                 return;
             }
 
-            // Find solid relationships originating from the node to be deleted
-            const solidRelationshipsToDelete = mindMapData.relationships.filter(
-                (relationship) => relationship.source === nodeId && relationship.type === 'solid'
+            // Find relationships originating from or targeting the node to be deleted
+            const relationshipsToDelete = mindMapData.relationships.filter(
+                (relationship) => relationship.source === nodeId || relationship.target === nodeId
             );
 
-            // Recursively delete target nodes with solid relationships
-            solidRelationshipsToDelete.forEach((relationship) => {
-                deleteNodeAndRelatedNodes(relationship.target);
-            });
-
-            // Delete the node and its solid relationships
-            mindMapData.nodes.splice(nodeIndex, 1); // Remove the node from the nodes array
-            solidRelationshipsToDelete.forEach((relationship) => {
+            // Delete the relationships
+            relationshipsToDelete.forEach((relationship) => {
                 const relationshipIndex = mindMapData.relationships.indexOf(relationship);
                 if (relationshipIndex !== -1) {
-                    mindMapData.relationships.splice(relationshipIndex, 1); // Remove the solid relationship
+                    mindMapData.relationships.splice(relationshipIndex, 1); // Remove the relationship
+                    console.log(`Deleted relationship: ${relationship.id}`);
                 }
             });
+
+            // Check if the node has any remaining relationships
+            const remainingRelationships = mindMapData.relationships.some(
+                (relationship) => relationship.source === nodeId || relationship.target === nodeId
+            );
+
+            // If there are no remaining relationships, delete the node
+            if (!remainingRelationships) {
+                mindMapData.nodes.splice(nodeIndex, 1); // Remove the node from the nodes array
+                console.log(`Deleted node: ${nodeId}`);
+            }
         }
+
+
+
+
+
 
         function handleBoxShapeboxNodesClick(event, d) {
             console.log(`Clicked ${d.text}`);
@@ -1351,6 +1362,8 @@ function renderMindMap() {
 
             } else if (d.text === "Delete") {
                 deleteNodeAndRelatedNodes(nodeId);
+                renderMindMap();
+
 
             } else if (d.text === "Shape") {
                 console.log('rendering the shape options ....');
@@ -1527,6 +1540,8 @@ function renderMindMap() {
                 calcX = box.x + (rectWidth) / 2 - 70;
                 calcY = box.y - 70;
 
+                console.log('calcX', calcX);
+                console.log('calcY', calcY);
 
                 BoxShapeBoxRef
                     .attr("transform", `translate(${calcX}, ${calcY})`)
