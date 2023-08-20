@@ -128,7 +128,7 @@ foreignObject input {
     fill: none;
     stroke-dasharray: 5, 5;
     /* Dashed line style */
-    marker-end: url(#arrowhead);
+    marker-mid: url(#arrowhead);
     /* Arrowhead on the right side */
 }
 
@@ -136,9 +136,6 @@ foreignObject input {
     fill: none;
     stroke-width: 5px;
     stroke-dasharray: 5, 5;
-    /* Dashed line style */
-    marker-end: url(#arrowhead);
-    /* Arrowhead on the right side */
 }
 
 .solid-relationship {}

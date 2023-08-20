@@ -83,16 +83,17 @@ function getLeftEdgeX(selection, nodeId) {
         if (shape.getAttribute('data-tag') === 'ellipse') {
             const cx = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
             const rx = parseFloat(shape.getAttribute('rx'));
-            return cx - rx;
+            return cx - rx - 10;
         } else if (shape.getAttribute('data-tag') === 'rect') {
-            // Get the width of the rectangle
-            const width = parseFloat(shape.getAttribute('width'));
-            // Calculate the X position to the left edge, in the middle of the edge
-            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + width / 2;
+            // Get the X position of the left edge
+            const x = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
+            const arrowWidth = parseFloat(arrowhead.getAttribute('markerWidth'));
+            return x + arrowWidth / 2 - 10; // Adjusted for arrowhead size
         } else if (shape.getAttribute('data-tag') === 'cloud') {
             const cx = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
             const cloudWidth = parseFloat(shape.getAttribute('width'));
-            return cx - cloudWidth / 2;
+            const arrowWidth = parseFloat(arrowhead.getAttribute('markerWidth'));
+            return cx - cloudWidth / 2 + arrowWidth / 2; // Adjusted for both cloud width and arrowhead size
         }
     }
     return 0;
@@ -154,6 +155,21 @@ function renderMindMap() {
             .append('svg')
             .attr('width', width)
             .attr('height', height);
+
+
+
+        svg.append('svg:defs').append('svg:marker')
+            .attr('id', 'arrowhead')
+            .attr('viewBox', '0 -5 10 10')
+            .attr('refX', 3) // Set refX to half of the marker width
+            .attr('markerWidth', 6)
+            .attr('markerHeight', 5)
+            .attr('orient', 'auto')
+            .append('svg:path')
+            .attr('d', 'M0,-5L10,0L0,5')
+            .attr('fill', 'black') // Arrow fill color is black
+            .attr('stroke', 'white') // Add a white stroke to the arrow
+            .attr('stroke-width', 1); // Set the stroke width as needed
 
 
         // Create the D3 force simulation
@@ -434,28 +450,15 @@ function renderMindMap() {
         //nodes: It represents the selection of node elements in the SVG. It is used to access the node elements and retrieve their positions.
         //nodePositions: It represents a map that stores the calculated positions (x, y coordinates) of each node in the mind map. The map is used to retrieve the positions of the source and target nodes for calculating the curved path.
 
-        // Append the <defs> element to the SVG
-        const defs = svg.append('defs');
 
-        // Create the arrowhead marker
-        defs
-            .append('marker')
-            .attr('id', 'arrowhead')
-            .attr('viewBox', '0 0 10 10')
-            .attr('refX', '10')
-            .attr('refY', '5')
-            .attr('markerUnits', 'strokeWidth')
-            .attr('markerWidth', '6')
-            .attr('markerHeight', '6')
-            .attr('orient', 'auto')
-            .append('path')
-            .attr('d', 'M 0 0 L 10 5 L 0 10 z')
-            .attr('fill', '#000000');
+
 
         renderBoxToolBox();
 
         // After creating the nodes and starting the simulation, update the relationships
         renderRelationships();
+
+        // Change the order
         // Now, after creating and updating the relationships and nodes, adjust the SVG stack
         // to ensure that nodes appear on top of relationships
         svg.selectAll('.node').each(function() {
@@ -584,11 +587,16 @@ function renderMindMap() {
                 .selectAll('.solid-relationship')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'solid'));
 
+
+            // x1 and y1 represent the starting point of the line.
+            // x2 and y2 represent the ending point of the line, where the arrowhead will be drawn.
+
             solidRelationships.enter()
                 .append('line')
                 .attr("id", (d) => (d.source + '-' + d.target))
                 .attr('class', 'relationship solid-relationship')
                 .attr('stroke', (d) => d.stroke)
+                .attr('marker-end', 'url(#arrowhead)') // Use marker-end instead of marker-mid
                 .merge(solidRelationships)
                 .attr('x1', (d) => {
                     const sourceNode = nodes.filter((node) => node.id === d.source).node();
