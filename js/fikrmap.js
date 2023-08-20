@@ -636,18 +636,45 @@ function renderMindMap() {
                 })
                 .attr('x2', (d) => {
                     const targetNode = nodes.filter((node) => node.id === d.target).node();
-                    const shape = targetNode ? targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="cloud"]') : null;
+                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
 
-                    if (shape) {
-                        if (shape.getAttribute('data-tag') === 'ellipse') {
-                            const cx = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[0]);
-                            const rx = parseFloat(shape.getAttribute('rx'));
-                            return cx - rx; // Set x2 to the left edge of the ellipse
-                        } else if (shape.getAttribute('data-tag') === 'rect') {
-                            return getLeftEdgeX(nodes, d.target); // Set x2 to the left edge of the rectangle
-                        } else if (shape.getAttribute('data-tag') === 'cloud') {
-                            // Assuming the left edge of the cloud is the end point of the relationship
-                            return getLeftEdgeX(nodes, d.target);
+                    if (targetNode && sourceNode) {
+                        const targetShape = targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="cloud"]');
+                        const sourceShape = sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="cloud"]');
+
+                        if (targetShape && sourceShape) {
+                            const targetShapeTag = targetShape.getAttribute('data-tag');
+                            const sourceShapeTag = sourceShape.getAttribute('data-tag');
+
+                            const sourceRightEdgeX = getRightEdgeX(nodes, d.source);
+                            const targetLeftEdgeX = getLeftEdgeX(nodes, d.target);
+
+                            // Check if the target node is to the right of the source node
+                            if (sourceRightEdgeX < targetLeftEdgeX) {
+                                // Target is to the right of source
+                                if (targetShapeTag === 'ellipse') {
+                                    const cx = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                                    const rx = parseFloat(targetShape.getAttribute('rx'));
+                                    return cx - rx; // Set x2 to the left edge of the ellipse
+                                } else if (targetShapeTag === 'rect') {
+                                    return targetLeftEdgeX - 3; // Set x2 to the left edge of the rectangle
+                                } else if (targetShapeTag === 'cloud') {
+                                    // Assuming the left edge of the cloud is the end point of the relationship
+                                    return targetLeftEdgeX - 3;
+                                }
+                            } else {
+                                // Target is to the left of source or on the same horizontal axis
+                                if (targetShapeTag === 'ellipse') {
+                                    const cx = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                                    const rx = parseFloat(targetShape.getAttribute('rx'));
+                                    return cx + rx; // Set x2 to the right edge of the ellipse
+                                } else if (targetShapeTag === 'rect') {
+                                    return getRightEdgeX(nodes, d.target) + 3; // Set x2 to the right edge of the rectangle
+                                } else if (targetShapeTag === 'cloud') {
+                                    // Assuming the right edge of the cloud is the end point of the relationship
+                                    return getRightEdgeX(nodes, d.target) + 3;
+                                }
+                            }
                         }
                     }
                     return 0;
@@ -746,26 +773,49 @@ function renderMindMap() {
                     }
                 })
                 .attr('x2', (d) => {
-                    if (d.target.dragging) {
-                        return d.target.x + getLeftEdgeX(nodes, d.target);
-                    } else {
-                        const targetNode = nodes.filter((node) => node.id === d.target).node();
-                        const shape = targetNode ? targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="cloud"]') : null;
+                    const targetNode = nodes.filter((node) => node.id === d.target).node();
+                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
 
-                        if (shape) {
-                            if (shape.getAttribute('data-tag') === 'ellipse') {
-                                const cx = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[0]);
-                                const rx = parseFloat(shape.getAttribute('rx'));
-                                return cx - rx; // Set x2 to the left edge of the ellipse
-                            } else if (shape.getAttribute('data-tag') === 'rect') {
-                                return getLeftEdgeX(nodes, d.target); // Set x2 to the left edge of the rectangle
-                            } else if (shape.getAttribute('data-tag') === 'cloud') {
-                                // Assuming the left edge of the cloud is the end point of the relationship
-                                return getLeftEdgeX(nodes, d.target);
+                    if (targetNode && sourceNode) {
+                        const targetShape = targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="cloud"]');
+                        const sourceShape = sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="cloud"]');
+
+                        if (targetShape && sourceShape) {
+                            const targetShapeTag = targetShape.getAttribute('data-tag');
+                            const sourceShapeTag = sourceShape.getAttribute('data-tag');
+
+                            const sourceRightEdgeX = getRightEdgeX(nodes, d.source);
+                            const targetLeftEdgeX = getLeftEdgeX(nodes, d.target);
+
+                            // Check if the target node is to the right of the source node
+                            if (sourceRightEdgeX < targetLeftEdgeX) {
+                                // Target is to the right of source
+                                if (targetShapeTag === 'ellipse') {
+                                    const cx = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                                    const rx = parseFloat(targetShape.getAttribute('rx'));
+                                    return cx - rx; // Set x2 to the left edge of the ellipse
+                                } else if (targetShapeTag === 'rect') {
+                                    return targetLeftEdgeX - 3; // Set x2 to the left edge of the rectangle
+                                } else if (targetShapeTag === 'cloud') {
+                                    // Assuming the left edge of the cloud is the end point of the relationship
+                                    return targetLeftEdgeX - 3;
+                                }
+                            } else {
+                                // Target is to the left of source or on the same horizontal axis
+                                if (targetShapeTag === 'ellipse') {
+                                    const cx = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                                    const rx = parseFloat(targetShape.getAttribute('rx'));
+                                    return cx + rx; // Set x2 to the right edge of the ellipse
+                                } else if (targetShapeTag === 'rect') {
+                                    return getRightEdgeX(nodes, d.target) + 3; // Set x2 to the right edge of the rectangle
+                                } else if (targetShapeTag === 'cloud') {
+                                    // Assuming the right edge of the cloud is the end point of the relationship
+                                    return getRightEdgeX(nodes, d.target) + 3;
+                                }
                             }
                         }
-                        return 0;
                     }
+                    return 0;
                 })
                 .attr('y2', (d) => {
                     if (d.target.dragging) {
