@@ -51,6 +51,46 @@ resizeDrawingContainer();
 
 getsessionid();
 
+function getBottomEdgeY(selection, nodeId) {
+    const node = selection.filter((d) => d.id === nodeId).node();
+    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="cloud"]') : null;
+
+    if (shape) {
+        if (shape.getAttribute('data-tag') === 'ellipse') {
+            const cy = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]);
+            const ry = parseFloat(shape.getAttribute('ry'));
+            return cy + ry; // Return the bottom edge y-coordinate of the ellipse
+        } else if (shape.getAttribute('data-tag') === 'rect') {
+            const height = parseFloat(shape.getAttribute('height'));
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + height; // Return the bottom edge y-coordinate of the rectangle
+        } else if (shape.getAttribute('data-tag') === 'cloud') {
+            const cy = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]);
+            const cloudHeight = parseFloat(shape.getAttribute('height'));
+            return cy + cloudHeight / 2; // Return the bottom edge y-coordinate of the cloud
+        }
+    }
+    return 0;
+}
+
+function getTopEdgeY(selection, nodeId) {
+    const node = selection.filter((d) => d.id === nodeId).node();
+    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="cloud"]') : null;
+
+    if (shape) {
+        if (shape.getAttribute('data-tag') === 'ellipse') {
+            const cy = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]);
+            const ry = parseFloat(shape.getAttribute('ry'));
+            return cy - ry; // Return the top edge y-coordinate of the ellipse
+        } else if (shape.getAttribute('data-tag') === 'rect') {
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]); // Return the top edge y-coordinate of the rectangle
+        } else if (shape.getAttribute('data-tag') === 'cloud') {
+            const cy = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]);
+            const cloudHeight = parseFloat(shape.getAttribute('height'));
+            return cy - cloudHeight / 2; // Return the top edge y-coordinate of the cloud
+        }
+    }
+    return 0;
+}
 
 function getRightEdgeX(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
@@ -74,6 +114,7 @@ function getRightEdgeX(selection, nodeId) {
     }
     return 0;
 }
+
 
 function getLeftEdgeX(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
