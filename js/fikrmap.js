@@ -699,6 +699,7 @@ function renderMindMap() {
                 .attr("id", (d) => (d.source + '-' + d.target))
                 .attr('class', 'relationship dash-relationship')
                 .attr('stroke', (d) => { return d.stroke }) // Set the color of the line to blue (you can use any color you like)
+                .attr('marker-end', 'url(#arrowhead)') // Use marker-end instead of marker-mid
                 .merge(curvedRelationships) // Merge enter and update selections
                 .attr('x1', (d) => {
                     if (d.source.dragging) {
