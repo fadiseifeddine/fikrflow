@@ -1,6 +1,5 @@
 let userInput = '';
 let mindMapData = '';
-let sessionID = ''; // Declare sessionID as a global variable
 let selectedNode = null;
 let sourceNode = null;
 
@@ -37,6 +36,12 @@ let addingrel = false;
 let addingrelsource = null;
 let addingreltarget = null;
 
+// Define global variables to keep track of history and current version
+let currentVersion = -1;
+let vsessionID = ''; // Declare sessionID as a global variable
+let vuserID = 'johndoe'; // Replace with actual user information
+
+
 
 const drawingContainer = document.getElementById('drawingContainer');
 
@@ -49,7 +54,7 @@ function resizeDrawingContainer() {
 window.addEventListener('resize', resizeDrawingContainer);
 resizeDrawingContainer();
 
-getsessionid();
+vsessionID = getsessionid();
 
 function getBottomEdgeY(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
@@ -180,13 +185,11 @@ function getCenterY(selection, nodeId) {
 
 
 
-function renderMindMap() {
+function renderMindMap(mindMapData) {
     const mindMapContainer = document.getElementById('mindMapContainer');
     mindMapContainer.innerHTML = '';
 
     try {
-
-
 
         const width = mindMapContainer.clientWidth;
         const height = mindMapContainer.clientHeight;
@@ -211,6 +214,8 @@ function renderMindMap() {
             .attr('fill', 'black') // Arrow fill color is black
             .attr('stroke', 'white') // Add a white stroke to the arrow
             .attr('stroke-width', 1); // Set the stroke width as needed
+
+
 
 
         // Create the D3 force simulation
@@ -290,7 +295,7 @@ function renderMindMap() {
                 if (d.shape === 'ellipse') {
                     return ellipseRx * 2;
                 } else if (d.shape === 'cloud') {
-                    console.log("setting the width to rectWidth....")
+                    //console.log("setting the width to rectWidth....")
                     return rectWidth; // Set the width of the cloud shape
                 } else {
                     return rectWidth;
@@ -300,7 +305,7 @@ function renderMindMap() {
                 if (d.shape === 'ellipse') {
                     return ellipseRy * 2;
                 } else if (d.shape === 'cloud') {
-                    console.log("setting the height to rectHeight....")
+                    //console.log("setting the height to rectHeight....")
                     return rectHeight; // Set the height of the cloud shape
                 } else {
                     return rectHeight;
@@ -571,7 +576,11 @@ function renderMindMap() {
 
 
         function dragHandler(selection) {
-            const drag = d3.drag().on('start', dragStart).on('drag', dragMove);
+
+            const drag = d3.drag()
+                .on('start', dragStart)
+                .on('drag', dragMove)
+                .on('end', dragEnd); // Add drag end event handler
 
             selection.call(drag);
 
@@ -611,11 +620,19 @@ function renderMindMap() {
                 d3y = event.y;
 
                 //  console.log("d3x = " + d3x + ", d3y =" + d3y);
-                renderMindMap();
+                renderMindMap(mindMapData);
 
                 ToggleButtons(event, d); // so the 3 dots move with the box
 
 
+            }
+
+            function dragEnd(event, d) {
+                d3.select(this).classed('active', false);
+
+                // Call takeSnapshot when drag ends
+                console.log('Drag End ...... Taking Snapshot ....');
+                takeSnapshot();
             }
 
         }
@@ -1092,7 +1109,7 @@ function renderMindMap() {
 
         // Function to toggle the visibility of the dot button for a selected box
         function ToggleButtons(event, d) {
-            console.log(' Mouse Over ToggleButtons');
+            //console.log(' Mouse Over ToggleButtons');
             var dotcalcX = 0
             var dotcalcY = 0
             var pluscalcX = 0
@@ -1387,6 +1404,9 @@ function renderMindMap() {
                 mindMapData.nodes.splice(nodeIndex, 1); // Remove the node from the nodes array
                 console.log(`Deleted node: ${nodeId}`);
             }
+
+            // After rendering, capture a snapshot
+            takeSnapshot();
         }
 
 
@@ -1415,7 +1435,7 @@ function renderMindMap() {
 
             const selectedNode4ShapeChange = mindMapData.nodes.find(node => node.id === nodeId);
             selectedNode4ShapeChange.shape = shp;
-            renderMindMap();
+            renderMindMap(mindMapData);
 
         }
 
@@ -1462,7 +1482,7 @@ function renderMindMap() {
 
             } else if (d.text === "Delete") {
                 deleteNodeAndRelatedNodes(nodeId);
-                renderMindMap();
+                renderMindMap(mindMapData);
 
 
             } else if (d.text === "Shape") {
@@ -1656,15 +1676,13 @@ function renderMindMap() {
 
         // Update the renderRelationships() function as shown below
         function renderRelationships() {
-            console.log('Rendering the Relationships');
+            //console.log('Rendering the Relationships');
             updateSolidRelationships();
             updateCurvedRelationships();
         }
 
 
-
-
-        // end of try
+        // end of try renderMindMap
     } catch (error) {
         console.error('Failed to render mind map:', error);
     }
@@ -1681,7 +1699,7 @@ function toggleCompletion(mindMapData, nodeId) {
         } else {
             node.compdate = null; // Clear the compdate attribute
         }
-        renderMindMap();
+        renderMindMap(mindMapData);
     }
 }
 
@@ -1724,7 +1742,7 @@ function selectNode(nodeId) {
             hideBoxShapeBox();
         } else {
 
-            renderMindMap(); // Re-render the mind map to apply the selection highlight
+            renderMindMap(mindMapData); // Re-render the mind map to apply the selection highlight
 
             const addButton = document.getElementById('addNodeButton');
             const editButton = document.getElementById('editButton');
@@ -1770,7 +1788,7 @@ function selectNode(nodeId) {
         mindMapData.relationships.push(newRelationship);
 
         // Re-render the mind map to show the new relationship
-        renderMindMap();
+        renderMindMap(mindMapData);
         addingrelsource = null;
         addingreltarget = null;
         addingrel = null;
@@ -1800,6 +1818,10 @@ function hideBoxShapeBox() {
 document.getElementById('submitButton').addEventListener('click', handleInputSubmit);
 document.getElementById('saveButton').addEventListener('click', handleInputSave);
 document.getElementById('openButton').addEventListener('click', handleOpen);
+// Attach undo and redo functions to Bootstrap buttons
+document.getElementById('undoButton').addEventListener('click', undo);
+document.getElementById('redoButton').addEventListener('click', redo);
+
 document.getElementById('editButton').addEventListener('click', function() {
     handleRectEdit();
 });
@@ -1879,9 +1901,178 @@ function handleAddNode() {
             selectedNode = newNodeId; // Select the new node
 
             // Re-render the mind map with the updated data
-            renderMindMap();
+            renderMindMap(mindMapData);
+
+            takeSnapshot();
         }
     }
+}
+
+
+
+async function takeSnapshot() {
+    try {
+        console.log("Taking the Snapshot ....");
+        // Fetch the latest current version or default to 0 if not found
+        //currentVersion = await fetchcurrentdrawchainversion().catch(() => 0);
+        const result = await updateversion(vsessionID, 'increment');
+        //currentVersion = await fetchcurrentdrawsessionversion().catch(() => 0);
+        currentVersion = result + 1;
+        console.log(currentVersion);
+        deleteversions(vsessionID, currentVersion);
+        const response = await fetch('http://localhost:3000/api/savesnapshot', {
+            method: 'POST',
+            body: JSON.stringify({
+                user: vuserID, // Replace with actual user information
+                sessionid: vsessionID, // Replace with actual session ID
+                jsondrw: mindMapData, // Replace with the data you want to save
+                version: currentVersion
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            console.log('Snapshot saved successfully');
+            updateUndoRedoButtons();
+        } else {
+            console.error('Failed to save snapshot');
+        }
+    } catch (error) {
+        console.error('An error occurred:', error);
+    }
+}
+
+
+
+// Function to fetch and render a specific versioned snapshot
+async function fetchAndRenderVersion(version) {
+    try {
+        console.log("searching for the element with vuserId = " + vuserID)
+        console.log("searching for the element with vsessionID = " + vsessionID)
+        const response = await fetch(`http://localhost:3000/api/getsnapshot?user=${vuserID}&sessionid=${vsessionID}&version=${version}`, {
+            method: 'GET', // Use GET request
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const versionedSnapshot = await response.json();
+            renderMindMap(versionedSnapshot.jsondrw);
+            updateUndoRedoButtons();
+        } else {
+            console.error(`Failed to fetch versioned snapshot for version ${version}`);
+        }
+    } catch (error) {
+        console.error('An error occurred:', error);
+    }
+}
+
+async function fetchcurrentdrawchainversion() {
+    try {
+        console.log("fetchcurrentdrawchainversion searching for the element with vuserId = " + vuserID)
+        console.log("fetchcurrentdrawchainversion searching for the element with vsessionID = " + vsessionID)
+
+        const response = await fetch(`http://localhost:3000/api/fetchcurrentdrawchainversion?user=${vuserID}&sessionid=${vsessionID}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return data.currentVersion; // Assuming the API returns the current version
+        } else {
+            console.error('Failed to fetch current version');
+            return null;
+        }
+    } catch (error) {
+        console.error('An error occurred:', error);
+        return null;
+    }
+}
+
+async function fetchcurrentdrawsessionversion() {
+    try {
+        console.log("fetchcurrentdrawsessionversion searching for the element with vuserId = " + vuserID)
+        console.log("fetchcurrentdrawsessionversion searching for the element with vsessionID = " + vsessionID)
+
+        const response = await fetch(`http://localhost:3000/api/fetchcurrentdrawsessionversion?user=${vuserID}&sessionid=${vsessionID}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return data.currentVersion; // Assuming the API returns the current version
+        } else {
+            console.error('Failed to fetch current version');
+            return null;
+        }
+    } catch (error) {
+        console.error('An error occurred:', error);
+        return null;
+    }
+}
+
+async function undo() {
+    console.log("Undoing ......");
+
+    //currentVersion = await fetchcurrentdrawchainversion() || 0; // Fetch the latest current version
+    //currentVersion = await fetchcurrentdrawsessionversion().catch(() => 0);
+    console.log("undo = currentVersion = " + currentVersion)
+    currentVersion = await updateversion(vsessionID, 'decrement');
+    console.log("undo = currentVersion = " + currentVersion)
+    await fetchAndRenderVersion(currentVersion);
+    updateUndoRedoButtons();
+}
+
+async function redo(sessonID) {
+    console.log("Redoing ......");
+
+    //currentVersion = await fetchcurrentdrawchainversion() || 0; // Fetch the latest current version    
+    //currentVersion = await fetchcurrentdrawsessionversion().catch(() => 0);
+    console.log("redo = currentVersion = " + currentVersion)
+
+    currentVersion = await updateversion(vsessionID, 'increment');
+    console.log("redo = currentVersion = " + currentVersion)
+    await fetchAndRenderVersion(currentVersion);
+
+    updateUndoRedoButtons();
+}
+
+
+
+// Helper function to update undo and redo button states
+async function updateUndoRedoButtons() {
+    // fikr_session is the pointer
+    // fikr_draw_version has the snapshots + version
+    // takesnapshot start with initial position and version = 1
+    //   increment the fikr_session.version + 1 ==> updateversion sessionid , operation increment
+    //   deleteversions(vsessionid, vversion) to delete interruptions.
+    // undo 
+    //   decrement the fikr_session.version -1  ==> updateversion sessionid , operation decrement
+    // redo
+    // increment the fikr_session.version + 1 ==> updateversion sessionid , operation increment
+    // updateversion sessionid , operation increment , decrement ==> fikr_session.version +/- 1
+    // deleteversions(vsessionid, vversion) to delete interruptions.
+
+
+    const undoButton = document.getElementById('undoButton');
+    const redoButton = document.getElementById('redoButton');
+
+    //console.log("Now getting the current version for session id = " + vsessionID);
+    const chainVersion = await fetchcurrentdrawchainversion() || 0; // Fetch the latest current version
+    console.log("updateUndoRedoButtons = currentVersion = " + currentVersion)
+    console.log("updateUndoRedoButtons = chainVersion = " + chainVersion)
+
+    undoButton.disabled = currentVersion <= 1;
+    redoButton.disabled = currentVersion >= chainVersion;
 }
 
 
@@ -2048,9 +2239,11 @@ function showColorPalette(type, id) {
                         console.log('Updating mindMapData Color for Id =' + id);
                         nodeData.fill = colorCode;
                     }
-                    renderMindMap();
+                    renderMindMap(mindMapData);
                 }
             }
+
+            takeSnapshot();
         });
         colorPalette.appendChild(colorPaletteColor);
     }
@@ -2123,7 +2316,7 @@ async function handleOpen() {
             const selectedFileNameElement = document.getElementById('selectedFileName');
             selectedFileNameElement.textContent = selectedFileName;
             mindMapData = selectedJsondrw
-            renderMindMap();
+            renderMindMap(mindMapData);
 
         } else {
             alert('Please select a file.'); // Show an alert to prompt the user to select a file
@@ -2153,6 +2346,9 @@ async function getsessionid() {
             const { sessionID } = responseData;
 
             console.log('Session ID received:', sessionID);
+            vsessionID = sessionID
+            console.log('vSession ID received:', vsessionID);
+
 
         } else {
             console.error('Error getting session:', response.status);
@@ -2186,8 +2382,8 @@ async function sendChatMessage(message) {
 
             mindMapData = calculateNodePositions(mindMapDataJson)
             console.log('Adjusted mind map data with positions:', mindMapData);
-
-            renderMindMap();
+            takeSnapshot(); // the version 1
+            renderMindMap(mindMapData);
         } else {
             console.error('Error sending chat message:', response.status);
         }
@@ -2261,6 +2457,78 @@ async function getDrawings() {
     } catch (error) {
         console.error('Error getting drawingss:', error);
         return response.error.text;
+    }
+}
+
+
+async function updateversion(vsessionid, voperation) {
+    try {
+        console.log("calling updateversion API on the server ...");
+        const response = await fetch('http://localhost:3000/api/updateversion', {
+            method: 'POST',
+            body: JSON.stringify({
+                sessionid: vsessionid,
+                operation: voperation
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json(); // Parse the JSON response
+            if (data.success) {
+                console.log("updateversion get back with success and result");
+                const result = data.result; // Access the result property
+                console.log('Version Updated Successfully');
+                console.log(data);
+                // Perform any necessary UI updates or redirects after successful saving
+                return result; // Return the result
+            } else {
+                console.error('Failed to update Version');
+                // Handle the error and provide appropriate user feedback
+                return null; // Return null for unsuccessful operation
+            }
+        } else {
+            console.error('Failed to update Version');
+            // Handle the error and provide appropriate user feedback
+            return null; // Return null for unsuccessful operation
+        }
+    } catch (error) {
+        console.error('An error occurred:', error);
+        // Handle the error and provide appropriate user feedback
+        return null; // Return null for error
+    }
+}
+
+
+// delete the interrupted version, after adding new position after undo, all other versions after to be deleted
+async function deleteversions(vsessionid, vversion) {
+    targetdelete = vversion + 1
+    console.log("Deleting All Versions after or equal ..." + targetdelete);
+    // Proceed with saving using the file name
+    try {
+        const response = await fetch('http://localhost:3000/api/deleteversions', {
+            method: 'POST',
+            body: JSON.stringify({
+                sessionid: vsessionid,
+                targetVersion: targetdelete
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            console.log('Versions Deleted Successfully');
+            // Perform any necessary UI updates or redirects after successful saving
+        } else {
+            console.error('Failed to Delete Versions');
+            // Handle the error and provide appropriate user feedback
+        }
+    } catch (error) {
+        console.error('An error occurred:', error);
+        // Handle the error and provide appropriate user feedback
     }
 }
 
