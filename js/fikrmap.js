@@ -45,6 +45,77 @@ let vuserID = 'johndoe'; // Replace with actual user information
 
 const drawingContainer = document.getElementById('drawingContainer');
 
+document.getElementById("settingsButton").addEventListener("click", function() {
+    $('#settingsPopup').modal('show');
+});
+
+const dragDropArea = document.getElementById("dragDropArea");
+
+dragDropArea.addEventListener("dragover", function(event) {
+    event.preventDefault();
+    dragDropArea.classList.add("drag-over");
+});
+
+dragDropArea.addEventListener("dragleave", function() {
+    dragDropArea.classList.remove("drag-over");
+});
+
+dragDropArea.addEventListener("drop", function(event) {
+    event.preventDefault();
+    dragDropArea.classList.remove("drag-over");
+    const files = event.dataTransfer.files;
+    handleFiles(files);
+});
+
+function handleDragOver(event) {
+    event.preventDefault();
+    dragDropArea.classList.add("drag-over");
+}
+
+function handleDragLeave() {
+    dragDropArea.classList.remove("drag-over");
+}
+
+function handleDrop(event) {
+    console.log("In handleDrop ...... ");
+    event.preventDefault();
+    dragDropArea.classList.remove("drag-over");
+    const files = event.dataTransfer.files;
+    handleFiles(files);
+}
+
+async function handleFiles(files) {
+    const file = files[0];
+    if (
+        file.type === "application/vnd.ms-excel" ||
+        file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+        file.name.endsWith(".xlsx")
+    ) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await fetch('http://localhost:3000/api/upload', {
+                method: "POST",
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log(data.message); // Log the server's response
+
+            } else {
+                console.error("Error uploading the file:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error uploading the file:", error);
+        }
+    } else {
+        alert("Please upload a valid XLS or XLSX file.");
+    }
+}
+
+
 function resizeDrawingContainer() {
     const windowHeight = window.innerHeight;
     const chatContainerHeight = document.getElementById('chatContainer').offsetHeight;

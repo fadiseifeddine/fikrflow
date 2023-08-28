@@ -25,9 +25,28 @@
             <button id="addRelationButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-right"></i></button>
             <button id="undoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
             <button id="redoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-clockwise"></i></button>
+            <button id="settingsButton" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#settingsPopup">
+                <i class="bi bi-gear"></i> Settings
+            </button>
         </div>
     </div>
 
+    <div id="settingsPopup" class="modal fade" tabindex="-1" aria-labelledby="settingsPopupLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="settingsPopupLabel">Settings</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="file" id="xlsInput" accept=".xls,.xlsx" />
+                    <div id="dragDropArea" class="drop-area">
+                        <p>Drag and drop your XLS file here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="drawingContainer">
         <div id="footerContainer">
@@ -89,7 +108,8 @@
 
     <!-- Add Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-
+    <!-- Add jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </body>
 
 </html>

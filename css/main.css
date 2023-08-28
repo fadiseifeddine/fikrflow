@@ -292,3 +292,18 @@ foreignObject input {
 .pointer-cursor {
     cursor: pointer;
 }
+
+.drop-area {
+    width: 100%;
+    /* Set to 100% to cover the entire modal width */
+    height: 200px;
+    /* Adjust the height as needed */
+    border: 2px dashed #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drop-area.drag-over {
+    background-color: #f0f0f0;
+}
