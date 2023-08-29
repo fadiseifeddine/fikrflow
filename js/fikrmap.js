@@ -45,26 +45,41 @@ let vuserID = 'johndoe'; // Replace with actual user information
 
 const drawingContainer = document.getElementById('drawingContainer');
 
-document.getElementById("settingsButton").addEventListener("click", function() {
-    $('#settingsPopup').modal('show');
+
+// Initialize the dropdown
+var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
+var dropdownList = dropdownElementList.map(function(dropdownToggleEl) {
+    return new bootstrap.Dropdown(dropdownToggleEl)
+})
+
+// Handle click event on importxlsdropdown element
+document.getElementById('importxlsdropdown').addEventListener('click', function() {
+    var importXlsModal = new bootstrap.Modal(document.getElementById('importxls'), {
+        backdrop: true
+    });
+    importXlsModal.show();
 });
 
-const dragDropArea = document.getElementById("dragDropArea");
 
-dragDropArea.addEventListener("dragover", function(event) {
-    event.preventDefault();
-    dragDropArea.classList.add("drag-over");
-});
+document.addEventListener('DOMContentLoaded', function() {
 
-dragDropArea.addEventListener("dragleave", function() {
-    dragDropArea.classList.remove("drag-over");
-});
+    const dragDropArea = document.getElementById("dragDropArea");
 
-dragDropArea.addEventListener("drop", function(event) {
-    event.preventDefault();
-    dragDropArea.classList.remove("drag-over");
-    const files = event.dataTransfer.files;
-    handleFiles(files);
+    dragDropArea.addEventListener("dragover", function(event) {
+        event.preventDefault();
+        dragDropArea.classList.add("drag-over");
+    });
+
+    dragDropArea.addEventListener("dragleave", function() {
+        dragDropArea.classList.remove("drag-over");
+    });
+
+    dragDropArea.addEventListener("drop", function(event) {
+        event.preventDefault();
+        dragDropArea.classList.remove("drag-over");
+        const files = event.dataTransfer.files;
+        handleFiles(files);
+    });
 });
 
 function handleDragOver(event) {
@@ -103,7 +118,10 @@ async function handleFiles(files) {
             if (response.ok) {
                 const data = await response.json();
                 console.log(data.message); // Log the server's response
-
+                console.log('Hiding the Modal ....');
+                $('#fileNameModal').modal('hide');
+                const importxlsModal = bootstrap.Modal.getInstance(document.getElementById('importxls'));
+                importxlsModal.hide();
             } else {
                 console.error("Error uploading the file:", response.statusText);
             }
