@@ -1,5 +1,5 @@
-let userInput = '';
 let mindMapData = '';
+let userInput = '';
 let selectedNode = null;
 let sourceNode = null;
 
@@ -37,7 +37,7 @@ let addingrelsource = null;
 let addingreltarget = null;
 
 // Define global variables to keep track of history and current version
-let currentVersion = -1;
+let currentVersion = 0;
 let vsessionID = ''; // Declare sessionID as a global variable
 let vuserID = 'johndoe'; // Replace with actual user information
 
@@ -275,6 +275,7 @@ function getCenterY(selection, nodeId) {
 
 
 function renderMindMap(mindMapData) {
+    console.log("Rendering the mindMapData start ...");
     const mindMapContainer = document.getElementById('mindMapContainer');
     mindMapContainer.innerHTML = '';
 
@@ -718,10 +719,24 @@ function renderMindMap(mindMapData) {
 
             function dragEnd(event, d) {
                 d3.select(this).classed('active', false);
+                // Update the positions of the node in mindMapData
+                const selectedNode = mindMapData.nodes.find((node) => node.id === d.id);
+                if (selectedNode) {
+
+                    selectedNode.x = event.x - 50;
+                    selectedNode.y = event.y - 25;
+                }
+
+                console.log("x=", selectedNode.x);
+                console.log("y=", selectedNode.y);
+
 
                 // Call takeSnapshot when drag ends
-                console.log('Drag End ...... Taking Snapshot ....');
-                takeSnapshot();
+                console.log('------------------------------------  DragEnd before taking the snaphot');
+                console.log('--- dragEnd after mindMapData', mindMapData);
+                takeSnapshot(mindMapData);
+                console.log('------------------------------------  DragEnd after taking the snaphot');
+
             }
 
         }
@@ -1495,7 +1510,7 @@ function renderMindMap(mindMapData) {
             }
 
             // After rendering, capture a snapshot
-            takeSnapshot();
+            takeSnapshot(mindMapData);
         }
 
 
@@ -1992,46 +2007,86 @@ function handleAddNode() {
             // Re-render the mind map with the updated data
             renderMindMap(mindMapData);
 
-            takeSnapshot();
+            takeSnapshot(mindMapData);
         }
     }
 }
 
-
-
-async function takeSnapshot() {
-    try {
-        console.log("Taking the Snapshot ....");
-        // Fetch the latest current version or default to 0 if not found
-        //currentVersion = await fetchcurrentdrawchainversion().catch(() => 0);
-        const result = await updateversion(vsessionID, 'increment');
-        //currentVersion = await fetchcurrentdrawsessionversion().catch(() => 0);
-        currentVersion = result + 1;
-        console.log(currentVersion);
-        deleteversions(vsessionID, currentVersion);
-        const response = await fetch('http://localhost:3000/api/savesnapshot', {
-            method: 'POST',
-            body: JSON.stringify({
-                user: vuserID, // Replace with actual user information
-                sessionid: vsessionID, // Replace with actual session ID
-                jsondrw: mindMapData, // Replace with the data you want to save
-                version: currentVersion
-            }),
-            headers: {
-                'Content-Type': 'application/json'
+function takeSnapshot(mindMapData) {
+    console.log("Taking the Snapshot ....");
+    // Fetch the latest current version or default to 0 if not found
+    console.log("Current Version currentVersion before update = ", currentVersion);
+    console.log('--- mindMapData before  updateversion', mindMapData);
+    updateversion(vsessionID, 'increment')
+        .then(updatedCurrentVersion => {
+            console.log('mindMapData before delete ', mindMapData);
+            currentVersion = updatedCurrentVersion;
+            console.log("Current Version currentVersion after update = ", currentVersion);
+            return deleteversions(vsessionID, currentVersion);
+        })
+        .then(() => {
+            console.log("Now taking the Snapshot .,,,");
+            console.log('mindMapData after delete', mindMapData);
+            // Now, send the snapshot
+            return fetch('http://localhost:3000/api/savesnapshot', {
+                method: 'POST',
+                body: JSON.stringify({
+                    user: vuserID,
+                    sessionid: vsessionID,
+                    jsondrw: mindMapData,
+                    version: currentVersion
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Snapshot saved successfully');
+                updateUndoRedoButtons();
+            } else {
+                console.error('Failed to save snapshot');
             }
+        })
+        .catch(error => {
+            console.error('An error occurred:', error);
         });
-
-        if (response.ok) {
-            console.log('Snapshot saved successfully');
-            updateUndoRedoButtons();
-        } else {
-            console.error('Failed to save snapshot');
-        }
-    } catch (error) {
-        console.error('An error occurred:', error);
-    }
 }
+
+// async function takeSnapshot() {
+//     try {
+//         console.log("Taking the Snapshot ....");
+//         // Fetch the latest current version or default to 0 if not found
+//         //currentVersion = await fetchcurrentdrawchainversion().catch(() => 0);
+//         console.log("Current Version currentVersion before update = ", currentVersion);
+//         currentVersion = await updateversion(vsessionID, 'increment');
+//         //currentVersion = await fetchcurrentdrawsessionversion().catch(() => 0);
+//         console.log("Current Version currentVersion after update = ", currentVersion);
+//         await deleteversions(vsessionID, currentVersion);
+//         const response = await fetch('http://localhost:3000/api/savesnapshot', {
+//             method: 'POST',
+//             body: JSON.stringify({
+//                 user: vuserID, // Replace with actual user information
+//                 sessionid: vsessionID, // Replace with actual session ID
+//                 jsondrw: mindMapData, // Replace with the data you want to save
+//                 version: currentVersion
+//             }),
+//             headers: {
+//                 'Content-Type': 'application/json'
+//             }
+//         });
+
+//         if (response.ok) {
+//             console.log('Snapshot saved successfully');
+//             updateUndoRedoButtons();
+//         } else {
+//             console.error('Failed to save snapshot');
+//         }
+//     } catch (error) {
+//         console.error('An error occurred:', error);
+//     }
+// }
 
 
 
@@ -2162,6 +2217,7 @@ async function updateUndoRedoButtons() {
 
     undoButton.disabled = currentVersion <= 1;
     redoButton.disabled = currentVersion >= chainVersion;
+
 }
 
 
@@ -2242,6 +2298,8 @@ function handleRectEdit() {
                     inputElement.blur(); // Trigger blur event to save the entered text
                 }
             });
+
+            takeSnapshot(mindMapData);
         }
     }
 }
@@ -2332,7 +2390,7 @@ function showColorPalette(type, id) {
                 }
             }
 
-            takeSnapshot();
+            takeSnapshot(mindMapData);
         });
         colorPalette.appendChild(colorPaletteColor);
     }
@@ -2471,7 +2529,7 @@ async function sendChatMessage(message) {
 
             mindMapData = calculateNodePositions(mindMapDataJson)
             console.log('Adjusted mind map data with positions:', mindMapData);
-            takeSnapshot(); // the version 1
+            takeSnapshot(mindMapData); // the version 1
             renderMindMap(mindMapData);
         } else {
             console.error('Error sending chat message:', response.status);
@@ -2552,7 +2610,9 @@ async function getDrawings() {
 
 async function updateversion(vsessionid, voperation) {
     try {
+
         console.log("calling updateversion API on the server ...");
+        console.log("--- mindMapData in update version before updating ... ", mindMapData);
         const response = await fetch('http://localhost:3000/api/updateversion', {
             method: 'POST',
             body: JSON.stringify({
@@ -2565,6 +2625,8 @@ async function updateversion(vsessionid, voperation) {
         });
 
         if (response.ok) {
+            console.log("--- mindMapData in update version after updating ... ", mindMapData);
+
             const data = await response.json(); // Parse the JSON response
             if (data.success) {
                 console.log("updateversion get back with success and result");
@@ -2593,7 +2655,7 @@ async function updateversion(vsessionid, voperation) {
 
 // delete the interrupted version, after adding new position after undo, all other versions after to be deleted
 async function deleteversions(vsessionid, vversion) {
-    targetdelete = vversion + 1
+    targetdelete = vversion
     console.log("Deleting All Versions after or equal ..." + targetdelete);
     // Proceed with saving using the file name
     try {
