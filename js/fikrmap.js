@@ -3,6 +3,9 @@ let userInput = '';
 let selectedNode = null;
 let sourceNode = null;
 
+// Define a variable for the icon size (adjust as needed)
+const iconSize = 24; // You can change this value to control the icon size
+
 // Box itself
 let rectWidth = 250;
 let rectHeight = 50;
@@ -24,6 +27,12 @@ let boxToolBoxHeight = 100;
 let BoxShapeBoxRef;
 let boxShapeBoxWidth = 180;
 let boxShapeBoxHeight = 80;
+
+
+let BoxIconBoxRef;
+let boxIconBoxWidth = 180;
+let boxIconBoxHeight = 100;
+
 
 
 // 3dot Button
@@ -580,8 +589,42 @@ function renderMindMap(mindMapData) {
             .attr('text-anchor', 'middle')
             .attr('alignment-baseline', 'middle');
 
+        // Create a new SVG group for nodeIcons on the right of existing nodeCircles
+        const nodeIcons = nodes
+            .append('g')
+            .attr('class', 'node-icon')
+            .attr('transform', (d) => {
+                if (d.shape === 'ellipse' || d.shape === 'cloud') {
+                    return `translate(10, 10)`; // Adjust the value as needed
+                } else {
+                    return `translate(50, 5)`; // Adjust the value as needed
+                }
+            });
 
+        // Append a foreignObject element within the nodeIcons group for the icon
+        nodeIcons
+            .append('foreignObject')
+            .attr('width', iconSize) // Set the width of the foreignObject for the icon
+            .attr('height', iconSize) // Set the height of the foreignObject for the icon
+            .html((d) => {
+                switch (d.icon) {
+                    case 'smily':
+                        return `<i class="bi bi-emoji-smile" style="font-size: ${iconSize}px;"></i>`;
+                    case 'heart':
+                        return `<i class="bi bi-heart" style="font-size: ${iconSize}px;"></i>`;
+                    case 'star':
+                        return `<i class="bi bi-star" style="font-size: ${iconSize}px;"></i>`;
+                }
+            });
 
+        // Create a circle background for the icon
+        nodeIcons
+            .append('circle')
+            .attr('cx', iconSize / 2) // Adjust the center X-coordinate based on icon size
+            .attr('cy', iconSize / 2) // Adjust the center Y-coordinate based on icon size
+            .attr('r', iconSize / 2) // Set the radius based on icon size
+            .attr('fill', 'transparent') // Set the fill to transparent
+            .attr('stroke', 'transparent'); // Set the stroke to transparent
         //d:     It represents the relationship object for which the curved path is being calculated. The relationship object contains information about the source node and the target node of the relationship.
         //nodes: It represents the selection of node elements in the SVG. It is used to access the node elements and retrieve their positions.
         //nodePositions: It represents a map that stores the calculated positions (x, y coordinates) of each node in the mind map. The map is used to retrieve the positions of the source and target nodes for calculating the curved path.
@@ -1058,7 +1101,7 @@ function renderMindMap(mindMapData) {
                 { icon: "bi bi-arrows-collapse", text: "Thinner" },
                 { icon: "bi-arrows-expand", text: "Thicker" },
                 { icon: "bi bi-trash", text: "Delete" },
-                { icon: "bi bi-textarea-t", text: "Label" },
+                { icon: "bi bi-textarea-t", text: "Label" }
             ];
             // Create the nodes inside the relationship box
             const relationshipTooBoxNodes = toolboxContent
@@ -1123,6 +1166,7 @@ function renderMindMap(mindMapData) {
                 { icon: "bi bi-arrows-collapse", text: "Thinner" },
                 { icon: "bi-arrows-expand", text: "Thicker" },
                 { icon: "bi bi-trash", text: "Delete" },
+                { icon: "bi bi-emoji-smile", text: "Icons" }
             ];
             // Create the nodes inside the relationship box
             const boxTooBoxNodes = toolboxContent
@@ -1150,6 +1194,93 @@ function renderMindMap(mindMapData) {
 
             BoxToolBoxRef = BoxToolBox;
 
+        }
+
+        function renderBoxIconBox() {
+            console.log("renderBoxIconBox ...... start");
+            const rectMargin = 20;
+            const lineStrokeWidth = 2;
+            const relationshipLineLength = 80;
+            // Create the relationship box
+            const BoxIconBox = svg
+                .append("g")
+                .attr("class", "box-iconbox-box")
+                .style("display", "none");
+
+            BoxIconBox
+                .append("rect")
+                .attr("class", "box-iconbox-rect")
+                .attr("width", boxIconBoxWidth)
+                .attr("height", boxIconBoxHeight);
+
+            const boxContainer = BoxIconBox
+                .append("foreignObject")
+                .attr("width", boxIconBoxWidth)
+                .attr("height", boxIconBoxHeight);
+
+            const iconboxContent = boxContainer
+                .append("xhtml:div")
+                .attr("class", "box-toolbox-content");
+
+            const icons = [
+                { icon: "bi bi-heart", text: "Heart" },
+                { icon: "bi bi-emoji-laughing", text: "Smily" },
+                { icon: "bi bi-star", text: "Star" }
+            ];
+
+            const boxIconBoxNodes = iconboxContent
+                .selectAll("div")
+                .data(icons)
+                .enter()
+                .append("div")
+                .on("click", handleBoxIconboxNodesClick);
+
+            boxIconBoxNodes
+                .append("i")
+                .attr("class", d => `relationship-toolbox-icons ${d.icon}`)
+                .style("display", "inline-block");
+
+            boxIconBoxNodes
+                .append("span")
+                .text(d => d.text)
+                .style("margin-left", "5px");
+
+            // Add line breaks
+            iconboxContent.append("br");
+            iconboxContent.append("br");
+
+            // Add a remove button at the bottom center of the rectangle
+            const removeButton = iconboxContent
+                .append("button")
+                .text("Remove Icon")
+                .style("position", "absolute")
+                .style("bottom", "0")
+                .style("left", "0")
+                .style("width", "100%")
+                .style("color", "red") // Change the remove character to red
+                .on("click", handleRemoveIcon);
+
+            console.log("The new div for Shape Box rendered ....");
+
+            BoxIconBoxRef = BoxIconBox;
+        }
+
+
+        function handleRemoveIcon() {
+            console.log('-----------------------------------');
+
+            const nodeId = selectedNode.id;
+
+            console.log(`handleRemoveIcon Current/Target Box Id ${nodeId}`);
+
+            //const nodeelement = d3.select(`#${nodeId}`);
+            const nodeelement = d3.select(`#${nodeId}`);
+            console.log(nodeelement);
+            console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
+
+            const selectedNode4ShapeChange = mindMapData.nodes.find(node => node.id === nodeId);
+            selectedNode4ShapeChange.icon = null;
+            renderMindMap(mindMapData);
         }
 
         function renderBoxShapeBox() {
@@ -1515,7 +1646,30 @@ function renderMindMap(mindMapData) {
 
 
 
+        function handleBoxIconboxNodesClick(event, d) {
+            console.log(`Clicked ${d.text}`);
+            console.log('-----------------------------------');
 
+            const nodeId = selectedNode.id;
+
+            console.log(`handleBoxIconboxNodesClick Current/Target Box Id ${nodeId}`);
+
+            //const nodeelement = d3.select(`#${nodeId}`);
+            const nodeelement = d3.select(`#${nodeId}`);
+            console.log(nodeelement);
+            console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
+            shp = null;
+            if (d.text == "Heart") { shp = 'heart' };
+            if (d.text == "Smily") { shp = 'smily' };
+            if (d.text == "Star") { shp = 'star' };
+
+
+
+            const selectedNode4ShapeChange = mindMapData.nodes.find(node => node.id === nodeId);
+            selectedNode4ShapeChange.icon = shp;
+            renderMindMap(mindMapData);
+
+        }
 
 
         function handleBoxShapeboxNodesClick(event, d) {
@@ -1598,12 +1752,22 @@ function renderMindMap(mindMapData) {
                 renderBoxShapeBox();
                 toggleBoxShapeBox(targetobj);
 
+            } else if (d.text === "Icons") {
+                console.log("rendering the Icons options .....");
+                event.stopPropagation();
+
+                const targetobj = findBoxOrLine(nodeId);
+                hideBoxToolBox();
+                renderBoxIconBox();
+                toggleBoxIconBox(targetobj);
+
             }
 
             //console.log('Rendering the MindMap...')
             //renderMindMap();
 
         }
+
 
         function handleRelationshipToolboxNodesClick(event, d) {
             console.log(`Clicked ${d.text}`);
@@ -1748,7 +1912,7 @@ function renderMindMap(mindMapData) {
         }
 
 
-        // Function to toggle the relationship tool box trigerred on 3 dots from line
+        // Function to toggle the BoxShapeBox tool box trigerred on 3 dots from line
         function toggleBoxShapeBox(box) {
             console.log("In the toggleBoxShapeBox ....");
             console.log('box.id=' + box.id);
@@ -1777,6 +1941,38 @@ function renderMindMap(mindMapData) {
                 BoxShapeBoxRef.style("display", "none");
             }
         }
+
+
+        // Function to toggle the BoxShapeBox tool box trigerred on 3 dots from line
+        function toggleBoxIconBox(box) {
+            console.log("In the toggleBoxIconBox ....");
+            console.log('box.id=' + box.id);
+
+
+            const display = BoxIconBoxRef.style("display");
+            console.log('display=' + display);
+
+            if (display === "none") {
+
+                console.log("Display of Icon is None, we are setting x and y to display ...");
+                //calcX = d.x + (d.label.length * 10 + 20) / 2;
+                calcX = box.x + (rectWidth) / 2 - 70;
+                calcY = box.y - 70;
+
+                console.log('calcX', calcX);
+                console.log('calcY', calcY);
+
+                BoxIconBoxRef
+                    .attr("transform", `translate(${calcX}, ${calcY})`)
+                    .style("display", "block");
+
+                console.log("BoxShapeIconRef should now be displayed");
+
+            } else {
+                BoxIconBoxRef.style("display", "none");
+            }
+        }
+
 
         // Update the renderRelationships() function as shown below
         function renderRelationships() {
@@ -1842,8 +2038,13 @@ function selectNode(nodeId) {
         if (nodeId === null) {
             console.log("Hiding the Relationship Box ....");
             hideRelationshipToolBox();
+            console.log("Hiding the  Box Tool Box....");
             hideBoxToolBox();
+            console.log("Hiding the Box Shape Box ....");
             hideBoxShapeBox();
+            hideBoxIconBox();
+            console.log("Hiding Done ....");
+
         } else {
 
             renderMindMap(mindMapData); // Re-render the mind map to apply the selection highlight
@@ -1910,11 +2111,17 @@ function hideBoxToolBox() {
     BoxToolBoxRef.style("display", "none");
 }
 
-// Function to hide the relationship box
 function hideBoxShapeBox() {
-    BoxShapeBoxRef.style("display", "none");
+    if (BoxShapeBoxRef) {
+        BoxShapeBoxRef.style("display", "none");
+    }
 }
 
+function hideBoxIconBox() {
+    if (BoxIconBoxRef) {
+        BoxIconBoxRef.style("display", "none");
+    }
+}
 
 
 
