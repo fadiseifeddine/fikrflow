@@ -990,6 +990,7 @@ function renderMindMap(mindMapData) {
 
                             const sourceRightEdgeX = getRightEdgeX(nodes, d.source);
                             const targetLeftEdgeX = getLeftEdgeX(nodes, d.target);
+                            const targetRightEdgeX = getRightEdgeX(nodes, d.target);
 
                             // Check if the target node is to the right of the source node
                             if (sourceRightEdgeX < targetLeftEdgeX) {
@@ -1015,10 +1016,13 @@ function renderMindMap(mindMapData) {
                                     const rx = parseFloat(targetShape.getAttribute('rx'));
                                     return cx + rx + 5; // Set x2 to the right edge of the ellipse
                                 } else if (targetShapeTag === 'rect') {
-                                    return getRightEdgeX(nodes, d.target) + 3; // Set x2 to the right edge of the rectangle
+                                    return targetRightEdgeX + 3; // Set x2 to the right edge of the rectangle
                                 } else if (targetShapeTag === 'parallelogram') {
                                     // Assuming the right edge of the parallelogram is the end point of the relationship
-                                    return getRightEdgeX(nodes, d.target) + 3;
+                                    return targetRightEdgeX + 3;
+                                } else if (targetShapeTag === 'diamond') {
+                                    // Assuming the left edge of the diamond is the end point of the relationship
+                                    return targetRightEdgeX - 3;
                                 }
                             }
                         }
