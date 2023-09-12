@@ -3,6 +3,8 @@ let userInput = '';
 let selectedNode = null;
 let sourceNode = null;
 
+let svg = null;
+
 // Define a variable for the icon size (adjust as needed)
 const iconSize = 24; // You can change this value to control the icon size
 
@@ -13,6 +15,10 @@ let rectHeight = 50;
 // Parallelogram
 let plgrmWidth = 250; // Set the width for the Parallelogram shape
 let plgrmHeight = 50; // Set the height for the Parallelogram shape
+
+// Diamond
+let diamondWidth = 300; // Set the width for the diamond shape
+let diamondHeight = 75; // Set the height for the diamond shape
 
 
 // Calculate the coordinates of the parallelogram points
@@ -162,7 +168,7 @@ vsessionID = getsessionid();
 
 function getBottomEdgeY(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
-    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
+    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"]') : null;
 
     if (shape) {
         if (shape.getAttribute('data-tag') === 'ellipse') {
@@ -174,10 +180,15 @@ function getBottomEdgeY(selection, nodeId) {
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + height; // Return the bottom edge y-coordinate of the rectangle
         } else if (shape.getAttribute('data-tag') === 'parallelogram') {
             const height = parseFloat(shape.getAttribute('height'));
-            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + height; // Return the bottom edge y-coordinate of the rectangle
-            //const cy = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]);
-            //const plgrmHeight = parseFloat(shape.getAttribute('height'));
-            //return cy + plgrmHeight / 2; // Return the bottom edge y-coordinate of the parallelogram
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + height; // Return the bottom edge y-coordinate of the parallelogram
+        } else if (shape.getAttribute('data-tag') === 'diamond') {
+            console.log("bottom diamond shape = ", shape);
+
+            const height = parseFloat(shape.getAttribute('height'));
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + height / 2; // Return the bottom edge y-coordinate of the diamond
+        } else {
+            const height = parseFloat(shape.getAttribute('height'));
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]); // Return the top edge y-coordinate of the rectangle
         }
     }
     return 0;
@@ -185,7 +196,7 @@ function getBottomEdgeY(selection, nodeId) {
 
 function getTopEdgeY(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
-    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
+    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"]') : null;
 
     if (shape) {
         if (shape.getAttribute('data-tag') === 'ellipse') {
@@ -195,10 +206,12 @@ function getTopEdgeY(selection, nodeId) {
         } else if (shape.getAttribute('data-tag') === 'rect') {
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]); // Return the top edge y-coordinate of the rectangle
         } else if (shape.getAttribute('data-tag') === 'parallelogram') {
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]); // Return the top edge y-coordinate of the parallelogram
+        } else if (shape.getAttribute('data-tag') === 'diamond') {
+            console.log("top diamond shape = ", shape);
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) - height / 2; // Return the top edge y-coordinate of the diamond
+        } else {
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]); // Return the top edge y-coordinate of the rectangle
-            //const cy = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]);
-            //const plgrmHeight = parseFloat(shape.getAttribute('height'));
-            //return cy - plgrmHeight / 2; // Return the top edge y-coordinate of the parallelogram
         }
     }
     return 0;
@@ -206,7 +219,7 @@ function getTopEdgeY(selection, nodeId) {
 
 function getRightEdgeX(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
-    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
+    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"]') : null;
 
     if (shape) {
         if (shape.getAttribute('data-tag') === 'ellipse') {
@@ -214,24 +227,25 @@ function getRightEdgeX(selection, nodeId) {
             const rx = parseFloat(shape.getAttribute('rx'));
             return cx + rx;
         } else if (shape.getAttribute('data-tag') === 'rect') {
-            // Get the width of the rectangle
             const width = parseFloat(shape.getAttribute('width'));
-            // Calculate the X position to the right edge, in the middle of the edge
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + width;
         } else if (shape.getAttribute('data-tag') === 'parallelogram') {
-            // Get the width of the rectangle
             const width = parseFloat(shape.getAttribute('width'));
-            // Calculate the X position to the right edge, in the middle of the edge
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + width;
+        } else if (shape.getAttribute('data-tag') === 'diamond') {
+            const width = parseFloat(shape.getAttribute('width'));
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + width; // Right edge X-coordinate of the diamond
+        } else {
+            const width = parseFloat(shape.getAttribute('width'));
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]) + width;
         }
     }
     return 0;
 }
 
-
 function getLeftEdgeX(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
-    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
+    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"]') : null;
 
     if (shape) {
         if (shape.getAttribute('data-tag') === 'ellipse') {
@@ -239,14 +253,26 @@ function getLeftEdgeX(selection, nodeId) {
             const rx = parseFloat(shape.getAttribute('rx'));
             return cx - rx - 10;
         } else if (shape.getAttribute('data-tag') === 'rect') {
-            // Get the X position of the left edge
             const x = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
             const arrowWidth = parseFloat(arrowhead.getAttribute('markerWidth'));
-            return x + arrowWidth / 2 - 10; // Adjusted for arrowhead size
+            return x + arrowWidth / 2 - 10;
         } else if (shape.getAttribute('data-tag') === 'parallelogram') {
             const x = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
             const arrowWidth = parseFloat(arrowhead.getAttribute('markerWidth'));
-            return x + arrowWidth / 2; // Adjusted for arrowhead size
+            const leftEdgeX = x + arrowWidth / 2;
+            //console.log("parallelo leftEdgeX =", leftEdgeX);
+            return leftEdgeX;
+        } else if (shape.getAttribute('data-tag') === 'diamond') {
+            const x = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
+            // console.log("diamond x =", x);
+            return x;
+            // const width = parseFloat(shape.getAttribute('width'));
+            // const leftEdgeX = x - width / 2 - 10;
+            // console.log("diamond leftEdgeX =", leftEdgeX);
+            // return leftEdgeX;
+        } else {
+            const x = parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
+            const arrowWidth = parseFloat(arrowhead.getAttribute('markerWidth'));
         }
     }
     return 0;
@@ -255,7 +281,7 @@ function getLeftEdgeX(selection, nodeId) {
 
 function getCenterX(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
-    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
+    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"]') : null;
 
     if (shape) {
         if (shape.getAttribute('data-tag') === 'ellipse') {
@@ -263,18 +289,20 @@ function getCenterX(selection, nodeId) {
             return cx;
         } else if (shape.getAttribute('data-tag') === 'rect') {
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
-
         } else if (shape.getAttribute('data-tag') === 'parallelogram') {
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
+        } else if (shape.getAttribute('data-tag') === 'diamond') {
+            console.log("centerX diamond shape = ", shape);
+
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
         }
     }
     return 0;
 }
 
-// coordinates for the left and right edge (middle of the rectangle / ellipse)
 function getCenterY(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
-    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
+    const shape = node ? node.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"]') : null;
 
     if (shape) {
         if (shape.getAttribute('data-tag') === 'ellipse') {
@@ -285,12 +313,14 @@ function getCenterY(selection, nodeId) {
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + rectHeight / 2;
         } else if (shape.getAttribute('data-tag') === 'parallelogram') {
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + plgrmHeight / 2;
-
+        } else if (shape.getAttribute('data-tag') === 'diamond') {
+            //console.log("centerY diamond shape = ", shape);
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + diamondHeight / 2;
+            //return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]); // Center Y-coordinate of the diamond
         }
     }
     return 0;
 }
-
 
 
 
@@ -305,7 +335,7 @@ function renderMindMap(mindMapData) {
         const height = mindMapContainer.clientHeight;
 
         // Create the SVG element
-        const svg = d3.select('#mindMapContainer')
+        svg = d3.select('#mindMapContainer')
             .append('svg')
             .attr('width', width)
             .attr('height', height);
@@ -367,6 +397,16 @@ function renderMindMap(mindMapData) {
             { x: plgrmWidth, y: plgrmHeight },
             { x: yOffset, y: plgrmHeight }
         ];
+
+
+        // Calculate the coordinates of the diamond points
+        var diamondpoints = [
+            { x: diamondWidth / 2, y: 0 },
+            { x: diamondWidth, y: diamondHeight / 2 },
+            { x: diamondWidth / 2, y: diamondHeight },
+            { x: 0, y: diamondHeight / 2 }
+        ];
+
         const scaleX = 4; // Scale factor for horizontal scaling
         const scaleY = 0; // Scale factor for vertical scaling
 
@@ -384,6 +424,16 @@ function renderMindMap(mindMapData) {
                     path.setAttribute("d", "M" + plgrmpoints.map(p => `${p.x},${p.y}`).join("L") + "Z");
                     path.setAttribute("stroke", "red");
                     path.setAttribute("stroke-width", "2");
+                    path.setAttribute("fill", "none");
+                    // Append the path directly to the SVG container
+                    //svgContainer.appendChild(path);
+                    return path;
+                } else if (d.shape === 'diamond') {
+                    // Create a path for the diamond
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute("d", "M" + diamondpoints.map(p => `${p.x},${p.y}`).join("L") + "Z");
+                    path.setAttribute("stroke", "red");
+                    path.setAttribute("stroke-width", 2);
                     path.setAttribute("fill", "none");
                     // Append the path directly to the SVG container
                     //svgContainer.appendChild(path);
@@ -406,6 +456,9 @@ function renderMindMap(mindMapData) {
                 } else if (d.shape === 'parallelogram') {
                     //console.log("setting the width to rectWidth....")
                     return plgrmWidth; // Set the width of the parallelogram shape
+                } else if (d.shape === 'diamond') {
+                    //console.log("setting the width to rectWidth....")
+                    return diamondWidth; // Set the width of the diamond shape
                 } else {
                     return rectWidth;
                 }
@@ -425,6 +478,8 @@ function renderMindMap(mindMapData) {
                     return ellipseRx;
                 } else if (d.shape === 'parallelogram') {
                     return 0; // No rounded corners for parallelogram shape
+                } else if (d.shape === 'diamond') {
+                    return 0; // No rounded corners for diamond shape
                 } else {
                     return cornerRadius;
                 }
@@ -434,11 +489,13 @@ function renderMindMap(mindMapData) {
                     return ellipseRy;
                 } else if (d.shape === 'parallelogram') {
                     return 0; // No rounded corners for parallelogram shape
+                } else if (d.shape === 'diamond') {
+                    return 0; // No rounded corners for diamond shape
                 } else {
                     return cornerRadius;
                 }
             })
-            .attr('data-tag', (d) => (d.shape === 'ellipse' ? 'ellipse' : d.shape === 'parallelogram' ? 'parallelogram' : 'rect'))
+            .attr('data-tag', (d) => (d.shape === 'ellipse' ? 'ellipse' : d.shape === 'parallelogram' ? 'parallelogram' : d.shape === 'diamond' ? 'diamond' : 'rect'))
             .attr("stroke-width", (d) => d.strokewidth);
 
         //.attr('width', (d) => d.label.length * 10 + 20)
@@ -463,6 +520,8 @@ function renderMindMap(mindMapData) {
                     return -ellipseRx + 15;
                 } else if (d.shape === 'parallelogram') {
                     return 5
+                } else if (d.shape === 'diamond') {
+                    return 5
                 } else {
                     return 5;
                 }
@@ -471,6 +530,8 @@ function renderMindMap(mindMapData) {
                 if (d.shape === 'ellipse') {
                     return -15;
                 } else if (d.shape === 'parallelogram') {
+                    return 12.5;
+                } else if (d.shape === 'diamond') {
                     return 12.5;
                 } else {
                     return 12.5;
@@ -509,6 +570,8 @@ function renderMindMap(mindMapData) {
                     return 0; // For ellipse and parallelogram, keep the x-coordinate at the center
                 } else if (d.shape === 'parallelogram') {
                     return plgrmWidth / 2; // For rectangle, adjust the x-coordinate to be centered within the rectangle
+                } else if (d.shape === 'diamond') {
+                    return diamondWidth / 2; // For rectangle, adjust the x-coordinate to be centered within the rectangle
                 } else {
                     return rectWidth / 2; // For rectangle, adjust the x-coordinate to be centered within the rectangle
                 }
@@ -517,6 +580,9 @@ function renderMindMap(mindMapData) {
                 if (d.shape === 'ellipse') {
                     return 0; // For ellipse and parallelogram, keep the y-coordinate at the center
                 } else if (d.shape === 'parallelogram') {
+                    return 25; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
+
+                } else if (d.shape === 'diamond') {
                     return 25; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
 
                 } else {
@@ -533,6 +599,8 @@ function renderMindMap(mindMapData) {
                     return 'ellipsetext';
                 } else if (d.shape === 'parallelogram') {
                     return 'parallelogramtext';
+                } else if (d.shape === 'diamond') {
+                    return 'diamondtext';
                 } else {
                     return 'recttext';
                 }
@@ -548,6 +616,9 @@ function renderMindMap(mindMapData) {
                 } else if (d.shape === 'parallelogram') {
                     // For parallelogram, move the circle to the left side
                     return 5; // For rectangles, keep the x-coordinate as it was
+                } else if (d.shape === 'diamond') {
+                    // For parallelogram, move the circle to the left side
+                    return 5; // For rectangles, keep the x-coordinate as it was
                 } else {
                     return 5; // For rectangles, keep the x-coordinate as it was
                 }
@@ -558,6 +629,9 @@ function renderMindMap(mindMapData) {
                     return -ellipseRy + 10; // Adjust the value as needed
                 } else if (d.shape === 'parallelogram') {
                     // For parallelogram, move the circle to the top side
+                    return 5; // For rectangles and other shapes, keep the y-coordinate as it was
+                } else if (d.shape === 'diamond') {
+                    // For diamond, move the circle to the top side
                     return 5; // For rectangles and other shapes, keep the y-coordinate as it was
                 } else {
                     return 5; // For rectangles and other shapes, keep the y-coordinate as it was
@@ -580,6 +654,9 @@ function renderMindMap(mindMapData) {
                 } else if (d.shape === 'parallelogram') {
                     // For parallelogram, move the text to the left side
                     return 6; // For rectangles, keep the x-coordinate as it was
+                } else if (d.shape === 'diamond') {
+                    // For diamond, move the text to the left side
+                    return 6; // For rectangles, keep the x-coordinate as it was
                 } else {
                     return 6; // For rectangles, keep the x-coordinate as it was
                 }
@@ -590,6 +667,9 @@ function renderMindMap(mindMapData) {
                     return -ellipseRy + 13; // Adjust the value as needed
                 } else if (d.shape === 'parallelogram') {
                     // For parallelogram, move the text to the top side
+                    return 8; // For rectangles and other shapes, keep the y-coordinate as it was
+                } else if (d.shape === 'diamond') {
+                    // For diamond, move the text to the top side
                     return 8; // For rectangles and other shapes, keep the y-coordinate as it was
                 } else {
                     return 8; // For rectangles and other shapes, keep the y-coordinate as it was
@@ -816,26 +896,63 @@ function renderMindMap(mindMapData) {
                 .attr('marker-end', 'url(#arrowhead)') // Use marker-end instead of marker-mid
                 .merge(solidRelationships)
                 .attr('x1', (d) => {
+                    const targetNode = nodes.filter((node) => node.id === d.target).node();
                     const sourceNode = nodes.filter((node) => node.id === d.source).node();
-                    const shape = sourceNode ? sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
 
-                    if (shape) {
-                        if (shape.getAttribute('data-tag') === 'ellipse') {
-                            const cx = parseFloat(sourceNode.getAttribute('transform').split('(')[1].split(',')[0]);
-                            const rx = parseFloat(shape.getAttribute('rx'));
-                            return cx + rx; // Set x1 to the right edge of the ellipse
-                        } else if (shape.getAttribute('data-tag') === 'rect') {
-                            return getRightEdgeX(nodes, d.source); // Set x1 to the right edge of the rectangle
-                        } else if (shape.getAttribute('data-tag') === 'parallelogram') {
-                            // Assuming the left edge of the parallelogram is the start point of the relationship
-                            return getLeftEdgeX(nodes, d.source);
+                    if (targetNode && sourceNode) {
+                        const targetShape = targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"]');
+                        const sourceShape = sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"]');
+                        if (targetShape && sourceShape) {
+                            const targetShapeTag = targetShape.getAttribute('data-tag');
+                            const sourceShapeTag = sourceShape.getAttribute('data-tag');
+                            //console.log("sourceShapeTag=", sourceShapeTag);
+                            //console.log("targetShapeTag=", targetShapeTag);
+
+                            const sourceRightEdgeX = getRightEdgeX(nodes, d.source);
+                            const sourceLeftEdgeX = getLeftEdgeX(nodes, d.source);
+                            const targetLeftEdgeX = getLeftEdgeX(nodes, d.target);
+
+                            // Check if the target node is to the right of the source node
+                            if (sourceRightEdgeX < targetLeftEdgeX) {
+                                // Target is to the right of source
+                                if (sourceShapeTag === 'ellipse') {
+                                    const cx = parseFloat(sourceNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                                    const rx = parseFloat(sourceShape.getAttribute('rx'));
+                                    console.log("source ellipse on left");
+                                    return cx + rx; // Set x2 to the left edge of the ellipse
+                                } else if (sourceShapeTag === 'rect') {
+                                    return sourceRightEdgeX - 3; // Set x2 to the left edge of the rectangle
+                                } else if (sourceShapeTag === 'parallelogram') {
+                                    // Assuming the left edge of the parallelogram is the end point of the relationship
+                                    return sourceRightEdgeX - 3;
+                                } else if (sourceShapeTag === 'diamond') {
+                                    // Assuming the left edge of the diamond is the end point of the relationship
+                                    return sourceRightEdgeX - 3;
+                                }
+                            } else {
+                                // Target is to the left of source or on the same horizontal axis
+                                if (sourceShapeTag === 'ellipse') {
+                                    const cx = parseFloat(sourceNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                                    const rx = parseFloat(sourceShape.getAttribute('rx'));
+                                    return cx - rx; // Set x2 to the right edge of the ellipse
+                                } else if (sourceShapeTag === 'rect') {
+                                    return sourceLeftEdgeX + 3; // Set x2 to the right edge of the rectangle
+                                } else if (sourceShapeTag === 'parallelogram') {
+                                    // Assuming the right edge of the parallelogram is the end point of the relationship
+                                    return sourceLeftEdgeX + 3;
+                                } else if (sourceShapeTag === 'diamond') {
+                                    // Assuming the left edge of the diamond is the end point of the relationship
+                                    return sourceLeftEdgeX + 3;
+                                }
+                            }
                         }
+
                     }
                     return 0;
                 })
                 .attr('y1', (d) => {
                     const sourceNode = nodes.filter((node) => node.id === d.source).node();
-                    const shape = sourceNode ? sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
+                    const shape = sourceNode ? sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"]') : null;
 
                     if (shape) {
                         if (shape.getAttribute('data-tag') === 'ellipse') {
@@ -847,6 +964,10 @@ function renderMindMap(mindMapData) {
                         } else if (shape.getAttribute('data-tag') === 'parallelogram') {
                             // Assuming the top edge of the parallelogram is the start point of the relationship
                             return getCenterY(nodes, d.source);
+                        } else if (shape.getAttribute('data-tag') === 'diamond') {
+                            // Assuming the top edge of the diamond is the start point of the relationship
+                            //console.log("diamond calling the center Y");
+                            return getCenterY(nodes, d.source);
                         }
                     }
                     return 0;
@@ -856,12 +977,16 @@ function renderMindMap(mindMapData) {
                     const sourceNode = nodes.filter((node) => node.id === d.source).node();
 
                     if (targetNode && sourceNode) {
-                        const targetShape = targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]');
-                        const sourceShape = sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]');
+                        const targetShape = targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"]');
+                        const sourceShape = sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"]');
+
+
 
                         if (targetShape && sourceShape) {
                             const targetShapeTag = targetShape.getAttribute('data-tag');
                             const sourceShapeTag = sourceShape.getAttribute('data-tag');
+                            //console.log("sourceShapeTag=", sourceShapeTag);
+                            //console.log("targetShapeTag=", targetShapeTag);
 
                             const sourceRightEdgeX = getRightEdgeX(nodes, d.source);
                             const targetLeftEdgeX = getLeftEdgeX(nodes, d.target);
@@ -878,13 +1003,17 @@ function renderMindMap(mindMapData) {
                                 } else if (targetShapeTag === 'parallelogram') {
                                     // Assuming the left edge of the parallelogram is the end point of the relationship
                                     return targetLeftEdgeX - 3;
+                                } else if (targetShapeTag === 'diamond') {
+                                    // Assuming the left edge of the diamond is the end point of the relationship
+                                    return targetLeftEdgeX - 3;
                                 }
                             } else {
                                 // Target is to the left of source or on the same horizontal axis
                                 if (targetShapeTag === 'ellipse') {
+                                    //console.log("The ellipse is target and on the left of source .....");
                                     const cx = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[0]);
                                     const rx = parseFloat(targetShape.getAttribute('rx'));
-                                    return cx + rx; // Set x2 to the right edge of the ellipse
+                                    return cx + rx + 5; // Set x2 to the right edge of the ellipse
                                 } else if (targetShapeTag === 'rect') {
                                     return getRightEdgeX(nodes, d.target) + 3; // Set x2 to the right edge of the rectangle
                                 } else if (targetShapeTag === 'parallelogram') {
@@ -898,7 +1027,7 @@ function renderMindMap(mindMapData) {
                 })
                 .attr('y2', (d) => {
                     const targetNode = nodes.filter((node) => node.id === d.target).node();
-                    const shape = targetNode ? targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
+                    const shape = targetNode ? targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"]') : null;
 
                     if (shape) {
                         if (shape.getAttribute('data-tag') === 'ellipse') {
@@ -909,6 +1038,9 @@ function renderMindMap(mindMapData) {
                             return getCenterY(nodes, d.target); // Set y2 to the center of the top edge of the rectangle
                         } else if (shape.getAttribute('data-tag') === 'parallelogram') {
                             // Assuming the top edge of the parallelogram is the end point of the relationship
+                            return getCenterY(nodes, d.target);
+                        } else if (shape.getAttribute('data-tag') === 'diamond') {
+                            // Assuming the top edge of the diamond is the end point of the relationship
                             return getCenterY(nodes, d.target);
                         }
                     }
@@ -950,7 +1082,7 @@ function renderMindMap(mindMapData) {
                         return d.source.x + getRightEdgeX(nodes, d.source);
                     } else {
                         const sourceNode = nodes.filter((node) => node.id === d.source).node();
-                        const shape = sourceNode ? sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
+                        const shape = sourceNode ? sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"]') : null;
 
                         if (shape) {
                             if (shape.getAttribute('data-tag') === 'ellipse') {
@@ -962,6 +1094,9 @@ function renderMindMap(mindMapData) {
                             } else if (shape.getAttribute('data-tag') === 'parallelogram') {
                                 // Assuming the left edge of the parallelogram is the start point of the relationship
                                 return getLeftEdgeX(nodes, d.source);
+                            } else if (shape.getAttribute('data-tag') === 'diamond') {
+                                // Assuming the left edge of the diamond is the start point of the relationship
+                                return getLeftEdgeX(nodes, d.source);
                             }
                         }
                         return 0;
@@ -972,7 +1107,7 @@ function renderMindMap(mindMapData) {
                         return d.source.y + getCenterY(nodes, d.source);
                     } else {
                         const sourceNode = nodes.filter((node) => node.id === d.source).node();
-                        const shape = sourceNode ? sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
+                        const shape = sourceNode ? sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"]') : null;
 
                         if (shape) {
                             if (shape.getAttribute('data-tag') === 'ellipse') {
@@ -984,6 +1119,9 @@ function renderMindMap(mindMapData) {
                             } else if (shape.getAttribute('data-tag') === 'parallelogram') {
                                 // Assuming the top edge of the parallelogram is the start point of the relationship
                                 return getCenterY(nodes, d.source);
+                            } else if (shape.getAttribute('data-tag') === 'diamond') {
+                                // Assuming the top edge of the diamond is the start point of the relationship
+                                return getCenterY(nodes, d.source);
                             }
                         }
                         return 0;
@@ -994,8 +1132,8 @@ function renderMindMap(mindMapData) {
                     const sourceNode = nodes.filter((node) => node.id === d.source).node();
 
                     if (targetNode && sourceNode) {
-                        const targetShape = targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]');
-                        const sourceShape = sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]');
+                        const targetShape = targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"]');
+                        const sourceShape = sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"]');
 
                         if (targetShape && sourceShape) {
                             const targetShapeTag = targetShape.getAttribute('data-tag');
@@ -1028,6 +1166,9 @@ function renderMindMap(mindMapData) {
                                 } else if (targetShapeTag === 'parallelogram') {
                                     // Assuming the right edge of the parallelogram is the end point of the relationship
                                     return getRightEdgeX(nodes, d.target) + 3;
+                                } else if (targetShapeTag === 'diamond') {
+                                    // Assuming the right edge of the diamond is the end point of the relationship
+                                    return getRightEdgeX(nodes, d.target) + 3;
                                 }
                             }
                         }
@@ -1039,7 +1180,7 @@ function renderMindMap(mindMapData) {
                         return d.target.y + getCenterY(nodes, d.target);
                     } else {
                         const targetNode = nodes.filter((node) => node.id === d.target).node();
-                        const shape = targetNode ? targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"]') : null;
+                        const shape = targetNode ? targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"] ') : null;
 
                         if (shape) {
                             if (shape.getAttribute('data-tag') === 'ellipse') {
@@ -1050,6 +1191,9 @@ function renderMindMap(mindMapData) {
                                 return getCenterY(nodes, d.target); // Set y2 to the center of the top edge of the rectangle
                             } else if (shape.getAttribute('data-tag') === 'parallelogram') {
                                 // Assuming the top edge of the parallelogram is the end point of the relationship
+                                return getCenterY(nodes, d.target);
+                            } else if (shape.getAttribute('data-tag') === 'diamond') {
+                                // Assuming the top edge of the diamond is the end point of the relationship
                                 return getCenterY(nodes, d.target);
                             }
                         }
@@ -1453,6 +1597,13 @@ function renderMindMap(mindMapData) {
                     pluscalcY = d.y + plgrmHeight;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
+                } else if (d.shape === 'diamond') {
+                    dotcalcX = d.x + diamondWidth / 2;
+                    dotcalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
+                    pluscalcX = d.x + diamondWidth / 2;
+                    pluscalcY = d.y + diamondHeight;
+                    plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
+                    plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
                 } else {
                     dotcalcX = d.x + rectWidth / 2;
                     dotcalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
@@ -1513,6 +1664,14 @@ function renderMindMap(mindMapData) {
                     const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'diamond')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'ellipse')) {
                     // Calculate the middle point between the source and target nodes
                     const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
@@ -1537,7 +1696,23 @@ function renderMindMap(mindMapData) {
                     const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'diamond')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'parallelogram') && (targetNode.shape === 'ellipse')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'diamond') && (targetNode.shape === 'ellipse')) {
                     // Calculate the middle point between the source and target nodes
                     const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
                     const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
@@ -1553,7 +1728,23 @@ function renderMindMap(mindMapData) {
                     const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'diamond') && (targetNode.shape === 'diamond')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'parallelogram') && (targetNode.shape === 'rectangle')) {
+                    // Calculate the middle point between the source and target nodes
+                    const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
+                    const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
+                    const targetY = targetNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
+                    dotcalcX = (sourceX + targetX) / 2;
+                    dotcalcY = (sourceY + targetY) / 2;
+                } else if ((sourceNode.shape === 'diamond') && (targetNode.shape === 'rectangle')) {
                     // Calculate the middle point between the source and target nodes
                     const sourceX = sourceNode.x + rectWidth; // Assuming the width of the rectangle is "rectWidth"
                     const sourceY = sourceNode.y + rectHeight / 2; // Assuming the height of the rectangle is "rectHeight"
@@ -1701,6 +1892,7 @@ function renderMindMap(mindMapData) {
             if (d.text == "Rectangle") { shp = 'rectangle' };
             if (d.text == "Ellipse") { shp = 'ellipse' };
             if (d.text == "Parallelogram") { shp = 'parallelogram' };
+            if (d.text == "Diamond") { shp = 'diamond' };
 
 
 
@@ -1725,7 +1917,7 @@ function renderMindMap(mindMapData) {
             if (d.text === "Thicker" || d.text === "Thinner") {
                 console.log('d.shape in Thicker / Thiner =' + nodeelement.attr('data-tag'));
 
-                const existingStrokeWidth = parseFloat(nodeelement.select('[data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="rect"]').style('stroke-width'));
+                const existingStrokeWidth = parseFloat(nodeelement.select('[data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"], data-tag="rect"]').style('stroke-width'));
                 console.log('-----------------------------------');
                 newStrokeWidth = 0;
                 if (d.text === "Thicker") {
@@ -1737,7 +1929,7 @@ function renderMindMap(mindMapData) {
                 console.log("existingStrokeWidth=" + existingStrokeWidth);
                 console.log("newStrokeWidth=" + newStrokeWidth);
 
-                nodeelement.select('[data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="rect"]').style('stroke-width', `${newStrokeWidth}`);
+                nodeelement.select('[data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"], [data-tag="rect"]').style('stroke-width', `${newStrokeWidth}`);
 
 
 
