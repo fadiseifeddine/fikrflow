@@ -62,10 +62,26 @@ let currentVersion = 0;
 let vsessionID = ''; // Declare sessionID as a global variable
 let vuserID = 'johndoe'; // Replace with actual user information
 
+// The Edit Page
+let ndid = null;
+let ndshortDescription = null;
+let ndlongDescription = null;
+let ndicon = null;
+let ndcompleted = null;
+let ndcompletionDateTime = null;
 
+// Initialize button states (all buttons dimmed by default)
+let starButtonDimmed = false;
+let heartButtonDimmed = false;
+let smileyButtonDimmed = false;
 
 const drawingContainer = document.getElementById('drawingContainer');
 
+// Modal for Saving the Drawing under a File Name
+const fileNameModal = new bootstrap.Modal(document.getElementById('fileNameModal'));
+
+// the File Name of the Drawing
+const selectedFileNameElement = document.getElementById('selectedFileName');
 
 // Initialize the dropdown
 var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
@@ -79,6 +95,12 @@ document.getElementById('importxlsdropdown').addEventListener('click', function(
         backdrop: true
     });
     importXlsModal.show();
+});
+
+// Add a click event listener to the drawingContainer
+drawingContainer.addEventListener('click', function(event) {
+    // Call the selectNode(null) function when the container is clicked
+    selectNode(null);
 });
 
 
@@ -722,6 +744,7 @@ function renderMindMap(mindMapData) {
         //nodePositions: It represents a map that stores the calculated positions (x, y coordinates) of each node in the mind map. The map is used to retrieve the positions of the source and target nodes for calculating the curved path.
 
 
+        ApplyFilterOnNodes();
 
 
         renderBoxToolBox();
@@ -778,7 +801,7 @@ function renderMindMap(mindMapData) {
 
 
         svg.on('click', (event) => {
-            //   console.log("B - SVG CLICK");
+            //console.log("B - SVG CLICK");
 
             const targetClass = event.target.getAttribute("class");
             console.log("Target Class = " + targetClass);
@@ -879,6 +902,8 @@ function renderMindMap(mindMapData) {
 
 
 
+
+
         function updateSolidRelationships() {
             solidRelationships = svg
                 .selectAll('.solid-relationship')
@@ -918,7 +943,7 @@ function renderMindMap(mindMapData) {
                                 if (sourceShapeTag === 'ellipse') {
                                     const cx = parseFloat(sourceNode.getAttribute('transform').split('(')[1].split(',')[0]);
                                     const rx = parseFloat(sourceShape.getAttribute('rx'));
-                                    console.log("source ellipse on left");
+                                    //console.log("source ellipse on left");
                                     return cx + rx; // Set x2 to the left edge of the ellipse
                                 } else if (sourceShapeTag === 'rect') {
                                     return sourceRightEdgeX - 3; // Set x2 to the left edge of the rectangle
@@ -1061,6 +1086,27 @@ function renderMindMap(mindMapData) {
                 .on("click", function() {
                     console.log("Line Clicked ....");
                     selectedLine = d3.select(this);
+                });
+
+
+            solidRelationships
+                .merge(solidRelationships)
+                .attr('class', (d) => {
+                    // Check if the source node or target node is dimmed, and apply 'dimmed' class to the relationship line
+                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
+                    const targetNode = nodes.filter((node) => node.id === d.target).node();
+
+                    if (sourceNode && targetNode) {
+                        const sourceDimmed = sourceNode.classList.contains('dimmed');
+                        const targetDimmed = targetNode.classList.contains('dimmed');
+
+                        if (sourceDimmed || targetDimmed) {
+                            return 'relationship solid-relationship dimmed';
+                        }
+                    }
+
+                    // If neither source nor target is dimmed, apply the regular class
+                    return 'relationship solid-relationship';
                 });
 
             solidRelationships.exit().remove();
@@ -1219,6 +1265,26 @@ function renderMindMap(mindMapData) {
                 .on('mouseout', function() {
                     console.log('mouseout');
                     d3.select(this).attr('class', 'dash-relationship');
+                });
+
+            curvedRelationships
+                .merge(curvedRelationships)
+                .attr('class', (d) => {
+                    // Check if the source node or target node is dimmed, and apply 'dimmed' class to the relationship line
+                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
+                    const targetNode = nodes.filter((node) => node.id === d.target).node();
+
+                    if (sourceNode && targetNode) {
+                        const sourceDimmed = sourceNode.classList.contains('dimmed');
+                        const targetDimmed = targetNode.classList.contains('dimmed');
+
+                        if (sourceDimmed || targetDimmed) {
+                            return 'relationship dash-relationship dimmed';
+                        }
+                    }
+
+                    // If neither source nor target is dimmed, apply the regular class
+                    return 'relationship dash-relationship';
                 });
 
             curvedRelationships.exit().remove();
@@ -2252,11 +2318,16 @@ function selectNode(nodeId) {
             console.log("Hiding the Box Shape Box ....");
             hideBoxShapeBox();
             hideBoxIconBox();
+            // Close the attribute container when nodeId is null
+            hideAttributeContainer(); // Call a function to hide the attribute container
             console.log("Hiding Done ....");
 
         } else {
 
             renderMindMap(mindMapData); // Re-render the mind map to apply the selection highlight
+
+            // Open the attribute container when nodeId is not null
+            showAttributeContainer(); // Call a function to show the attribute container
 
             const addButton = document.getElementById('addNodeButton');
             const editButton = document.getElementById('editButton');
@@ -2281,6 +2352,27 @@ function selectNode(nodeId) {
             }
 
             addingrelsource = nodeId;
+
+        }
+
+
+        // Find the node in mindMapData based on nodeId
+        const onexactnode = mindMapData.nodes.find((node) => node.id === selectedNode);
+        // Check if the selectedNodeData is found
+        if (onexactnode) {
+            // Now you can access the attributes of the selected node
+            ndid = onexactnode.id;
+            ndshortDescription = onexactnode.label;
+            ndlongDescription = onexactnode.description;
+            ndicon = onexactnode.icon;
+            ndcompleted = onexactnode.completed;
+            ndcompletionDateTime = onexactnode.compdate;
+
+            console.log("ndid=", ndid);
+            console.log("ndlongDescription=", ndlongDescription);
+
+
+            updateAttributeContainer();
 
         }
 
@@ -2311,6 +2403,116 @@ function selectNode(nodeId) {
 
 }
 
+
+// Function to update the attribute container with the values of global variables
+function updateAttributeContainer() {
+    document.getElementById('ndid').textContent = ndid;
+    document.getElementById('ndshortDescription').textContent = ndshortDescription;
+    document.getElementById('ndlongDescription').value = ndlongDescription;
+
+    document.getElementById('ndicon').textContent = ndicon;
+    document.getElementById('ndcompleted').textContent = ndcompleted;
+    document.getElementById('ndcompletionDateTime').textContent = ndcompletionDateTime;
+}
+// Add an event listener to the input field
+const longDescriptionInput = document.getElementById('ndlongDescription');
+const saveNodeDetails = document.getElementById('saveNodeDetails');
+
+longDescriptionInput.addEventListener('input', function() {
+    // Enable the Save button when the input value changes
+    ndlongDescription = document.getElementById('ndlongDescription').value;
+    saveNodeDetails.disabled = false;
+});
+
+saveNodeDetails.addEventListener('click', saveShapeDetails);
+
+function saveShapeDetails() {
+    const selectedNode = mindMapData.nodes.find((node) => node.id === ndid);
+    selectedNode.description = ndlongDescription;
+    // Update the color property in the mind map data
+    renderMindMap(mindMapData);
+
+    console.log("Show a Saved ...message for 2 seconds");
+    showMessage('Saved ...', 2000);
+
+}
+
+// Function to display a message in the message bar and hide it after a delay
+function showMessage(message, delay) {
+    const messageBar = document.getElementById('messageBar');
+    messageBar.textContent = message;
+    messageBar.style.display = 'block';
+    // Set the text color to red and make it bold
+    messageBar.style.color = 'red';
+    messageBar.style.fontWeight = 'bold';
+    setTimeout(function() {
+        messageBar.style.display = 'none';
+    }, delay);
+}
+
+
+// JavaScript to toggle the state of additional filter buttons
+
+// Function to toggle button state between 'dimmed' and 'highlighted'
+function toggleHighlight(button) {
+    const buttonId = button.id;
+
+    // Toggle the button state
+    if (buttonId === 'starButton') {
+        starButtonDimmed = !starButtonDimmed;
+    } else if (buttonId === 'heartButton') {
+        heartButtonDimmed = !heartButtonDimmed;
+    } else if (buttonId === 'smileyButton') {
+        smileyButtonDimmed = !smileyButtonDimmed;
+    }
+
+    // Toggle the button class for highlighting
+    if (button.classList.contains('dimmed')) {
+        button.classList.remove('dimmed');
+        button.classList.add('highlighted');
+    } else {
+        button.classList.remove('highlighted');
+        button.classList.add('dimmed');
+    }
+    // Update node styles based on button states
+    ApplyFilterOnNodes();
+}
+
+
+// Add click event listeners to each button
+heartButton.addEventListener('click', function() {
+    toggleHighlight(this);
+});
+
+smileyButton.addEventListener('click', function() {
+    toggleHighlight(this);
+});
+
+starButton.addEventListener('click', function() {
+    toggleHighlight(this);
+});
+
+function ApplyFilterOnNodes() {
+    // Select all nodes and update their styles based on button states
+    nodes.each(function(d) {
+        const node = d3.select(this);
+
+        // Check the icon and button states to determine the class to apply
+        if (d.icon === 'star' && starButtonDimmed) {
+            node.classed('dimmed', true);
+        } else if (d.icon === 'heart' && heartButtonDimmed) {
+            node.classed('dimmed', true);
+        } else if (d.icon === 'smily' && smileyButtonDimmed) {
+            node.classed('dimmed', true);
+        } else {
+            node.classed('dimmed', false);
+        }
+    });
+}
+
+
+
+
 // Function to hide the relationship box
 function hideRelationshipToolBox() {
     relationshipToolBoxRef.style("display", "none");
@@ -2331,6 +2533,22 @@ function hideBoxIconBox() {
         BoxIconBoxRef.style("display", "none");
     }
 }
+
+// Function to show the attribute container
+function showAttributeContainer() {
+    const attributeContainer = document.getElementById('attributeContainer');
+    attributeContainer.style.display = 'block'; // Show the container
+}
+
+// Function to hide the attribute container
+function hideAttributeContainer() {
+    const attributeContainer = document.getElementById('attributeContainer');
+    attributeContainer.style.display = 'none'; // Hide the container
+}
+
+
+
+
 
 
 
@@ -2724,18 +2942,20 @@ function handleRectEdit() {
 function handleInputSubmit() {
     userInput = document.getElementById('textInput').value;
     sendChatMessage(userInput);
+    showMessage('Generate Drawing ...', 2000);
+    selectedFileNameElement.textContent = "";
+
 }
 
 
 function handleInputSave() {
 
-    const fileNameModal = new bootstrap.Modal(document.getElementById('fileNameModal'));
     fileNameModal.show();
 
     // Get the file name from the input field
     const fileNameInput = document.getElementById('fileNameInput');
     const fileName = fileNameInput.value.trim();
-    saveDrawing(fileName);
+    saveDrawing(fileName); // fadi to review coz the saveDrawing has no filename!
 }
 
 
@@ -2876,7 +3096,6 @@ async function handleOpen() {
             const selectedJsondrw = selectedFile.jsondrw;
             console.log('Selected jsondrw file', selectedFile.fileName);
             console.log('Selected jsondrw:', selectedJsondrw);
-            const selectedFileNameElement = document.getElementById('selectedFileName');
             selectedFileNameElement.textContent = selectedFileName;
             mindMapData = selectedJsondrw
             renderMindMap(mindMapData);
@@ -2965,10 +3184,8 @@ async function saveDrawing() {
     if (fileName !== "") {
         console.log("Handle saving with file name:", fileName);
 
-        // Remove the modal from the DOM
-        const fileNameModal = bootstrap.Modal.getInstance(document.getElementById('fileNameModal'));
-        fileNameModal.hide();
-        document.body.removeChild(document.getElementById('fileNameModal'));
+        // Hide the modal
+        $('#fileNameModal').modal('hide');
 
         // Proceed with saving using the file name
         try {
@@ -2985,6 +3202,8 @@ async function saveDrawing() {
 
             if (response.ok) {
                 console.log('Drawing saved successfully');
+                showMessage('Drawing saved successfully ...', 2000);
+                selectedFileNameElement.textContent = fileName;
                 // Perform any necessary UI updates or redirects after successful saving
             } else {
                 console.error('Failed to save drawing');

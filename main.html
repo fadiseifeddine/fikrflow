@@ -12,111 +12,154 @@
 </head>
 
 <body>
-    <div id="chatContainer">
-        <textarea id="textInput" rows="3" placeholder="Enter your text"></textarea>
-        <div class="btn-group" role="group">
-            <button id="submitButton" class="btn btn-secondary"><i class="bi bi-check"></i></button>
-            <button id="addButton" class="btn btn-secondary"><i class="bi bi-plus"></i></button>
-            <button id="deleteButton" class="btn btn-secondary" disabled><i class="bi bi-trash"></i></button>
-            <button id="editButton" class="btn btn-secondary" disabled> <i class="bi bi-pencil-fill"></i></button>
-            <button id="saveButton" class="btn btn-secondary"><i class="bi bi-save"></i></button>
-            <button id="openButton" class="btn btn-secondary"><i class="bi bi-folder2-open"></i></button>
-            <button id="addNodeButton" class="btn btn-secondary" disabled><i class="bi bi-node-plus"></i></button>
-            <button id="addRelationButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-right"></i></button>
-            <button id="undoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
-            <button id="redoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-clockwise"></i></button>
+    <div id="containerWrapper">
 
-        </div>
-        <!-- Settings menu -->
-        <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <div id="chatContainer">
+            <textarea id="textInput" rows="3" placeholder="Enter your text"></textarea>
+            <div class="btn-group" role="group">
+                <button id="submitButton" class="btn btn-secondary"><i class="bi bi-check"></i></button>
+                <button id="addButton" class="btn btn-secondary"><i class="bi bi-plus"></i></button>
+                <button id="deleteButton" class="btn btn-secondary" disabled><i class="bi bi-trash"></i></button>
+                <button id="editButton" class="btn btn-secondary" disabled> <i class="bi bi-pencil-fill"></i></button>
+                <button id="saveButton" class="btn btn-secondary"><i class="bi bi-save"></i></button>
+                <button id="openButton" class="btn btn-secondary"><i class="bi bi-folder2-open"></i></button>
+                <button id="addNodeButton" class="btn btn-secondary" disabled><i class="bi bi-node-plus"></i></button>
+                <button id="addRelationButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-right"></i></button>
+                <button id="undoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
+                <button id="redoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-clockwise"></i></button>
+
+            </div>
+            <!-- New div with three buttons -->
+            <div id="filterButtons" class="d-flex justify-content-center">
+                <button id="heartButton" class="btn btn-secondary icon-button">
+                    <i class="bi bi-heart"></i>
+                </button>
+
+                <button id="smileyButton" class="btn btn-secondary icon-button">
+                    <i class="bi bi-emoji-smile"></i>
+                </button>
+
+                <button id="starButton" class="btn btn-secondary icon-button">
+                    <i class="bi bi-star"></i>
+                </button>
+
+            </div>
+            <!-- Settings menu -->
+            <div class="dropdown">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             Settings
         </button>
-            <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
-                <li><a class="dropdown-item" href="#" id="importxlsdropdown">Import XLS</a></li>
-                <!-- ... Other menu options ... -->
-            </ul>
+                <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
+                    <li><a class="dropdown-item" href="#" id="importxlsdropdown">Import XLS</a></li>
+                    <!-- ... Other menu options ... -->
+                </ul>
+            </div>
+
+
         </div>
 
-
-    </div>
-
-
-
-
-    <div id="drawingContainer">
-        <svg id="mindMapContainer"></svg>
-        <div id="footerContainer">
+        <div id="centerContainer">
             <span id="selectedFileLabel">Selected File:</span>
             <span id="selectedFileName"></span>
+            <!-- Add a message bar -->
+            <div id="messageBar">
+            </div>
         </div>
-    </div>
 
-    <!-- File Name Input Modal -->
-    <div class="modal fade" id="fileNameModal" tabindex="-1" aria-labelledby="fileNameModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="fileNameModalLabel">Enter File Name</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="text" id="fileNameInput" class="form-control" placeholder="File Name" autofocus required>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="saveDrawing()">Save</button>
+        <div id="drawingContainer">
+
+            <svg id="mindMapContainer"></svg>
+        </div>
+
+
+
+
+        <!-- Add the attribute container -->
+        <div id="attributeContainer">
+            <h4>Shape Attributes</h4>
+            <ul>
+                <li><strong>ID:</strong> <span id="ndid"></span></li>
+                <li><strong>Short Description:</strong> <span id="ndshortDescription"></span></li>
+                <li><strong>Long Description:</strong></li>
+                <li><textarea id="ndlongDescription" rows="10" cols="50"></textarea></li>
+                <li><strong>Icon:</strong> <span id="ndicon"></span></li>
+                <li><strong>Completed:</strong> <span id="ndcompleted"></span></li>
+                <li><strong>Completion Date/Time:</strong> <span id="ndcompletionDateTime"></span></li>
+            </ul>
+            <button id="saveNodeDetails" disabled>Save</button>
+
+        </div>
+
+
+
+
+
+        <!-- File Name Input Modal -->
+        <div class="modal fade" id="fileNameModal" tabindex="-1" aria-labelledby="fileNameModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="fileNameModalLabel">Enter File Name</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="text" id="fileNameInput" class="form-control" placeholder="File Name" autofocus required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="saveDrawing()">Save</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- File Select File Input Modal -->
-    <div class="modal fade" id="fileListModal" tabindex="-1" aria-labelledby="fileListModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="fileListModalLabel">Select File</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <select id="fileListSelect" class="form-select" size="5">
+        <!-- File Select File Input Modal -->
+        <div class="modal fade" id="fileListModal" tabindex="-1" aria-labelledby="fileListModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="fileListModalLabel">Select File</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <select id="fileListSelect" class="form-select" size="5">
                         <!-- Option elements will be dynamically added here -->
                     </select>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="selectFileButton">Select</button>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="selectFileButton">Select</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="colorPalette" class="color-palette">
-        <!-- Color palette generated using JavaScript -->
-    </div>
+        <div id="colorPalette" class="color-palette">
+            <!-- Color palette generated using JavaScript -->
+        </div>
 
-    <!-- Load jQuery and Bootstrap JS before your custom scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <!-- Add Popper.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.0/umd/popper.min.js"></script>
-    <!-- Add Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"></script>
-    <script src="https://d3js.org/d3.v6.min.js"></script>
-    <script src="js/fikrmap.js"></script>
+        <!-- Load jQuery and Bootstrap JS before your custom scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <!-- Add Popper.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.0/umd/popper.min.js"></script>
+        <!-- Add Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"></script>
+        <script src="https://d3js.org/d3.v6.min.js"></script>
+        <script src="js/fikrmap.js"></script>
 
-    <!-- Import XLS Modal -->
-    <div id="importxls" class="modal fade" tabindex="-1" aria-labelledby="importxlslabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="importxlsoption">Import XLS</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="file" id="xlsInput" accept=".xls,.xlsx" />
-                    <div id="dragDropArea" class="drop-area">
-                        <p>Drag and drop your XLS file here</p>
+        <!-- Import XLS Modal -->
+        <div id="importxls" class="modal fade" tabindex="-1" aria-labelledby="importxlslabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importxlsoption">Import XLS</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="file" id="xlsInput" accept=".xls,.xlsx" />
+                        <div id="dragDropArea" class="drop-area">
+                            <p>Drag and drop your XLS file here</p>
+                        </div>
                     </div>
                 </div>
             </div>

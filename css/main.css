@@ -37,9 +37,36 @@ body {
     font-size: 14px;
 }
 
-#drawingContainer {
+#centerContainer {
     position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    background-color: #f8f9fa;
+    border: 1px solid #d1d1d1;
+    padding: 10px;
+    width: 300px;
+    /* Adjust the width as needed */
+    margin: 0 auto;
+    /* Center horizontally */
+    z-index: 1;
+    /* Make sure it appears above other content */
+}
+
+#selectedFileLabel,
+#selectedFileName {
+    display: inline-block;
+}
+
+#messageBar {
+    display: none;
+}
+
+#drawingContainer {
+    position: relative;
     top: 150px;
+    /* Adjust the top position to start below the chatContainer */
     left: 0;
     width: 100%;
     height: calc(100% - 150px);
@@ -331,4 +358,67 @@ foreignObject input {
 
 .drop-area.drag-over {
     background-color: #f0f0f0;
+}
+
+#containerWrapper {
+    position: relative;
+    width: 100%;
+    /* Adjust the width as needed */
+    height: 100vh;
+    /* Adjust the height as needed */
+}
+
+
+/* Add new CSS styles for the attribute container */
+
+#attributeContainer {
+    width: 300px;
+    /* Adjust the width as needed */
+    height: 100%;
+    position: absolute;
+    top: 150px;
+    /* Adjust the top position to start below the chatContainer */
+    right: 0;
+    /* Position it on the right side */
+    background-color: #f8f9fa;
+    /* Add a background color */
+    border-left: 1px solid #d1d1d1;
+    /* Add a border for separation */
+    padding: 10px;
+    display: none;
+    /* Initially hidden */
+}
+
+#attributeContainer h4 {
+    margin-bottom: 10px;
+}
+
+#attributeContainer ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#attributeContainer li {
+    margin-bottom: 5px;
+}
+
+#containerWrapper {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+}
+
+
+/* Add this CSS to your stylesheet */
+
+.highlighted {
+    opacity: 1;
+    /* Normal opacity */
+    /* You can adjust other styles as needed */
+}
+
+.dimmed {
+    opacity: 0.2;
+    /* Dimmed opacity */
+    /* You can adjust other styles as needed */
 }
