@@ -21,6 +21,11 @@ let diamondWidth = 300; // Set the width for the diamond shape
 let diamondHeight = 75; // Set the height for the diamond shape
 
 
+let cornerRadius = 10; // Adjust the corner radius as needed
+// Define the ellipse dimensions
+let ellipseRx = 120; // Set the horizontal radius of the ellipse
+let ellipseRy = 40; // Set the vertical radius of the ellipse
+
 // Calculate the coordinates of the parallelogram points
 var angleDegrees = 85
 var angleRadians = (angleDegrees * Math.PI) / 180;
@@ -45,6 +50,8 @@ let BoxIconBoxRef;
 let boxIconBoxWidth = 180;
 let boxIconBoxHeight = 100;
 
+// Define the desired spacing between nodes
+const spacingBetweenNodes = 20; // Adjust as needed
 
 
 // 3dot Button
@@ -378,23 +385,59 @@ function renderMindMap(mindMapData) {
             .attr('stroke-width', 1); // Set the stroke width as needed
 
 
+        // Define a custom force to avoid overlap between relationships
+        function avoidOverlapForce(strength = 0.1) {
+            function force(alpha) {
+                mindMapData.relationships.forEach((relation) => {
+                    const sourceNode = mindMapData.nodes.find((node) => node.id === relation.source);
+                    const targetNode = mindMapData.nodes.find((node) => node.id === relation.target);
 
+                    if (sourceNode && targetNode) {
+                        // Calculate the position of the relationship based on source and target node positions
+                        const sourceX = sourceNode.x;
+                        const targetX = targetNode.x;
+                        const sourceY = sourceNode.y;
+                        const targetY = targetNode.y;
 
-        // Create the D3 force simulation
+                        // Calculate the midpoint between source and target nodes
+                        const midX = (sourceX + targetX) / 2;
+                        const midY = (sourceY + targetY) / 2;
+
+                        // Adjust the position based on node shapes and sizes
+                        // You can use the same logic you used for the nodes to determine offsets
+                        // For example, if sourceNode is a parallelogram, you can adjust midX and midY accordingly
+
+                        // Update the position of the relationship
+                        relation.x = midX;
+                        relation.y = midY;
+                    }
+                });
+            }
+
+            return force;
+        }
+
+        // Add the custom force to your simulation
         const simulation = d3
             .forceSimulation(mindMapData.nodes)
             .force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2))
-            // Add other forces here as needed (e.g., forceCollide, forceX, forceY, etc.)
+            .force('collision', d3.forceCollide()
+                .strength(0.2) // Adjust the strength value as needed
+                .radius((d) => (d.shape === 'ellipse' ? ellipseRx : d.shape === 'parallelogram' ? plgrmWidth / 2 : d.shape === 'diamond' ? diamondWidth / 2 : rectWidth / 2) + spacingBetweenNodes)
+            ).force('collide', d3.forceCollide().radius( /* specify the desired separation radius */ ))
+            .force('avoidOverlapRelationships', avoidOverlapForce(0.2)) // Adjust the strength value as needed
             .on('tick', ticked);
 
 
 
-        // Function to update node positions on each tick of the simulation
+
+
         function ticked() {
             nodes.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
             renderRelationships();
             // Also update the links (curved paths) here if you have them
         }
+
 
 
 
@@ -408,10 +451,7 @@ function renderMindMap(mindMapData) {
             .attr('id', (d) => `${d.id}`)
             .call(dragHandler);
 
-        const cornerRadius = 10; // Adjust the corner radius as needed
-        // Define the ellipse dimensions
-        const ellipseRx = 120; // Set the horizontal radius of the ellipse
-        const ellipseRy = 40; // Set the vertical radius of the ellipse
+
 
         var plgrmpoints = [
             { x: 0, y: 0 },
