@@ -26,6 +26,8 @@ let cornerRadius = 10; // Adjust the corner radius as needed
 let ellipseRx = 120; // Set the horizontal radius of the ellipse
 let ellipseRy = 40; // Set the vertical radius of the ellipse
 
+let textlength = 28;
+
 // Calculate the coordinates of the parallelogram points
 var angleDegrees = 85
 var angleRadians = (angleDegrees * Math.PI) / 180;
@@ -575,6 +577,7 @@ function renderMindMap(mindMapData) {
             });
         // used in the edit box then get replaced // checkbox position
         // Modify the positioning of foreignObjects (checkboxes) and text
+        // checknode position
         const foreignObjects = nodes
             .append('foreignObject')
             .attr('x', (d) => {
@@ -583,9 +586,9 @@ function renderMindMap(mindMapData) {
                 } else if (d.shape === 'parallelogram') {
                     return 5
                 } else if (d.shape === 'diamond') {
-                    return 5
+                    return diamondWidth / 4 - 40
                 } else {
-                    return 5;
+                    return 1;
                 }
             })
             .attr('y', (d) => {
@@ -594,7 +597,7 @@ function renderMindMap(mindMapData) {
                 } else if (d.shape === 'parallelogram') {
                     return 12.5;
                 } else if (d.shape === 'diamond') {
-                    return 12.5;
+                    return diamondHeight / 2 - 15;
                 } else {
                     return 12.5;
                 }
@@ -624,38 +627,39 @@ function renderMindMap(mindMapData) {
         // make selected nodes highlighted
         nodes.classed('selected', (d) => d.id === selectedNode);
 
+        // text position
         const nodeText = nodes // text shape position
             .append('text')
             .attr("class", "pointer-cursor")
             .attr('x', (d) => {
                 if (d.shape === 'ellipse') {
-                    return 0; // For ellipse and parallelogram, keep the x-coordinate at the center
+                    return -75;
                 } else if (d.shape === 'parallelogram') {
-                    return plgrmWidth / 2; // For rectangle, adjust the x-coordinate to be centered within the rectangle
+                    return 35;
+
                 } else if (d.shape === 'diamond') {
-                    return diamondWidth / 2; // For rectangle, adjust the x-coordinate to be centered within the rectangle
-                } else {
-                    return rectWidth / 2; // For rectangle, adjust the x-coordinate to be centered within the rectangle
-                }
+                    return 65;
+
+                } else
+                    return 30;
             })
             .attr('y', (d) => {
                 if (d.shape === 'ellipse') {
                     return 0; // For ellipse and parallelogram, keep the y-coordinate at the center
                 } else if (d.shape === 'parallelogram') {
-                    return 25; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
+                    return plgrmHeight / 2 + 4; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
 
                 } else if (d.shape === 'diamond') {
-                    return 25; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
+                    return diamondHeight / 2; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
 
                 } else {
-                    return 25; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
+                    return rectHeight / 2 + 3; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
                 }
             })
-            .text((d) => d.label)
+            .text((d) => d.label.substring(0, textlength))
             .attr('fill', (d) => (d.completed ? '#999999' : '#000'))
             .attr('text-decoration', (d) => (d.completed ? 'line-through' : 'none'))
-            .attr('alignment-baseline', 'middle')
-            .attr('text-anchor', 'middle') // For all shapes, anchor the text at the center
+            .style('text-anchor', 'start') // Change 'middle' to 'start' to left-align the text
             .attr('data-tag', (d) => {
                 if (d.shape === 'ellipse') {
                     return 'ellipsetext';
@@ -694,7 +698,7 @@ function renderMindMap(mindMapData) {
                     return 5; // For rectangles and other shapes, keep the y-coordinate as it was
                 } else if (d.shape === 'diamond') {
                     // For diamond, move the circle to the top side
-                    return 5; // For rectangles and other shapes, keep the y-coordinate as it was
+                    return 20; // For rectangles and other shapes, keep the y-coordinate as it was
                 } else {
                     return 5; // For rectangles and other shapes, keep the y-coordinate as it was
                 }
@@ -718,7 +722,7 @@ function renderMindMap(mindMapData) {
                     return 6; // For rectangles, keep the x-coordinate as it was
                 } else if (d.shape === 'diamond') {
                     // For diamond, move the text to the left side
-                    return 6; // For rectangles, keep the x-coordinate as it was
+                    return 5; // For rectangles, keep the x-coordinate as it was
                 } else {
                     return 6; // For rectangles, keep the x-coordinate as it was
                 }
@@ -732,7 +736,7 @@ function renderMindMap(mindMapData) {
                     return 8; // For rectangles and other shapes, keep the y-coordinate as it was
                 } else if (d.shape === 'diamond') {
                     // For diamond, move the text to the top side
-                    return 8; // For rectangles and other shapes, keep the y-coordinate as it was
+                    return 20; // For rectangles and other shapes, keep the y-coordinate as it was
                 } else {
                     return 8; // For rectangles and other shapes, keep the y-coordinate as it was
                 }
@@ -744,17 +748,21 @@ function renderMindMap(mindMapData) {
             .attr('alignment-baseline', 'middle');
 
         // Create a new SVG group for nodeIcons on the right of existing nodeCircles
+        // icon positions
         const nodeIcons = nodes
             .append('g')
             .attr('class', 'node-icon')
             .attr('transform', (d) => {
-                if (d.shape === 'ellipse' || d.shape === 'parallelogram') {
-                    return `translate(10, 10)`; // Adjust the value as needed
+                if (d.shape === 'ellipse') {
+                    return `translate(${ellipseRx / 2 + 25}, ${-ellipseRy / 2 + 5})`; // Top right corner of ellipse
+                } else if (d.shape === 'parallelogram') {
+                    return `translate(${plgrmWidth -45}, ${-plgrmHeight / 2+35})`; // Top right corner of parallelogram
+                } else if (d.shape === 'diamond') {
+                    return `translate(${diamondWidth / 2 - 10}, ${-diamondHeight / 2+30})`; // Top right corner of diamond
                 } else {
-                    return `translate(50, 5)`; // Adjust the value as needed
+                    return `translate(${rectWidth -30}, ${-rectHeight / 2 + 35})`; // Top right corner of rectangle
                 }
             });
-
         // Append a foreignObject element within the nodeIcons group for the icon
         nodeIcons
             .append('foreignObject')
