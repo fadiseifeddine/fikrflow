@@ -1,3 +1,6 @@
+// Import everything from common.js as a module
+import * as common from './common.js';
+
 let mindMapData = '';
 let userInput = '';
 let selectedNode = null;
@@ -195,7 +198,7 @@ function resizeDrawingContainer() {
 window.addEventListener('resize', resizeDrawingContainer);
 resizeDrawingContainer();
 
-vsessionID = getsessionid();
+vsessionID = common.getSessionId();
 
 function getBottomEdgeY(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
@@ -797,6 +800,7 @@ function renderMindMap(mindMapData) {
 
         renderBoxToolBox();
 
+        console.log("To Render Relationships ....");
         // After creating the nodes and starting the simulation, update the relationships
         renderRelationships();
 
@@ -912,8 +916,8 @@ function renderMindMap(mindMapData) {
                     }
                 });
 
-                d3x = event.x;
-                d3y = event.y;
+                const d3x = event.x;
+                const d3y = event.y;
 
                 //  console.log("d3x = " + d3x + ", d3y =" + d3y);
                 renderMindMap(mindMapData);
@@ -947,13 +951,9 @@ function renderMindMap(mindMapData) {
 
         }
 
-
-
-
-
-
         function updateSolidRelationships() {
-            solidRelationships = svg
+            //console.log("In updateSolidRelationships Render the Solid Relationship ...", svg);
+            const solidRelationships = svg
                 .selectAll('.solid-relationship')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'solid'));
 
@@ -1163,7 +1163,7 @@ function renderMindMap(mindMapData) {
 
 
         function updateCurvedRelationships() {
-            curvedRelationships = svg
+            const curvedRelationships = svg
                 .selectAll('.dash-relationship')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'dash'));
 
@@ -1679,7 +1679,7 @@ function renderMindMap(mindMapData) {
                 .on('click', (event, d) => clickplusbutton(event, d));
 
             // Create the circle with "..." text in the middle of the line
-            plusCircle = plusGroup
+            const plusCircle = plusGroup
                 .append("circle")
                 .attr("id", circleId) // Set the id of the circle to the box or line id
                 .attr("cx", 150) // Set the initial position, you can change this value if needed
@@ -1690,7 +1690,7 @@ function renderMindMap(mindMapData) {
                 .attr("stroke-width", 2);
 
 
-            plusText = plusGroup
+            const plusText = plusGroup
                 .append("text")
                 .attr("font-size", "18px")
                 .attr("text-anchor", "middle")
@@ -1980,7 +1980,7 @@ function renderMindMap(mindMapData) {
             const nodeelement = d3.select(`#${nodeId}`);
             console.log(nodeelement);
             console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
-            shp = null;
+            var shp = null;
             if (d.text == "Heart") { shp = 'heart' };
             if (d.text == "Smily") { shp = 'smily' };
             if (d.text == "Star") { shp = 'star' };
@@ -2006,7 +2006,7 @@ function renderMindMap(mindMapData) {
             const nodeelement = d3.select(`#${nodeId}`);
             console.log(nodeelement);
             console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
-            shp = null;
+            var shp = null;
             if (d.text == "Rectangle") { shp = 'rectangle' };
             if (d.text == "Ellipse") { shp = 'ellipse' };
             if (d.text == "Parallelogram") { shp = 'parallelogram' };
@@ -2021,23 +2021,29 @@ function renderMindMap(mindMapData) {
         }
 
         function handleBoxToolboxNodesClick(event, d) {
-            console.log(`Clicked ${d.text}`);
+            console.log(` -- Clicked ${d.text}`);
             console.log('-----------------------------------');
 
-            const nodeId = selectedNode.id;
+            var nodeId = selectedNode.id;
+            var nodeData = mindMapData.nodes.find((node) => node.id === nodeId);
+
+
 
             console.log(`Current/Target Box Id ${nodeId}`);
+            console.log("nodeData =", nodeData);
 
-            //const nodeelement = d3.select(`#${nodeId}`);
             const nodeelement = d3.select(`#${nodeId}`);
+
             console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
 
-            if (d.text === "Thicker" || d.text === "Thinner") {
-                console.log('d.shape in Thicker / Thiner =' + nodeelement.attr('data-tag'));
+            console.log('nodeelement = ', nodeelement);
 
-                const existingStrokeWidth = parseFloat(nodeelement.select('[data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"], data-tag="rect"]').style('stroke-width'));
-                console.log('-----------------------------------');
-                newStrokeWidth = 0;
+            if (d.text === "Thicker" || d.text === "Thinner") {
+                console.log('d.shape in Thicker / Thiner =');
+                var existingStrokeWidth = parseFloat(nodeData.strokewidth);
+
+                console.log('-----------------------------------', existingStrokeWidth);
+                var newStrokeWidth = 0;
                 if (d.text === "Thicker") {
                     newStrokeWidth = existingStrokeWidth + 1;
                 } else if (d.text === "Thinner") {
@@ -2047,15 +2053,18 @@ function renderMindMap(mindMapData) {
                 console.log("existingStrokeWidth=" + existingStrokeWidth);
                 console.log("newStrokeWidth=" + newStrokeWidth);
 
-                nodeelement.select('[data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"], [data-tag="rect"]').style('stroke-width', `${newStrokeWidth}`);
-
-
-
                 // Update the strokewidth property of the node data
-                const nodeData = mindMapData.nodes.find((node) => node.id === nodeId);
                 if (nodeData) {
-                    console.log("updating mind map with new stroke width")
+                    console.log("updating mind map with new stroke width", newStrokeWidth)
+
                     nodeData.strokewidth = newStrokeWidth;
+                    console.log("Set Style to =" + newStrokeWidth);
+                    nodeelement.style("stroke-width", `${newStrokeWidth}`);
+
+                    renderMindMap(mindMapData);
+
+
+
                 }
 
             } else if (d.text === "Color") {
@@ -2109,7 +2118,7 @@ function renderMindMap(mindMapData) {
             if (d.text === "Thicker" || d.text === "Thinner") {
 
                 const currentStrokeWidth = parseFloat(lineElement.style("stroke-width"));
-                newStrokeWidth = 0;
+                var newStrokeWidth = 0;
                 if (d.text === "Thicker") {
                     newStrokeWidth = currentStrokeWidth + 1;
                 } else if (d.text === "Thinner") {
@@ -2146,7 +2155,7 @@ function renderMindMap(mindMapData) {
 
         // Function to find a box or line based on the circleId
         function findBoxOrLine(targetid) {
-            targetobj = null;
+            var targetobj = null;
             // Check if the circleId contains a hyphen to identify it as a line
             if (targetid.includes('-')) { // line
                 // console.log("findObject Line with ID =" + targetid);
@@ -2219,8 +2228,8 @@ function renderMindMap(mindMapData) {
 
 
                 //calcX = d.x + (d.label.length * 10 + 20) / 2;
-                calcX = box.x + (rectWidth) / 2 - 70;
-                calcY = box.y - 70;
+                var calcX = box.x + (rectWidth) / 2 - 70;
+                var calcY = box.y - 70;
 
 
                 BoxToolBoxRef
@@ -2248,8 +2257,8 @@ function renderMindMap(mindMapData) {
 
                 console.log("Display of Shape is None, we are setting x and y to display ...");
                 //calcX = d.x + (d.label.length * 10 + 20) / 2;
-                calcX = box.x + (rectWidth) / 2 - 70;
-                calcY = box.y - 70;
+                var calcX = box.x + (rectWidth) / 2 - 70;
+                var calcY = box.y - 70;
 
                 console.log('calcX', calcX);
                 console.log('calcY', calcY);
@@ -2279,8 +2288,8 @@ function renderMindMap(mindMapData) {
 
                 console.log("Display of Icon is None, we are setting x and y to display ...");
                 //calcX = d.x + (d.label.length * 10 + 20) / 2;
-                calcX = box.x + (rectWidth) / 2 - 70;
-                calcY = box.y - 70;
+                var calcX = box.x + (rectWidth) / 2 - 70;
+                var calcY = box.y - 70;
 
                 console.log('calcX', calcX);
                 console.log('calcY', calcY);
@@ -2299,7 +2308,7 @@ function renderMindMap(mindMapData) {
 
         // Update the renderRelationships() function as shown below
         function renderRelationships() {
-            //console.log('Rendering the Relationships');
+            //console.log('In Rendering the Relationships');
             updateSolidRelationships();
             updateCurvedRelationships();
         }
@@ -2334,7 +2343,7 @@ function selectNode(nodeId) {
     console.log("selectedNode=" + selectedNode);
     console.log("addingrel=" + addingrel);
 
-    selectionType = '';
+    var selectionType = '';
     if (addingrel == true) {
         selectionType = 'target';
     } else {
@@ -3162,31 +3171,6 @@ async function handleOpen() {
 }
 
 
-async function getsessionid() {
-    try {
-        const response = await fetch('http://localhost:3000/api/getsession', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            const responseData = await response.json();
-            const { sessionID } = responseData;
-
-            console.log('Session ID received:', sessionID);
-            vsessionID = sessionID
-            console.log('vSession ID received:', vsessionID);
-
-
-        } else {
-            console.error('Error getting session:', response.status);
-        }
-    } catch (error) {
-        console.error('Error getting session:', error);
-    }
-}
 
 
 async function sendChatMessage(message) {
@@ -3338,7 +3322,7 @@ async function updateversion(vsessionid, voperation) {
 
 // delete the interrupted version, after adding new position after undo, all other versions after to be deleted
 async function deleteversions(vsessionid, vversion) {
-    targetdelete = vversion
+    const targetdelete = vversion
     console.log("Deleting All Versions after or equal ..." + targetdelete);
     // Proceed with saving using the file name
     try {
