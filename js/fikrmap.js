@@ -1,5 +1,7 @@
 // Import everything from common.js as a module
 import * as common from './common.js';
+import * as fikrdraw from './fikrdraw.js';
+
 
 let mindMapData = '';
 let userInput = '';
@@ -2496,23 +2498,9 @@ function saveShapeDetails() {
     renderMindMap(mindMapData);
 
     console.log("Show a Saved ...message for 2 seconds");
-    showMessage('Saved ...', 2000);
+    common.showMessage('Saved ...', 2000);
 
 }
-
-// Function to display a message in the message bar and hide it after a delay
-function showMessage(message, delay) {
-    const messageBar = document.getElementById('messageBar');
-    messageBar.textContent = message;
-    messageBar.style.display = 'block';
-    // Set the text color to red and make it bold
-    messageBar.style.color = 'red';
-    messageBar.style.fontWeight = 'bold';
-    setTimeout(function() {
-        messageBar.style.display = 'none';
-    }, delay);
-}
-
 
 // JavaScript to toggle the state of additional filter buttons
 
@@ -2993,7 +2981,7 @@ function handleRectEdit() {
 function handleInputSubmit() {
     userInput = document.getElementById('textInput').value;
     sendChatMessage(userInput);
-    showMessage('Generate Drawing ...', 2000);
+    common.showMessage('Generate Drawing ...', 2000);
     selectedFileNameElement.textContent = "";
 
 
@@ -3004,10 +2992,7 @@ function handleInputSave() {
 
     fileNameModal.show();
 
-    // Get the file name from the input field
-    const fileNameInput = document.getElementById('fileNameInput');
-    const fileName = fileNameInput.value.trim();
-    saveDrawing(fileName); // fadi to review coz the saveDrawing has no filename!
+
 }
 
 
@@ -3123,7 +3108,7 @@ function showColorPalette(type, id) {
 
 
 async function handleOpen() {
-    const fileList = await getDrawings();
+    const fileList = await fikrdraw.getDrawings();
     console.log("printing the array to populate ...");
     console.log(fileList);
     populateFileList(fileList);
@@ -3390,6 +3375,15 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
+
+    // Add a click event listener to the "Save" button
+    const saveDrawingButton = document.getElementById("saveDrawingButton");
+
+    if (saveDrawingButton) {
+        console.log("Save Drawing - Clicked Save Button");
+        saveDrawingButton.addEventListener("click", handleSaveDrawing);
+    }
+
     // Add a click event listener to the "Save" button in the modal
     const saveRegistrationButton = document.getElementById("saveRegistration");
     if (saveRegistrationButton) {
@@ -3398,69 +3392,19 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 
-async function saveDrawing() {
+function handleSaveDrawing() {
     // Get the file name from the input field
     const fileNameInput = document.getElementById('fileNameInput');
-    const fileName = fileNameInput.value.trim();
 
-    // Check if the user provided a file name
-    if (fileName !== "") {
-        console.log("Handle saving with file name:", fileName);
+    if (fileNameInput) {
+        const fileName = fileNameInput.value.trim();
+        console.log("Selected File Name: " + fileName);
 
-        // Hide the modal
-        $('#fileNameModal').modal('hide');
-
-        // Proceed with saving using the file name
-        try {
-            const response = await fetch('http://localhost:3000/api/savedraw', {
-                method: 'POST',
-                body: JSON.stringify({
-                    fileName: fileName,
-                    jsondrw: mindMapData
-                }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                console.log('Drawing saved successfully');
-                showMessage('Drawing saved successfully ...', 2000);
-                selectedFileNameElement.textContent = fileName;
-                // Perform any necessary UI updates or redirects after successful saving
-            } else {
-                console.error('Failed to save drawing');
-                // Handle the error and provide appropriate user feedback
-            }
-        } catch (error) {
-            console.error('An error occurred:', error);
-            // Handle the error and provide appropriate user feedback
+        // Now you can use the fileName for your save operation
+        if (fikrdraw.saveDrawing(fileName, mindMapData)) {
+            selectedFileNameElement.textContent = fileName;
         }
     } else {
-        console.log("File name not provided. Saving canceled.");
-    }
-}
-
-
-async function getDrawings() {
-    try {
-        console.log('getDrawings fron server ......');
-
-        const response = await fetch('http://localhost:3000/api/getdraw', {
-            method: 'GET'
-        });
-
-        if (response.ok) {
-            const drawings = await response.json();
-            console.log('Drawings received:', drawings);
-            return drawings;
-
-        } else {
-            console.error('Error getting drawings:', response.status);
-            return response.statusText;
-        }
-    } catch (error) {
-        console.error('Error getting drawingss:', error);
-        return response.error.text;
+        console.error("fileNameInput not found or is null");
     }
 }

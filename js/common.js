@@ -50,4 +50,19 @@ function getRandomColor() {
 }
 
 
-export { getSessionId, getRandomColor };
+
+// Function to display a message in the message bar and hide it after a delay
+function showMessage(message, delay) {
+    const messageBar = document.getElementById('messageBar');
+    messageBar.textContent = message;
+    messageBar.style.display = 'block';
+    // Set the text color to red and make it bold
+    messageBar.style.color = 'red';
+    messageBar.style.fontWeight = 'bold';
+    setTimeout(function() {
+        messageBar.style.display = 'none';
+    }, delay);
+}
+
+
+export { getSessionId, getRandomColor, showMessage };
