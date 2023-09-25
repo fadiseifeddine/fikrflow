@@ -4,17 +4,18 @@ let sessionId = null;
 
 
 
-async function getSessionId() {
+async function getSessionId(userid) {
     if (sessionId === null) {
-        await retrieveSessionId(); // Call retrieveSessionId if sessionId is null
+        await retrieveSessionId(userid); // Call retrieveSessionId if sessionId is null
     }
     return sessionId;
 }
 
 
-async function retrieveSessionId() {
+async function retrieveSessionId(userid) {
     try {
-        const response = await fetch('http://localhost:3000/api/getsession', {
+        console.log("retreiving the sessionid for user = " + userid);
+        const response = await fetch(`http://localhost:3000/api/getsession?userid=${userid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

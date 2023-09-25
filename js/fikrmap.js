@@ -204,7 +204,7 @@ function resizeDrawingContainer() {
 window.addEventListener('resize', resizeDrawingContainer);
 resizeDrawingContainer();
 
-vsessionID = common.getSessionId();
+vsessionID = common.getSessionId(vuserID);
 
 function getBottomEdgeY(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
@@ -3202,72 +3202,6 @@ async function sendChatMessage(message) {
 }
 
 
-async function saveDrawing() {
-    // Get the file name from the input field
-    const fileNameInput = document.getElementById('fileNameInput');
-    const fileName = fileNameInput.value.trim();
-
-    // Check if the user provided a file name
-    if (fileName !== "") {
-        console.log("Handle saving with file name:", fileName);
-
-        // Hide the modal
-        $('#fileNameModal').modal('hide');
-
-        // Proceed with saving using the file name
-        try {
-            const response = await fetch('http://localhost:3000/api/savedraw', {
-                method: 'POST',
-                body: JSON.stringify({
-                    fileName: fileName,
-                    jsondrw: mindMapData
-                }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                console.log('Drawing saved successfully');
-                showMessage('Drawing saved successfully ...', 2000);
-                selectedFileNameElement.textContent = fileName;
-                // Perform any necessary UI updates or redirects after successful saving
-            } else {
-                console.error('Failed to save drawing');
-                // Handle the error and provide appropriate user feedback
-            }
-        } catch (error) {
-            console.error('An error occurred:', error);
-            // Handle the error and provide appropriate user feedback
-        }
-    } else {
-        console.log("File name not provided. Saving canceled.");
-    }
-}
-
-
-async function getDrawings() {
-    try {
-        console.log('getDrawings fron server ......');
-
-        const response = await fetch('http://localhost:3000/api/getdraw', {
-            method: 'GET'
-        });
-
-        if (response.ok) {
-            const drawings = await response.json();
-            console.log('Drawings received:', drawings);
-            return drawings;
-
-        } else {
-            console.error('Error getting drawings:', response.status);
-            return response.statusText;
-        }
-    } catch (error) {
-        console.error('Error getting drawingss:', error);
-        return response.error.text;
-    }
-}
 
 
 async function updateversion(vsessionid, voperation) {
@@ -3431,6 +3365,8 @@ export function handleRegistrationForm(event) {
     console.log(`User ID: ${userId}, User Name: ${userName}`);
     vuserID = userId;
     selectedUserElement.textContent = vuserID;
+    vsessionID = common.getSessionId(vuserID);
+
 
     // Close the modal
     var myModalEl = document.getElementById('registrationModal');
@@ -3460,3 +3396,71 @@ document.addEventListener("DOMContentLoaded", function() {
         saveRegistrationButton.addEventListener("click", handleRegistrationForm);
     }
 });
+
+
+async function saveDrawing() {
+    // Get the file name from the input field
+    const fileNameInput = document.getElementById('fileNameInput');
+    const fileName = fileNameInput.value.trim();
+
+    // Check if the user provided a file name
+    if (fileName !== "") {
+        console.log("Handle saving with file name:", fileName);
+
+        // Hide the modal
+        $('#fileNameModal').modal('hide');
+
+        // Proceed with saving using the file name
+        try {
+            const response = await fetch('http://localhost:3000/api/savedraw', {
+                method: 'POST',
+                body: JSON.stringify({
+                    fileName: fileName,
+                    jsondrw: mindMapData
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                console.log('Drawing saved successfully');
+                showMessage('Drawing saved successfully ...', 2000);
+                selectedFileNameElement.textContent = fileName;
+                // Perform any necessary UI updates or redirects after successful saving
+            } else {
+                console.error('Failed to save drawing');
+                // Handle the error and provide appropriate user feedback
+            }
+        } catch (error) {
+            console.error('An error occurred:', error);
+            // Handle the error and provide appropriate user feedback
+        }
+    } else {
+        console.log("File name not provided. Saving canceled.");
+    }
+}
+
+
+async function getDrawings() {
+    try {
+        console.log('getDrawings fron server ......');
+
+        const response = await fetch('http://localhost:3000/api/getdraw', {
+            method: 'GET'
+        });
+
+        if (response.ok) {
+            const drawings = await response.json();
+            console.log('Drawings received:', drawings);
+            return drawings;
+
+        } else {
+            console.error('Error getting drawings:', response.status);
+            return response.statusText;
+        }
+    } catch (error) {
+        console.error('Error getting drawingss:', error);
+        return response.error.text;
+    }
+}
