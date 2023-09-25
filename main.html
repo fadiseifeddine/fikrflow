@@ -47,13 +47,16 @@
             <!-- Settings menu -->
             <div class="dropdown">
                 <button class="btn btn-secondary dropdown-toggle" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            Settings
-        </button>
+                   Settings
+                </button>
                 <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
-                    <li><a class="dropdown-item" href="#" id="importxlsdropdown">Import XLS</a></li>
+                    <li><a class="dropdown-item" href="#" id="importxlsdropdown">Import (XLS)</a></li>
+                    <li><a class="dropdown-item" href="#" id="registeruser">Register User</a></li>
                     <!-- ... Other menu options ... -->
                 </ul>
             </div>
+
+
 
 
         </div>
@@ -61,6 +64,8 @@
         <div id="centerContainer">
             <span id="selectedFileLabel">Selected File:</span>
             <span id="selectedFileName"></span>
+            <span id="selectedUserLabel">Selected User:</span>
+            <span id="selectedUser">johndoe</span>
             <!-- Add a message bar -->
             <div id="messageBar">
             </div>
@@ -136,6 +141,35 @@
 
         <div id="colorPalette" class="color-palette">
             <!-- Color palette generated using JavaScript -->
+        </div>
+
+        <!-- Add a hidden div for the user registration form -->
+        <!-- Modal for user registration -->
+        <div class="modal fade" id="registrationModal" aria-labelledby="registrationModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="registrationModalLabel">User Registration</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="registrationForm">
+                            <div class="mb-3">
+                                <label for="userIdInput" class="form-label">User ID:</label>
+                                <input type="text" class="form-control" id="userIdInput" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="userNameInput" class="form-label">User Name:</label>
+                                <input type="text" class="form-control" id="userNameInput" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="saveRegistration">Save</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
 

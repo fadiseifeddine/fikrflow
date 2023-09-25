@@ -87,6 +87,11 @@ let starButtonDimmed = false;
 let heartButtonDimmed = false;
 let smileyButtonDimmed = false;
 
+
+//Registered Users
+let userId = null;
+let userName = null;
+
 const drawingContainer = document.getElementById('drawingContainer');
 
 // Modal for Saving the Drawing under a File Name
@@ -94,6 +99,7 @@ const fileNameModal = new bootstrap.Modal(document.getElementById('fileNameModal
 
 // the File Name of the Drawing
 const selectedFileNameElement = document.getElementById('selectedFileName');
+const selectedUserElement = document.getElementById('selectedUser');
 
 // Initialize the dropdown
 var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
@@ -2885,18 +2891,6 @@ async function redo(sessonID) {
 
 // Helper function to update undo and redo button states
 async function updateUndoRedoButtons() {
-    // fikr_session is the pointer
-    // fikr_draw_version has the snapshots + version
-    // takesnapshot start with initial position and version = 1
-    //   increment the fikr_session.version + 1 ==> updateversion sessionid , operation increment
-    //   deleteversions(vsessionid, vversion) to delete interruptions.
-    // undo 
-    //   decrement the fikr_session.version -1  ==> updateversion sessionid , operation decrement
-    // redo
-    // increment the fikr_session.version + 1 ==> updateversion sessionid , operation increment
-    // updateversion sessionid , operation increment , decrement ==> fikr_session.version +/- 1
-    // deleteversions(vsessionid, vversion) to delete interruptions.
-
 
     const undoButton = document.getElementById('undoButton');
     const redoButton = document.getElementById('redoButton');
@@ -3001,6 +2995,7 @@ function handleInputSubmit() {
     sendChatMessage(userInput);
     showMessage('Generate Drawing ...', 2000);
     selectedFileNameElement.textContent = "";
+
 
 }
 
@@ -3422,3 +3417,46 @@ function calculateNodePositions(response) {
 
     return response;
 }
+
+// Function to handle the form submission
+export function handleRegistrationForm(event) {
+    event.preventDefault(); // Prevent the form from submitting and reloading the page
+
+    // Get the values from the input fields
+    const userId = document.getElementById("userIdInput").value;
+    const userName = document.getElementById("userNameInput").value;
+
+    // Display the collected User ID and User Name
+    const registrationResult = document.getElementById("registrationResult");
+    console.log(`User ID: ${userId}, User Name: ${userName}`);
+    vuserID = userId;
+    selectedUserElement.textContent = vuserID;
+
+    // Close the modal
+    var myModalEl = document.getElementById('registrationModal');
+    var modal = bootstrap.Modal.getInstance(myModalEl); // Returns a Bootstrap modal instance
+    modal.hide();
+}
+
+// Add an event listener for the "Register User" button to open the modal
+document.addEventListener("DOMContentLoaded", function() {
+    // Add a click event listener to the "Register User" button
+    const registerUserButton = document.getElementById("registeruser");
+    if (registerUserButton) {
+        registerUserButton.addEventListener("click", function() {
+            // Clear the form fields when opening the modal
+            document.getElementById("userIdInput").value = "";
+            document.getElementById("userNameInput").value = "";
+
+            // Trigger the modal to show
+            const registrationModal = new bootstrap.Modal(document.getElementById("registrationModal"));
+            registrationModal.show();
+        });
+    }
+
+    // Add a click event listener to the "Save" button in the modal
+    const saveRegistrationButton = document.getElementById("saveRegistration");
+    if (saveRegistrationButton) {
+        saveRegistrationButton.addEventListener("click", handleRegistrationForm);
+    }
+});
