@@ -1,21 +1,34 @@
 // common.js
 
 let sessionId = null;
+let userId = null;
 
 
 
-async function getSessionId(userid) {
-    if (sessionId === null) {
-        await retrieveSessionId(userid); // Call retrieveSessionId if sessionId is null
-    }
+
+function getSessionId(userid) {
+
     return sessionId;
 }
 
+function getUserId(userid) {
 
-async function retrieveSessionId(userid) {
+    return userId;
+}
+
+
+
+function setUserId(newUserId) {
+    userId = newUserId;
+}
+
+
+async function retrieveSessionId(puserid) {
     try {
-        console.log("retreiving the sessionid for user = " + userid);
-        const response = await fetch(`http://localhost:3000/api/getsession?userid=${userid}`, {
+        console.log("The puserid in retrieveSessionId is ", puserid);
+        userId = puserid;
+        console.log("retreiving the sessionid for user = " + puserid);
+        const response = await fetch(`http://localhost:3000/api/getsession?userid=${puserid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -65,4 +78,4 @@ function showMessage(message, delay) {
 }
 
 
-export { getSessionId, getRandomColor, showMessage };
+export { retrieveSessionId, getUserId, getSessionId, getRandomColor, showMessage, setUserId };

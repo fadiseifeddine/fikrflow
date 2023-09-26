@@ -439,3 +439,25 @@ foreignObject input {
     color: #007bff;
     /* Change the color as needed */
 }
+
+
+/* CSS for the pointer class */
+
+.pointer {
+    position: absolute;
+    width: 20px;
+    /* Adjust the width as needed */
+    height: 20px;
+    /* Adjust the height as needed */
+    border-radius: 50%;
+    /* Makes it a circle */
+    color: white;
+    /* Text color */
+    text-align: center;
+    line-height: 20px;
+    /* Vertically center the text */
+    font-size: 12px;
+    /* Adjust the font size as needed */
+    transition: opacity 0.3s ease;
+    /* Add a fade-in effect */
+}

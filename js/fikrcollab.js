@@ -25,13 +25,18 @@ document.addEventListener('mousemove', (e) => {
 
     console.log('Emit mouse move to Server');
 
+
     const mouseX = e.clientX;
     const mouseY = e.clientY;
+    const vuserId = common.getUserId();
+
+    console.log('Emit userId', vuserId);
+    console.log('Emit sessionid ', sessionId);
 
     // Emit your mouse move data to the server
     socket.emit('mousemove', {
         sessionId: sessionId,
-        userId: 'johndoef' || sessionId, // Replace with your user ID logic
+        userId: vuserId, // Replace with your user ID logic
         x: mouseX,
         y: mouseY,
         color: userColor,
@@ -39,20 +44,28 @@ document.addEventListener('mousemove', (e) => {
 });
 
 
-// Function to create a pointer for another user
 function createPointer(sessionId, userId, x, y, color) {
-    console.log("Creating Pointer for user id", userId);
-    // Create an icon pointer element
-    const pointer = document.createElement('div');
-    pointer.className = 'pointer';
-    pointer.style.backgroundColor = color;
-    pointer.style.left = x + 'px';
-    pointer.style.top = y + 'px';
-    pointer.textContent = userId + ' (' + sessionId + ')';
-    document.body.appendChild(pointer);
+    // Check if the pointer should be created for another user (not the current user)
+    console.log(" xyz_userId = ", userId);
+    console.log(" xyz_common.userId = ", common.userId);
 
-    // Remove the pointer after a certain time (e.g., 5 seconds)
-    setTimeout(() => {
-        document.body.removeChild(pointer);
-    }, 5000);
+    if (userId !== common.getUserId()) {
+        console.log("Creating Pointer for user id", userId);
+        console.log("x:", x, "y:", y, "color:", color, "userId:", userId, "sessionId:", sessionId);
+
+        // Create an icon pointer element
+        const pointer = document.createElement('div');
+        pointer.className = 'pointer';
+        pointer.style.backgroundColor = color;
+        pointer.style.left = x + 'px';
+        pointer.style.top = y + 'px';
+        pointer.textContent = userId;
+        document.body.appendChild(pointer);
+
+        // Remove the pointer after a certain time (e.g., 5 seconds)
+        setTimeout(() => {
+            console.log("Removing Pointer for user id", userId);
+            document.body.removeChild(pointer);
+        }, 5000);
+    }
 }

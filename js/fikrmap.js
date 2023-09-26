@@ -206,7 +206,7 @@ function resizeDrawingContainer() {
 window.addEventListener('resize', resizeDrawingContainer);
 resizeDrawingContainer();
 
-vsessionID = common.getSessionId(vuserID);
+vsessionID = common.retrieveSessionId(vuserID);
 
 function getBottomEdgeY(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
@@ -3350,7 +3350,9 @@ export function handleRegistrationForm(event) {
     console.log(`User ID: ${userId}, User Name: ${userName}`);
     vuserID = userId;
     selectedUserElement.textContent = vuserID;
+    common.setUserId(userId);
     vsessionID = common.getSessionId(vuserID);
+
 
 
     // Close the modal
