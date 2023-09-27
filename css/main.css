@@ -441,23 +441,22 @@ foreignObject input {
 }
 
 
-/* CSS for the pointer class */
+/* CSS for the pointer class for collab pointers followed by the span text */
 
-.pointer {
+.custom-cursor {
     position: absolute;
-    width: 20px;
-    /* Adjust the width as needed */
-    height: 20px;
-    /* Adjust the height as needed */
-    border-radius: 50%;
-    /* Makes it a circle */
-    color: white;
-    /* Text color */
-    text-align: center;
-    line-height: 20px;
-    /* Vertically center the text */
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease;
+    z-index: 9999;
+}
+
+.custom-cursor span {
+    position: absolute;
+    top: 20px;
+    left: 0;
     font-size: 12px;
-    /* Adjust the font size as needed */
-    transition: opacity 0.3s ease;
-    /* Add a fade-in effect */
+    font-weight: bold;
 }
