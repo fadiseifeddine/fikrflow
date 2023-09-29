@@ -2,6 +2,8 @@
 
 // Import everything from common.js as a module
 import * as common from './common.js';
+import * as fikrmap from './fikrmap.js';
+
 
 // Connect to the Socket.io server
 const socket = io('http://localhost:3000'); // Replace with your server URL
@@ -86,3 +88,25 @@ function createPointer(sessionId, userId, x, y, color) {
         }, 5000);
     }
 }
+
+
+
+// Listen for the initial mindMapData when a client connects
+// receive ....
+
+
+// Listen for updates to mindMapData from the server
+socket.on('drawingUpdate', (updatedData) => {
+    // Update your D3.js visualization with the latest data
+    // This will reflect changes made by other clients
+    console.log("Receiving the updated mindMapData ...", updatedData);
+    fikrmap.renderMindMap(updatedData);
+});
+
+// Function to send updates to the server when changes are made
+function sendUpdate(updatedData) {
+    console.log("xx emit drawingUpdate");
+    socket.emit('drawingUpdate', updatedData);
+}
+
+export { sendUpdate };

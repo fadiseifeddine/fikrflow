@@ -1,7 +1,9 @@
 // common.js
 
+// consider putting all those vars in one object (Fadi)
 let sessionId = null;
 let userId = null;
+let mindMapData = null;
 
 
 
@@ -16,10 +18,20 @@ function getUserId(userid) {
     return userId;
 }
 
+function getMindMapData(mindMapData) {
+
+    return mindMapData;
+}
+
 
 
 function setUserId(newUserId) {
     userId = newUserId;
+}
+
+
+function setMindMapData(vmindMapData) {
+    mindMapData = vmindMapData;
 }
 
 
@@ -78,4 +90,4 @@ function showMessage(message, delay) {
 }
 
 
-export { retrieveSessionId, getUserId, getSessionId, getRandomColor, showMessage, setUserId };
+export { retrieveSessionId, getUserId, getMindMapData, getSessionId, getRandomColor, showMessage, setUserId, setMindMapData };

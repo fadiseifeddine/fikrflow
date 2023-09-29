@@ -1,7 +1,7 @@
 // Import everything from common.js as a module
 import * as common from './common.js';
 import * as fikrdraw from './fikrdraw.js';
-
+import * as fikrcollab from './fikrcollab.js';
 
 let mindMapData = '';
 let userInput = '';
@@ -2054,8 +2054,10 @@ function renderMindMap(mindMapData) {
                 var newStrokeWidth = 0;
                 if (d.text === "Thicker") {
                     newStrokeWidth = existingStrokeWidth + 1;
+                    takeSnapshot(mindMapData);
                 } else if (d.text === "Thinner") {
                     newStrokeWidth = existingStrokeWidth - 1;
+                    takeSnapshot(mindMapData);
                 }
 
                 console.log("existingStrokeWidth=" + existingStrokeWidth);
@@ -2070,6 +2072,8 @@ function renderMindMap(mindMapData) {
                     nodeelement.style("stroke-width", `${newStrokeWidth}`);
 
                     renderMindMap(mindMapData);
+                    takeSnapshot(mindMapData);
+
 
 
 
@@ -2081,10 +2085,14 @@ function renderMindMap(mindMapData) {
             } else if (d.text === "Delete") {
                 deleteNodeAndRelatedNodes(nodeId);
                 renderMindMap(mindMapData);
+                takeSnapshot(mindMapData);
+
 
 
             } else if (d.text === "Shape") {
                 console.log('rendering the shape options ....');
+                takeSnapshot(mindMapData);
+
                 event.stopPropagation();
 
                 const targetobj = findBoxOrLine(nodeId);
@@ -2094,6 +2102,8 @@ function renderMindMap(mindMapData) {
 
             } else if (d.text === "Icons") {
                 console.log("rendering the Icons options .....");
+                takeSnapshot(mindMapData);
+
                 event.stopPropagation();
 
                 const targetobj = findBoxOrLine(nodeId);
@@ -2105,7 +2115,6 @@ function renderMindMap(mindMapData) {
 
             //console.log('Rendering the MindMap...')
             //renderMindMap();
-
         }
 
 
@@ -2702,6 +2711,8 @@ function takeSnapshot(mindMapData) {
     // Fetch the latest current version or default to 0 if not found
     console.log("Current Version currentVersion before update = ", currentVersion);
     console.log('--- mindMapData before  updateversion', mindMapData);
+    common.setMindMapData(mindMapData);
+    fikrcollab.sendUpdate(mindMapData);
     updateversion(vsessionID, 'increment')
         .then(updatedCurrentVersion => {
             console.log('mindMapData before delete ', mindMapData);
@@ -3410,3 +3421,5 @@ function handleSaveDrawing() {
         console.error("fileNameInput not found or is null");
     }
 }
+
+export { renderMindMap };
