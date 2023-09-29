@@ -145,6 +145,46 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+
+// MAINNNNNNNNNNNNNNNNNNNNNNN
+async function sendChatMessage(message) {
+    try {
+        console.log("------------------------- MAIN = sendChatMessage");
+        await common.retrieveSessionId(vuserID);
+        vsessionID = common.getSessionId();
+        console.log("--- vsessionID = " + vsessionID);
+        const response = await fetch('http://localhost:3000/api/sendprompt', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                text: message
+            })
+        });
+
+        if (response.ok) {
+            const responseData = await response.json();
+            const {
+                mindMapDataJson
+            } = responseData;
+
+            //console.log('Received mind map data:', mindMapDataJson);
+            //jsondrw = mindMapDataJson;
+
+            mindMapData = calculateNodePositions(mindMapDataJson)
+                //console.log('Adjusted mind map data with positions:', mindMapData);
+            takeSnapshot(mindMapData); // the version 1
+            renderMindMap(mindMapData);
+        } else {
+            console.error('Error sending chat message:', response.status);
+        }
+    } catch (error) {
+        console.error('Error sending chat message:', error);
+    }
+}
+//////////////////////
+
 function handleDragOver(event) {
     event.preventDefault();
     dragDropArea.classList.add("drag-over");
@@ -155,7 +195,7 @@ function handleDragLeave() {
 }
 
 function handleDrop(event) {
-    console.log("In handleDrop ...... ");
+    //console.log("In handleDrop ...... ");
     event.preventDefault();
     dragDropArea.classList.remove("drag-over");
     const files = event.dataTransfer.files;
@@ -180,8 +220,8 @@ async function handleFiles(files) {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log(data.message); // Log the server's response
-                console.log('Hiding the Modal ....');
+                //console.log(data.message); // Log the server's response
+                //console.log('Hiding the Modal ....');
                 $('#fileNameModal').modal('hide');
                 const importxlsModal = bootstrap.Modal.getInstance(document.getElementById('importxls'));
                 importxlsModal.hide();
@@ -206,7 +246,6 @@ function resizeDrawingContainer() {
 window.addEventListener('resize', resizeDrawingContainer);
 resizeDrawingContainer();
 
-vsessionID = common.retrieveSessionId(vuserID);
 
 function getBottomEdgeY(selection, nodeId) {
     const node = selection.filter((d) => d.id === nodeId).node();
@@ -224,7 +263,7 @@ function getBottomEdgeY(selection, nodeId) {
             const height = parseFloat(shape.getAttribute('height'));
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + height; // Return the bottom edge y-coordinate of the parallelogram
         } else if (shape.getAttribute('data-tag') === 'diamond') {
-            console.log("bottom diamond shape = ", shape);
+            //console.log("bottom diamond shape = ", shape);
 
             const height = parseFloat(shape.getAttribute('height'));
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + height / 2; // Return the bottom edge y-coordinate of the diamond
@@ -250,7 +289,7 @@ function getTopEdgeY(selection, nodeId) {
         } else if (shape.getAttribute('data-tag') === 'parallelogram') {
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]); // Return the top edge y-coordinate of the parallelogram
         } else if (shape.getAttribute('data-tag') === 'diamond') {
-            console.log("top diamond shape = ", shape);
+            //console.log("top diamond shape = ", shape);
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) - height / 2; // Return the top edge y-coordinate of the diamond
         } else {
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]); // Return the top edge y-coordinate of the rectangle
@@ -334,7 +373,7 @@ function getCenterX(selection, nodeId) {
         } else if (shape.getAttribute('data-tag') === 'parallelogram') {
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
         } else if (shape.getAttribute('data-tag') === 'diamond') {
-            console.log("centerX diamond shape = ", shape);
+            //console.log("centerX diamond shape = ", shape);
 
             return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[0]);
         }
@@ -808,7 +847,7 @@ function renderMindMap(mindMapData) {
 
         renderBoxToolBox();
 
-        console.log("To Render Relationships ....");
+        //console.log("To Render Relationships ....");
         // After creating the nodes and starting the simulation, update the relationships
         renderRelationships();
 
@@ -864,13 +903,13 @@ function renderMindMap(mindMapData) {
             //console.log("B - SVG CLICK");
 
             const targetClass = event.target.getAttribute("class");
-            console.log("Target Class = " + targetClass);
+            //console.log("Target Class = " + targetClass);
 
             if (targetClass === 'solid-relationship hover' || targetClass === 'dash-relationship hover') {
-                console.log("Hitting line, do nothing");
+                // console.log("Hitting line, do nothing");
                 return;
             } else {
-                console.log("Clicked outside nodes, deselecting...");
+                // console.log("Clicked outside nodes, deselecting...");
                 selectNode(null);
             }
 
@@ -945,15 +984,15 @@ function renderMindMap(mindMapData) {
                     selectedNode.y = event.y - 25;
                 }
 
-                console.log("x=", selectedNode.x);
-                console.log("y=", selectedNode.y);
+                //console.log("x=", selectedNode.x);
+                //console.log("y=", selectedNode.y);
 
 
                 // Call takeSnapshot when drag ends
-                console.log('------------------------------------  DragEnd before taking the snaphot');
-                console.log('--- dragEnd after mindMapData', mindMapData);
+                // console.log('------------------------------------  DragEnd before taking the snaphot');
+                // console.log('--- dragEnd after mindMapData', mindMapData);
                 takeSnapshot(mindMapData);
-                console.log('------------------------------------  DragEnd after taking the snaphot');
+                // console.log('------------------------------------  DragEnd after taking the snaphot');
 
             }
 
@@ -1140,7 +1179,7 @@ function renderMindMap(mindMapData) {
                     d3.select(this).attr("class", "solid-relationship");
                 })
                 .on("click", function() {
-                    console.log("Line Clicked ....");
+                    //console.log("Line Clicked ....");
                     selectedLine = d3.select(this);
                 });
 
@@ -1307,19 +1346,19 @@ function renderMindMap(mindMapData) {
                     }
                 })
                 .on("click", function() {
-                    console.log("Line Clicked ....");
+                    //console.log("Line Clicked ....");
                     selectedLine = d3.select(this);
                 })
                 .attr("stroke-width", (d) => {
                     return d.strokewidth;
                 })
                 .on('mouseover', function(event, d) {
-                    console.log('mouseover');
+                    // console.log('mouseover');
                     d3.select(this).attr('class', 'dash-relationship hover');
                     ToggleButtons(event, d);
                 })
                 .on('mouseout', function() {
-                    console.log('mouseout');
+                    //console.log('mouseout');
                     d3.select(this).attr('class', 'dash-relationship');
                 });
 
@@ -1479,7 +1518,7 @@ function renderMindMap(mindMapData) {
         }
 
         function renderBoxIconBox() {
-            console.log("renderBoxIconBox ...... start");
+            //console.log("renderBoxIconBox ...... start");
             const rectMargin = 20;
             const lineStrokeWidth = 2;
             const relationshipLineLength = 80;
@@ -1542,23 +1581,23 @@ function renderMindMap(mindMapData) {
                 .style("color", "red") // Change the remove character to red
                 .on("click", handleRemoveIcon);
 
-            console.log("The new div for Shape Box rendered ....");
+            //console.log("The new div for Shape Box rendered ....");
 
             BoxIconBoxRef = BoxIconBox;
         }
 
 
         function handleRemoveIcon() {
-            console.log('-----------------------------------');
+            //console.log('-----------------------------------');
 
             const nodeId = selectedNode.id;
 
-            console.log(`handleRemoveIcon Current/Target Box Id ${nodeId}`);
+            //console.log(`handleRemoveIcon Current/Target Box Id ${nodeId}`);
 
             //const nodeelement = d3.select(`#${nodeId}`);
             const nodeelement = d3.select(`#${nodeId}`);
-            console.log(nodeelement);
-            console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
+            //console.log(nodeelement);
+            //console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
 
             const selectedNode4ShapeChange = mindMapData.nodes.find(node => node.id === nodeId);
             selectedNode4ShapeChange.icon = null;
@@ -1566,7 +1605,7 @@ function renderMindMap(mindMapData) {
         }
 
         function renderBoxShapeBox() {
-            console.log("renderBoxShapeBox ...... start");
+            //console.log("renderBoxShapeBox ...... start");
             const rectMargin = 20;
             const lineStrokeWidth = 2;
             const relationshipLineLength = 80;
@@ -1620,7 +1659,7 @@ function renderMindMap(mindMapData) {
                 .style("margin-left", "5px")
                 .on("click", handleBoxShapeboxNodesClick);
 
-            console.log("The new div for Shape Box rendered ....");
+            //console.log("The new div for Shape Box rendered ....");
 
             BoxShapeBoxRef = BoxShapeBox;
 
@@ -1753,8 +1792,8 @@ function renderMindMap(mindMapData) {
                 const sourceNode = mindMapData.nodes.find((node) => node.id === d.source);
                 const targetNode = mindMapData.nodes.find((node) => node.id === d.target);
 
-                console.log("sourceNode shape=" + sourceNode.shape);
-                console.log("targetNode shape=" + targetNode.shape);
+                // console.log("sourceNode shape=" + sourceNode.shape);
+                // console.log("targetNode shape=" + targetNode.shape);
 
 
                 if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'rectangle')) {
@@ -1901,9 +1940,9 @@ function renderMindMap(mindMapData) {
             dotsText.attr("x", dotcalcX).attr("y", dotcalcY - 2).attr("visibility", "visible");
 
             function clickplusbutton(event, d) {
-                console.log("Plus Button Clicked........................");
+                //console.log("Plus Button Clicked........................");
                 event.stopPropagation();
-                console.log('circleId ' + circleId);
+                //console.log('circleId ' + circleId);
                 selectedNode = circleId;
                 handleAddNode();
 
@@ -1911,10 +1950,10 @@ function renderMindMap(mindMapData) {
             }
 
             function click3dotbutton(event, d) {
-                console.log("3 Dot Clicked........................");
+                //console.log("3 Dot Clicked........................");
                 event.stopPropagation();
 
-                console.log('circleId ' + circleId);
+                //console.log('circleId ' + circleId);
 
                 const targetobj = findBoxOrLine(circleId);
                 if (circleId.includes('-')) { // line
@@ -1924,7 +1963,7 @@ function renderMindMap(mindMapData) {
                     // console.log(targetobj);
                     toggleRelationshipToolBox(targetobj);
                 } else {
-                    console.log("Found  Box:", targetobj.id);
+                    //console.log("Found  Box:", targetobj.id);
                     toggleBoxToolBox(targetobj);
                 }
 
@@ -1955,7 +1994,7 @@ function renderMindMap(mindMapData) {
                 const relationshipIndex = mindMapData.relationships.indexOf(relationship);
                 if (relationshipIndex !== -1) {
                     mindMapData.relationships.splice(relationshipIndex, 1); // Remove the relationship
-                    console.log(`Deleted relationship: ${relationship.id}`);
+                    //console.log(`Deleted relationship: ${relationship.id}`);
                 }
             });
 
@@ -1967,7 +2006,7 @@ function renderMindMap(mindMapData) {
             // If there are no remaining relationships, delete the node
             if (!remainingRelationships) {
                 mindMapData.nodes.splice(nodeIndex, 1); // Remove the node from the nodes array
-                console.log(`Deleted node: ${nodeId}`);
+                //console.log(`Deleted node: ${nodeId}`);
             }
 
             // After rendering, capture a snapshot
@@ -1977,17 +2016,17 @@ function renderMindMap(mindMapData) {
 
 
         function handleBoxIconboxNodesClick(event, d) {
-            console.log(`Clicked ${d.text}`);
-            console.log('-----------------------------------');
+            //console.log(`Clicked ${d.text}`);
+            //console.log('-----------------------------------');
 
             const nodeId = selectedNode.id;
 
-            console.log(`handleBoxIconboxNodesClick Current/Target Box Id ${nodeId}`);
+            //console.log(`handleBoxIconboxNodesClick Current/Target Box Id ${nodeId}`);
 
             //const nodeelement = d3.select(`#${nodeId}`);
             const nodeelement = d3.select(`#${nodeId}`);
-            console.log(nodeelement);
-            console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
+            //console.log(nodeelement);
+            //console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
             var shp = null;
             if (d.text == "Heart") { shp = 'heart' };
             if (d.text == "Smily") { shp = 'smily' };
@@ -2003,17 +2042,17 @@ function renderMindMap(mindMapData) {
 
 
         function handleBoxShapeboxNodesClick(event, d) {
-            console.log(`Clicked ${d.text}`);
-            console.log('-----------------------------------');
+            // console.log(`Clicked ${d.text}`);
+            // console.log('-----------------------------------');
 
             const nodeId = selectedNode.id;
 
-            console.log(`Current/Target Box Id ${nodeId}`);
+            //console.log(`Current/Target Box Id ${nodeId}`);
 
             //const nodeelement = d3.select(`#${nodeId}`);
             const nodeelement = d3.select(`#${nodeId}`);
-            console.log(nodeelement);
-            console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
+            // console.log(nodeelement);
+            // console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
             var shp = null;
             if (d.text == "Rectangle") { shp = 'rectangle' };
             if (d.text == "Ellipse") { shp = 'ellipse' };
@@ -2029,68 +2068,71 @@ function renderMindMap(mindMapData) {
         }
 
         function handleBoxToolboxNodesClick(event, d) {
-            console.log(` -- Clicked ${d.text}`);
-            console.log('-----------------------------------');
+            // console.log(` -- Clicked ${d.text}`);
+            //  console.log('-----------------------------------');
 
             var nodeId = selectedNode.id;
             var nodeData = mindMapData.nodes.find((node) => node.id === nodeId);
 
 
 
-            console.log(`Current/Target Box Id ${nodeId}`);
-            console.log("nodeData =", nodeData);
+            // console.log(`Current/Target Box Id ${nodeId}`);
+            // console.log("nodeData =", nodeData);
 
             const nodeelement = d3.select(`#${nodeId}`);
 
-            console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
+            // console.log(`nodeelement Box Id ${nodeelement.attr('id')}`);
 
-            console.log('nodeelement = ', nodeelement);
+            // console.log('nodeelement = ', nodeelement);
 
             if (d.text === "Thicker" || d.text === "Thinner") {
-                console.log('d.shape in Thicker / Thiner =');
+                //console.log('d.shape in Thicker / Thiner =');
                 var existingStrokeWidth = parseFloat(nodeData.strokewidth);
 
-                console.log('-----------------------------------', existingStrokeWidth);
+                // console.log('-----------------------------------', existingStrokeWidth);
                 var newStrokeWidth = 0;
                 if (d.text === "Thicker") {
                     newStrokeWidth = existingStrokeWidth + 1;
+                    console.log("takeSnapshot trigerred by Thicker Box");
                     takeSnapshot(mindMapData);
                 } else if (d.text === "Thinner") {
                     newStrokeWidth = existingStrokeWidth - 1;
+                    console.log("takeSnapshot trigerred by Thinner Box");
                     takeSnapshot(mindMapData);
                 }
 
-                console.log("existingStrokeWidth=" + existingStrokeWidth);
-                console.log("newStrokeWidth=" + newStrokeWidth);
+                //console.log("existingStrokeWidth=" + existingStrokeWidth);
+                //console.log("newStrokeWidth=" + newStrokeWidth);
 
                 // Update the strokewidth property of the node data
                 if (nodeData) {
-                    console.log("updating mind map with new stroke width", newStrokeWidth)
+                    //console.log("updating mind map with new stroke width", newStrokeWidth)
 
                     nodeData.strokewidth = newStrokeWidth;
-                    console.log("Set Style to =" + newStrokeWidth);
+                    // console.log("Set Style to =" + newStrokeWidth);
                     nodeelement.style("stroke-width", `${newStrokeWidth}`);
 
                     renderMindMap(mindMapData);
-                    takeSnapshot(mindMapData);
-
-
-
 
                 }
 
             } else if (d.text === "Color") {
                 handleColorPalette('box', nodeId);
+                console.log("takeSnapshot trigerred by Color Box");
+                takeSnapshot(mindMapData);
+
 
             } else if (d.text === "Delete") {
                 deleteNodeAndRelatedNodes(nodeId);
                 renderMindMap(mindMapData);
+                console.log("takeSnapshot trigerred by Delete Box");
                 takeSnapshot(mindMapData);
 
 
 
             } else if (d.text === "Shape") {
-                console.log('rendering the shape options ....');
+                //console.log('rendering the shape options ....');
+                console.log("takeSnapshot trigerred by Shape Box");
                 takeSnapshot(mindMapData);
 
                 event.stopPropagation();
@@ -2101,7 +2143,8 @@ function renderMindMap(mindMapData) {
                 toggleBoxShapeBox(targetobj);
 
             } else if (d.text === "Icons") {
-                console.log("rendering the Icons options .....");
+                //console.log("rendering the Icons options .....");
+                console.log("takeSnapshot trigerred by Icons Box");
                 takeSnapshot(mindMapData);
 
                 event.stopPropagation();
@@ -2119,17 +2162,17 @@ function renderMindMap(mindMapData) {
 
 
         function handleRelationshipToolboxNodesClick(event, d) {
-            console.log(`Clicked ${d.text}`);
-            console.log('-----------------------------------');
+            //console.log(`Clicked ${d.text}`);
+            //console.log('-----------------------------------');
 
             const lineId = selectedLine.attr('id');
 
-            console.log(`Current/Target Line Id ${lineId}`);
+            //console.log(`Current/Target Line Id ${lineId}`);
 
             const lineElement = d3.select(`#${lineId}`);
 
             if (d.text === "Type") {
-                console.log("Type .... ");
+                //console.log("Type .... ");
             }
 
             if (d.text === "Thicker" || d.text === "Thinner") {
@@ -2138,12 +2181,16 @@ function renderMindMap(mindMapData) {
                 var newStrokeWidth = 0;
                 if (d.text === "Thicker") {
                     newStrokeWidth = currentStrokeWidth + 1;
+                    console.log("takeSnapshot trigerred by Thicker Box");
+                    takeSnapshot(mindMapData);
                 } else if (d.text === "Thinner") {
                     newStrokeWidth = currentStrokeWidth - 1;
+                    console.log("takeSnapshot trigerred by Thinner Box");
+                    takeSnapshot(mindMapData);
                 }
 
-                console.log("currentStrokeWidth=" + currentStrokeWidth);
-                console.log("newStrokeWidth=" + newStrokeWidth);
+                //console.log("currentStrokeWidth=" + currentStrokeWidth);
+                //console.log("newStrokeWidth=" + newStrokeWidth);
 
                 lineElement.style("stroke-width", `${newStrokeWidth}`);
 
@@ -2154,14 +2201,16 @@ function renderMindMap(mindMapData) {
                 });
 
 
-                console.log('relationship =' + relationship);
+                //console.log('relationship =' + relationship);
                 if (relationship) {
                     relationship.strokewidth = newStrokeWidth;
-                    console.log('Setting the mindMapData width');
+                    //console.log('Setting the mindMapData width');
                 }
-                console.log('-----------------------------------');
+                //console.log('-----------------------------------');
 
             } else if (d.text === "Color") {
+                console.log("takeSnapshot trigerred by Line Color");
+                takeSnapshot(mindMapData);
                 handleColorPalette('line', lineId);
 
             }
@@ -2179,8 +2228,8 @@ function renderMindMap(mindMapData) {
                 // Update the stroke-width in the mind map data
 
                 targetobj = d3.select(`#${targetid}`);
-                console.log('targetobj=')
-                console.log(targetobj)
+                //console.log('targetobj=')
+                //console.log(targetobj)
 
                 // targetobj = mindMapData.relationships.find((relation) => {
                 //     const slineId = `${relation.source}-${relation.target}`;
@@ -2192,7 +2241,7 @@ function renderMindMap(mindMapData) {
             } else { // box
                 // If the circleId does not contain a hyphen, it is for a box
                 // Find the box with the given id in the mindMapData
-                console.log("findObject Box with Target ID =" + targetid);
+                //console.log("findObject Box with Target ID =" + targetid);
                 targetobj = mindMapData.nodes.find((node) => node.id === targetid);
                 selectedNode = targetobj;
             }
@@ -2202,10 +2251,10 @@ function renderMindMap(mindMapData) {
 
         // Function to toggle the relationship tool box trigerred on 3 dots from line
         function toggleRelationshipToolBox(line) {
-            console.log("In the ToggleRelationshipToolBox ....");
-            console.log('line.id=' + line.attr('id'));
-            console.log(line);
-            console.log('line.x1=' + line.attr('x1'));
+            //console.log("In the ToggleRelationshipToolBox ....");
+            //console.log('line.id=' + line.attr('id'));
+            //console.log(line);
+            //console.log('line.x1=' + line.attr('x1'));
 
             // console.log('line.y1=' + line.y1);
             // console.log('line.y2=' + line.y2);
@@ -2225,7 +2274,7 @@ function renderMindMap(mindMapData) {
                     .attr("transform", `translate(${middleX - relationshipToolBoxWidth / 2}, ${middleY - relationshipToolBoxHeight / 2})`)
                     .style("display", "block");
 
-                console.log("relationshipToolBoxRef should now be displayed");
+                //console.log("relationshipToolBoxRef should now be displayed");
 
             } else {
                 relationshipToolBoxRef.style("display", "none");
@@ -2235,7 +2284,7 @@ function renderMindMap(mindMapData) {
         // Function to toggle the relationship tool box trigerred on 3 dots from line
         function toggleBoxToolBox(box) {
             // console.log("In the ToggleBoxToolBox ....");
-            console.log('box.id=' + box.id);
+            //console.log('box.id=' + box.id);
 
 
             const display = BoxToolBoxRef.style("display");
@@ -2253,7 +2302,6 @@ function renderMindMap(mindMapData) {
                     .attr("transform", `translate(${calcX}, ${calcY})`)
                     .style("display", "block");
 
-                console.log("BoxToolBoxRef should now be displayed");
 
             } else {
                 BoxToolBoxRef.style("display", "none");
@@ -2263,28 +2311,26 @@ function renderMindMap(mindMapData) {
 
         // Function to toggle the BoxShapeBox tool box trigerred on 3 dots from line
         function toggleBoxShapeBox(box) {
-            console.log("In the toggleBoxShapeBox ....");
-            console.log('box.id=' + box.id);
+            //console.log("In the toggleBoxShapeBox ....");
+            //console.log('box.id=' + box.id);
 
 
             const display = BoxShapeBoxRef.style("display");
-            console.log('display=' + display);
+            //console.log('display=' + display);
 
             if (display === "none") {
 
-                console.log("Display of Shape is None, we are setting x and y to display ...");
+                //console.log("Display of Shape is None, we are setting x and y to display ...");
                 //calcX = d.x + (d.label.length * 10 + 20) / 2;
                 var calcX = box.x + (rectWidth) / 2 - 70;
                 var calcY = box.y - 70;
 
-                console.log('calcX', calcX);
-                console.log('calcY', calcY);
+                //console.log('calcX', calcX);
+                //console.log('calcY', calcY);
 
                 BoxShapeBoxRef
                     .attr("transform", `translate(${calcX}, ${calcY})`)
                     .style("display", "block");
-
-                console.log("BoxShapeBoxRef should now be displayed");
 
             } else {
                 BoxShapeBoxRef.style("display", "none");
@@ -2294,28 +2340,27 @@ function renderMindMap(mindMapData) {
 
         // Function to toggle the BoxShapeBox tool box trigerred on 3 dots from line
         function toggleBoxIconBox(box) {
-            console.log("In the toggleBoxIconBox ....");
-            console.log('box.id=' + box.id);
+            //console.log("In the toggleBoxIconBox ....");
+            //console.log('box.id=' + box.id);
 
 
             const display = BoxIconBoxRef.style("display");
-            console.log('display=' + display);
+            //console.log('display=' + display);
 
             if (display === "none") {
 
-                console.log("Display of Icon is None, we are setting x and y to display ...");
+                //console.log("Display of Icon is None, we are setting x and y to display ...");
                 //calcX = d.x + (d.label.length * 10 + 20) / 2;
                 var calcX = box.x + (rectWidth) / 2 - 70;
                 var calcY = box.y - 70;
 
-                console.log('calcX', calcX);
-                console.log('calcY', calcY);
+                //console.log('calcX', calcX);
+                //console.log('calcY', calcY);
 
                 BoxIconBoxRef
                     .attr("transform", `translate(${calcX}, ${calcY})`)
                     .style("display", "block");
 
-                console.log("BoxShapeIconRef should now be displayed");
 
             } else {
                 BoxIconBoxRef.style("display", "none");
@@ -2348,6 +2393,7 @@ function toggleCompletion(mindMapData, nodeId) {
         } else {
             node.compdate = null; // Clear the compdate attribute
         }
+        takeSnapshot(mindMapData);
         renderMindMap(mindMapData);
     }
 }
@@ -2356,9 +2402,9 @@ function toggleCompletion(mindMapData, nodeId) {
 // Function to handle selecting a box =============================
 function selectNode(nodeId) {
 
-    console.log("Selecting a Node in graph ..." + nodeId);
-    console.log("selectedNode=" + selectedNode);
-    console.log("addingrel=" + addingrel);
+    //console.log("Selecting a Node in graph ..." + nodeId);
+    //console.log("selectedNode=" + selectedNode);
+    //console.log("addingrel=" + addingrel);
 
     var selectionType = '';
     if (addingrel == true) {
@@ -2368,13 +2414,13 @@ function selectNode(nodeId) {
 
     }
 
-    console.log("selectionType=" + selectionType);
+    //console.log("selectionType=" + selectionType);
 
     if (selectionType === 'source') {
 
         // first selection does not edit, second click will edit
         if (selectedNode == nodeId) {
-            console.log('Handling Edit ...');
+            //console.log('Handling Edit ...');
             // Call handleRectEdit with a slight delay to ensure proper registration of the blur event listener
             setTimeout(function() {
                 handleRectEdit();
@@ -2385,16 +2431,12 @@ function selectNode(nodeId) {
 
         // Close the relationship tool box when a node is selected
         if (nodeId === null) {
-            console.log("Hiding the Relationship Box ....");
             hideRelationshipToolBox();
-            console.log("Hiding the  Box Tool Box....");
             hideBoxToolBox();
-            console.log("Hiding the Box Shape Box ....");
             hideBoxShapeBox();
             hideBoxIconBox();
             // Close the attribute container when nodeId is null
             hideAttributeContainer(); // Call a function to hide the attribute container
-            console.log("Hiding Done ....");
 
         } else {
 
@@ -2442,8 +2484,8 @@ function selectNode(nodeId) {
             ndcompleted = onexactnode.completed;
             ndcompletionDateTime = onexactnode.compdate;
 
-            console.log("ndid=", ndid);
-            console.log("ndlongDescription=", ndlongDescription);
+            //console.log("ndid=", ndid);
+            //console.log("ndlongDescription=", ndlongDescription);
 
 
             updateAttributeContainer();
@@ -2506,7 +2548,6 @@ function saveShapeDetails() {
     // Update the color property in the mind map data
     renderMindMap(mindMapData);
 
-    console.log("Show a Saved ...message for 2 seconds");
     common.showMessage('Saved ...', 2000);
 
 }
@@ -2632,7 +2673,6 @@ document.getElementById('addRelationButton').addEventListener('click', function(
 
 function handleAddRelation() {
 
-    console.log('In  handleAddRelation .......');
     addingrel = true;
 
 }
@@ -2657,7 +2697,7 @@ function getCurvedPath(relationship, nodes, nodePositions) {
 }
 
 function handleAddNode() {
-    console.log("handleAddNode .... Start")
+    //console.log("handleAddNode .... Start")
     if (selectedNode && mindMapData && mindMapData.nodes && mindMapData.nodes.length > 0) {
         const newNodeId = `s${mindMapData.nodes.length + 1}`;
         const selectedNodeData = mindMapData.nodes.find((node) => node.id === selectedNode);
@@ -2682,8 +2722,8 @@ function handleAddNode() {
                 children: [],
             };
 
-            console.log("newNodeID=" + newNodeId);
-            console.log("selectedNode=" + selectedNode);
+            //console.log("newNodeID=" + newNodeId);
+            //console.log("selectedNode=" + selectedNode);
 
             mindMapData.nodes.push(newNode);
             mindMapData.relationships.push({
@@ -2710,19 +2750,19 @@ function takeSnapshot(mindMapData) {
     console.log("Taking the Snapshot ....");
     // Fetch the latest current version or default to 0 if not found
     console.log("Current Version currentVersion before update = ", currentVersion);
-    console.log('--- mindMapData before  updateversion', mindMapData);
+    //console.log('--- mindMapData before  updateversion', mindMapData);
     common.setMindMapData(mindMapData);
     fikrcollab.sendUpdate(mindMapData);
     updateversion(vsessionID, 'increment')
         .then(updatedCurrentVersion => {
-            console.log('mindMapData before delete ', mindMapData);
+            //console.log('mindMapData before delete ', mindMapData);
             currentVersion = updatedCurrentVersion;
             console.log("Current Version currentVersion after update = ", currentVersion);
             return deleteversions(vsessionID, currentVersion);
         })
         .then(() => {
             console.log("Now taking the Snapshot .,,,");
-            console.log('mindMapData after delete', mindMapData);
+            //console.log('mindMapData after delete', mindMapData);
             // Now, send the snapshot
             return fetch('http://localhost:3000/api/savesnapshot', {
                 method: 'POST',
@@ -2750,47 +2790,12 @@ function takeSnapshot(mindMapData) {
         });
 }
 
-// async function takeSnapshot() {
-//     try {
-//         console.log("Taking the Snapshot ....");
-//         // Fetch the latest current version or default to 0 if not found
-//         //currentVersion = await fetchcurrentdrawchainversion().catch(() => 0);
-//         console.log("Current Version currentVersion before update = ", currentVersion);
-//         currentVersion = await updateversion(vsessionID, 'increment');
-//         //currentVersion = await fetchcurrentdrawsessionversion().catch(() => 0);
-//         console.log("Current Version currentVersion after update = ", currentVersion);
-//         await deleteversions(vsessionID, currentVersion);
-//         const response = await fetch('http://localhost:3000/api/savesnapshot', {
-//             method: 'POST',
-//             body: JSON.stringify({
-//                 user: vuserID, // Replace with actual user information
-//                 sessionid: vsessionID, // Replace with actual session ID
-//                 jsondrw: mindMapData, // Replace with the data you want to save
-//                 version: currentVersion
-//             }),
-//             headers: {
-//                 'Content-Type': 'application/json'
-//             }
-//         });
-
-//         if (response.ok) {
-//             console.log('Snapshot saved successfully');
-//             updateUndoRedoButtons();
-//         } else {
-//             console.error('Failed to save snapshot');
-//         }
-//     } catch (error) {
-//         console.error('An error occurred:', error);
-//     }
-// }
-
-
 
 // Function to fetch and render a specific versioned snapshot
 async function fetchAndRenderVersion(version) {
     try {
-        console.log("searching for the element with vuserId = " + vuserID)
-        console.log("searching for the element with vsessionID = " + vsessionID)
+        // console.log("searching for the element with vuserId = " + vuserID)
+        // console.log("searching for the element with vsessionID = " + vsessionID)
         const response = await fetch(`http://localhost:3000/api/getsnapshot?user=${vuserID}&sessionid=${vsessionID}&version=${version}`, {
             method: 'GET', // Use GET request
             headers: {
@@ -2812,8 +2817,8 @@ async function fetchAndRenderVersion(version) {
 
 async function fetchcurrentdrawchainversion() {
     try {
-        console.log("fetchcurrentdrawchainversion searching for the element with vuserId = " + vuserID)
-        console.log("fetchcurrentdrawchainversion searching for the element with vsessionID = " + vsessionID)
+        //console.log("fetchcurrentdrawchainversion searching for the element with vuserId = " + vuserID)
+        //console.log("fetchcurrentdrawchainversion searching for the element with vsessionID = " + vsessionID)
 
         const response = await fetch(`http://localhost:3000/api/fetchcurrentdrawchainversion?user=${vuserID}&sessionid=${vsessionID}`, {
             method: 'GET',
@@ -2837,8 +2842,8 @@ async function fetchcurrentdrawchainversion() {
 
 async function fetchcurrentdrawsessionversion() {
     try {
-        console.log("fetchcurrentdrawsessionversion searching for the element with vuserId = " + vuserID)
-        console.log("fetchcurrentdrawsessionversion searching for the element with vsessionID = " + vsessionID)
+        //console.log("fetchcurrentdrawsessionversion searching for the element with vuserId = " + vuserID)
+        //console.log("fetchcurrentdrawsessionversion searching for the element with vsessionID = " + vsessionID)
 
         const response = await fetch(`http://localhost:3000/api/fetchcurrentdrawsessionversion?user=${vuserID}&sessionid=${vsessionID}`, {
             method: 'GET',
@@ -2865,7 +2870,7 @@ async function undo() {
 
     //currentVersion = await fetchcurrentdrawchainversion() || 0; // Fetch the latest current version
     //currentVersion = await fetchcurrentdrawsessionversion().catch(() => 0);
-    console.log("undo = currentVersion = " + currentVersion)
+    //console.log("undo = currentVersion = " + currentVersion)
     currentVersion = await updateversion(vsessionID, 'decrement');
     console.log("undo = currentVersion = " + currentVersion)
     await fetchAndRenderVersion(currentVersion);
@@ -2877,7 +2882,7 @@ async function redo(sessonID) {
 
     //currentVersion = await fetchcurrentdrawchainversion() || 0; // Fetch the latest current version    
     //currentVersion = await fetchcurrentdrawsessionversion().catch(() => 0);
-    console.log("redo = currentVersion = " + currentVersion)
+    // console.log("redo = currentVersion = " + currentVersion)
 
     currentVersion = await updateversion(vsessionID, 'increment');
     console.log("redo = currentVersion = " + currentVersion)
@@ -2916,9 +2921,9 @@ function handleRectEdit() {
 
 
         if (textElement) {
-            console.log('Rect Text Foud ..');
+            //console.log('Rect Text Foud ..');
             const currentText = textElement.textContent;
-            console.log(currentText);
+            //console.log(currentText);
             const rectextStyle = window.getComputedStyle(textElement);
 
             const rectextBox = textElement.getBBox();
@@ -2954,13 +2959,13 @@ function handleRectEdit() {
             console.log('handleEdit 1');
             // Apply focus and selection after the input element is rendered
             requestAnimationFrame(() => {
-                console.log('handleEdit 2');
+                //console.log('handleEdit 2');
                 inputElement.focus();
                 inputElement.select();
             });
 
             inputElement.addEventListener('blur', () => {
-                console.log('handleEdit 3');
+                // console.log('handleEdit 3');
 
                 const newText = inputElement.value;
                 textElement.textContent = newText;
@@ -3025,7 +3030,7 @@ function generateRandomColorCode() {
 
 function showColorPalette(type, id) {
     // Set the clicked box as the active box
-    console.log("showColorPalette for id =" + id, 'type =' + type);
+    //console.log("showColorPalette for id =" + id, 'type =' + type);
 
     // Show the color palette
     colorPalette.innerHTML = "";
@@ -3040,8 +3045,8 @@ function showColorPalette(type, id) {
             colorPalette.style.display = "none";
 
             if (type == 'line') {
-                console.log("Changing the Line Color");
-                console.log(`Current Line Id ${id}`);
+                //console.log("Changing the Line Color");
+                //console.log(`Current Line Id ${id}`);
                 const lineElement = d3.select(`#${id}`);
 
                 lineElement.style("stroke", colorCode);
@@ -3054,20 +3059,20 @@ function showColorPalette(type, id) {
 
                 if (relationship) {
                     relationship.stroke = colorCode;
-                    console.log('Setting the mindMapData Color');
+                    //console.log('Setting the mindMapData Color');
                 }
 
             } else {
                 // Set the selected color as the fill color of the active box
                 if (id) {
-                    console.log("Change Color - Changing the Node Color id=" + id);
+                    //console.log("Change Color - Changing the Node Color id=" + id);
                     const boxElement = d3.select(`#${id} rect`);
                     boxElement.style("fill", colorCode);
 
                     // Update the color property in the mind map data
                     const nodeData = mindMapData.nodes.find((node) => node.id === id);
                     if (nodeData) {
-                        console.log('Updating mindMapData Color for Id =' + id);
+                        //console.log('Updating mindMapData Color for Id =' + id);
                         nodeData.fill = colorCode;
                     }
                     renderMindMap(mindMapData);
@@ -3099,12 +3104,11 @@ function showColorPalette(type, id) {
     } else {
         // Position the color palette on top of the box
         const boxElement = d3.select(`#${id}`);
-        console.log("boxElement =" + boxElement.attr('id'))
-            // Get the x and y attributes
+        //console.log("boxElement =" + boxElement.attr('id'))
+        // Get the x and y attributes
         const x = parseFloat(boxElement.attr('transform').split(',')[0].split('(')[1]);
         const y = parseFloat(boxElement.attr('transform').split(',')[1].split(')')[0]);
 
-        console.log(x);
         const paletteX = x + rectHeight;
         const paletteY = y - rectHeight;
 
@@ -3120,8 +3124,8 @@ function showColorPalette(type, id) {
 
 async function handleOpen() {
     const fileList = await fikrdraw.getDrawings();
-    console.log("printing the array to populate ...");
-    console.log(fileList);
+    //console.log("printing the array to populate ...");
+    //console.log(fileList);
     populateFileList(fileList);
 
     const modalElement = document.getElementById('fileListModal');
@@ -3142,8 +3146,8 @@ async function handleOpen() {
             modal.hide();
             const selectedFile = fileList.find((file) => file.fileName === selectedFileName);
             const selectedJsondrw = selectedFile.jsondrw;
-            console.log('Selected jsondrw file', selectedFile.fileName);
-            console.log('Selected jsondrw:', selectedJsondrw);
+            //console.log('Selected jsondrw file', selectedFile.fileName);
+            //console.log('Selected jsondrw:', selectedJsondrw);
             selectedFileNameElement.textContent = selectedFileName;
             mindMapData = selectedJsondrw
             renderMindMap(mindMapData);
@@ -3164,38 +3168,6 @@ async function handleOpen() {
 
 
 
-async function sendChatMessage(message) {
-    try {
-        const response = await fetch('http://localhost:3000/api/sendprompt', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                text: message
-            })
-        });
-
-        if (response.ok) {
-            const responseData = await response.json();
-            const {
-                mindMapDataJson
-            } = responseData;
-
-            console.log('Received mind map data:', mindMapDataJson);
-            //jsondrw = mindMapDataJson;
-
-            mindMapData = calculateNodePositions(mindMapDataJson)
-            console.log('Adjusted mind map data with positions:', mindMapData);
-            takeSnapshot(mindMapData); // the version 1
-            renderMindMap(mindMapData);
-        } else {
-            console.error('Error sending chat message:', response.status);
-        }
-    } catch (error) {
-        console.error('Error sending chat message:', error);
-    }
-}
 
 
 
@@ -3203,8 +3175,8 @@ async function sendChatMessage(message) {
 async function updateversion(vsessionid, voperation) {
     try {
 
-        console.log("calling updateversion API on the server ...");
-        console.log("--- mindMapData in update version before updating ... ", mindMapData);
+        //console.log("calling updateversion API on the server ...");
+        //console.log("--- mindMapData in update version before updating ... ", mindMapData);
         const response = await fetch('http://localhost:3000/api/updateversion', {
             method: 'POST',
             body: JSON.stringify({
@@ -3217,11 +3189,11 @@ async function updateversion(vsessionid, voperation) {
         });
 
         if (response.ok) {
-            console.log("--- mindMapData in update version after updating ... ", mindMapData);
+            //console.log("--- mindMapData in update version after updating ... ", mindMapData);
 
             const data = await response.json(); // Parse the JSON response
             if (data.success) {
-                console.log("updateversion get back with success and result");
+                // console.log("updateversion get back with success and result");
                 const result = data.result; // Access the result property
                 console.log('Version Updated Successfully');
                 console.log(data);
@@ -3358,7 +3330,7 @@ export function handleRegistrationForm(event) {
 
     // Display the collected User ID and User Name
     const registrationResult = document.getElementById("registrationResult");
-    console.log(`User ID: ${userId}, User Name: ${userName}`);
+    //console.log(`User ID: ${userId}, User Name: ${userName}`);
     vuserID = userId;
     selectedUserElement.textContent = vuserID;
     common.setUserId(userId);
@@ -3393,7 +3365,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const saveDrawingButton = document.getElementById("saveDrawingButton");
 
     if (saveDrawingButton) {
-        console.log("Save Drawing - Clicked Save Button");
+        // console.log("Save Drawing - Clicked Save Button");
         saveDrawingButton.addEventListener("click", handleSaveDrawing);
     }
 
@@ -3411,7 +3383,7 @@ function handleSaveDrawing() {
 
     if (fileNameInput) {
         const fileName = fileNameInput.value.trim();
-        console.log("Selected File Name: " + fileName);
+        //console.log("Selected File Name: " + fileName);
 
         // Now you can use the fileName for your save operation
         if (fikrdraw.saveDrawing(fileName, mindMapData)) {

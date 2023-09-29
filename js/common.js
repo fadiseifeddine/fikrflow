@@ -52,6 +52,7 @@ async function retrieveSessionId(puserid) {
             const { sessionID } = responseData;
 
             console.log('COMMON Session ID received:', sessionID);
+            sessionId = sessionID;
 
 
 

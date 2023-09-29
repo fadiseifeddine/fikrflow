@@ -4,7 +4,7 @@ import * as common from './common.js';
 async function saveDrawing(fileName, mindMapData) {
     // Check if the user provided a file name
     if (fileName !== "") {
-        console.log("Handle saving with file name:", fileName);
+        //console.log("Handle saving with file name:", fileName);
 
         // Hide the modal
         $('#fileNameModal').modal('hide');
@@ -23,7 +23,7 @@ async function saveDrawing(fileName, mindMapData) {
             });
 
             if (response.ok) {
-                console.log('Drawing saved successfully');
+                //console.log('Drawing saved successfully');
                 common.showMessage('Drawing saved successfully ...', 2000);
                 return true; // Return true on success
             } else {
@@ -37,7 +37,7 @@ async function saveDrawing(fileName, mindMapData) {
             return false; // Return false on error
         }
     } else {
-        console.log("File name not provided. Saving canceled.");
+        //console.log("File name not provided. Saving canceled.");
         return false; // Return false if the file name is not provided
     }
 }
@@ -45,7 +45,7 @@ async function saveDrawing(fileName, mindMapData) {
 
 async function getDrawings() {
     try {
-        console.log('getDrawings fron server ......');
+        //console.log('getDrawings fron server ......');
 
         const response = await fetch('http://localhost:3000/api/getdraw', {
             method: 'GET'
@@ -53,7 +53,7 @@ async function getDrawings() {
 
         if (response.ok) {
             const drawings = await response.json();
-            console.log('Drawings received:', drawings);
+            //console.log('Drawings received:', drawings);
             return drawings;
 
         } else {

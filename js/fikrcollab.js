@@ -16,7 +16,7 @@ const userColor = common.getRandomColor();
 // Listen for other users' mouse moves
 socket.on('mousemove', (data) => {
     // Handle incoming mouse move data here
-    console.log('Received mouse move from another user:', data);
+    //console.log('Received mouse move from another user:', data);
 
     // Create a pointer for the other user with their session ID and color
     createPointer(data.sessionId, data.userId, data.x, data.y, data.color);
@@ -99,13 +99,13 @@ function createPointer(sessionId, userId, x, y, color) {
 socket.on('drawingUpdate', (updatedData) => {
     // Update your D3.js visualization with the latest data
     // This will reflect changes made by other clients
-    console.log("Receiving the updated mindMapData ...", updatedData);
+    //console.log("Receiving the updated mindMapData ...", updatedData);
     fikrmap.renderMindMap(updatedData);
 });
 
 // Function to send updates to the server when changes are made
 function sendUpdate(updatedData) {
-    console.log("xx emit drawingUpdate");
+    //console.log("xx emit drawingUpdate");
     socket.emit('drawingUpdate', updatedData);
 }
 
