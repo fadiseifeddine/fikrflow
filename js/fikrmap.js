@@ -722,7 +722,7 @@ function renderMindMap(mindMapData) {
                 }
             }); // Add a data attribute to the nodeText element
 
-
+        // node id position circle + id text
         nodes
             .append('circle')
             .attr('cx', (d) => {
@@ -1672,12 +1672,16 @@ function renderMindMap(mindMapData) {
             var dotcalcY = 0
             var pluscalcX = 0
             var pluscalcY = 0
+            var pencalcX = 0
+            var pencalcY = 0
 
 
-            // Remove any existing circles with the "three-dots-circle" class
+            // Remove any existing circles with the "below" classes
             svg.selectAll(".three-dots-group").remove();
-
             svg.selectAll(".plus-button").remove();
+            svg.selectAll(".pen-button").remove();
+            hideAttributeContainer();
+
 
 
             // Create a group for the circle and text
@@ -1745,6 +1749,49 @@ function renderMindMap(mindMapData) {
                 .text("+");
 
 
+            // Create the "Pen" button
+            const penGroup = svg
+                .append("g")
+                .attr("class", "pen-button pointer-cursor")
+                .attr("visibility", "visible")
+                .on("mouseover", () => penGroup.attr("cursor", "pointer"))
+                .on("mouseout", () => penGroup.attr("cursor", "default"))
+                .on("click", (event, d) => {
+                    clickpenbutton(event, d);
+                });
+            // Create the circle
+            const penCircle = penGroup
+                .append("circle")
+                .attr("id", circleId)
+                .attr("cx", 150) // Set the initial position
+                .attr("cy", 150) // Set the initial position
+                .attr("r", 15) // Adjust the radius as needed
+                .attr("fill", "yellow")
+                .attr("stroke", "black")
+                .attr("stroke-width", 2);
+
+            // Create a foreignObject to embed HTML content
+
+            const penIcon = penGroup
+                .append("foreignObject")
+                .attr("x", 150) // Does not change anything since it will be set below by pencalcX
+                .attr("y", 150) // Does not change anything since it will be set below by pencalcY
+                .attr("width", 30) // Adjust the size as needed
+                .attr("height", 30); // Adjust the size as needed
+
+            // Create a div inside the foreignObject and add the Bootstrap icon
+            const div = penIcon
+                .append("xhtml:div")
+                .html('<i class="bi bi-pencil"></i>');
+
+            // Adjust the icon's styles if needed
+            div.select("i")
+                .style("font-size", "18px") // Adjust the font size as needed
+                .style("color", "black"); // Adjust the color as needed
+
+
+            // setting the coordinates for the toggled icons
+
             if (d.label) // Rectangle / Box
             { // dot and plus shape position
                 if (d.shape === 'ellipse') {
@@ -1755,6 +1802,8 @@ function renderMindMap(mindMapData) {
                     pluscalcY = d.y + rectHeight;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
+                    pencalcX = d.x + 80;
+                    pencalcY = d.y - bbox.height / 2 + 50;
                 } else if (d.shape === 'parallelogram') {
                     dotcalcX = d.x + plgrmWidth / 2;
                     dotcalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
@@ -1762,6 +1811,8 @@ function renderMindMap(mindMapData) {
                     pluscalcY = d.y + plgrmHeight;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
+                    pencalcX = d.x + plgrmWidth - 25;
+                    pencalcY = d.y - plgrmHeight / 2 + 15; // Adjust the value as needed for the vertical position above the ellipse
                 } else if (d.shape === 'diamond') {
                     dotcalcX = d.x + diamondWidth / 2;
                     dotcalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
@@ -1769,6 +1820,9 @@ function renderMindMap(mindMapData) {
                     pluscalcY = d.y + diamondHeight;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
+                    pencalcX = d.x + diamondWidth / 2 + 55;
+                    pencalcY = d.y - ellipseRy / 2 + 30; // Adjust the value as needed for the vertical position above the ellipse
+
                 } else {
                     dotcalcX = d.x + rectWidth / 2;
                     dotcalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
@@ -1776,6 +1830,9 @@ function renderMindMap(mindMapData) {
                     pluscalcY = d.y + rectHeight;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
+                    pencalcX = d.x + rectWidth - 15;
+                    pencalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
+
                 }
 
 
@@ -1939,15 +1996,33 @@ function renderMindMap(mindMapData) {
             dotCircle.attr("cx", dotcalcX).attr("cy", dotcalcY).attr("visibility", "visible");
             dotsText.attr("x", dotcalcX).attr("y", dotcalcY - 2).attr("visibility", "visible");
 
+            penCircle.attr("cx", pencalcX).attr("cy", pencalcY).attr("visibility", "visible");
+            penIcon.attr("x", pencalcX - 8).attr("y", pencalcY - 12).attr("visibility", "visible");
+
+            function clickpenbutton(event, d) {
+                event.stopPropagation();
+                // console.log('circleId ' + circleId);
+                const targetobj = findBoxOrLine(circleId);
+                //console.log("Found   id:", targetobj.id);
+
+                // Check if the selectedNodeData is found
+                if (targetobj) {
+                    // Now you can access the attributes of the selected node
+                    //console.log("Target obj", targetobj);
+                    populateAttributeContainer(targetobj);
+                    showAttributeContainer(targetobj);
+                }
+            }
+
+
             function clickplusbutton(event, d) {
                 //console.log("Plus Button Clicked........................");
                 event.stopPropagation();
                 //console.log('circleId ' + circleId);
                 selectedNode = circleId;
                 handleAddNode();
-
-
             }
+
 
             function click3dotbutton(event, d) {
                 //console.log("3 Dot Clicked........................");
@@ -1971,6 +2046,9 @@ function renderMindMap(mindMapData) {
 
                 dotCircle.attr("visibility", "hidden");
                 dotsText.attr("visibility", "hidden");
+
+                penCircle.attr("visibility", "hidden");
+                penIcon.attr("visibility", "hidden");
 
 
             }
@@ -2442,9 +2520,6 @@ function selectNode(nodeId) {
 
             renderMindMap(mindMapData); // Re-render the mind map to apply the selection highlight
 
-            // Open the attribute container when nodeId is not null
-            showAttributeContainer(); // Call a function to show the attribute container
-
             const addButton = document.getElementById('addNodeButton');
             const editButton = document.getElementById('editButton');
             const deleteButton = document.getElementById('deleteButton');
@@ -2477,18 +2552,8 @@ function selectNode(nodeId) {
         // Check if the selectedNodeData is found
         if (onexactnode) {
             // Now you can access the attributes of the selected node
-            ndid = onexactnode.id;
-            ndshortDescription = onexactnode.label;
-            ndlongDescription = onexactnode.description;
-            ndicon = onexactnode.icon;
-            ndcompleted = onexactnode.completed;
-            ndcompletionDateTime = onexactnode.compdate;
 
-            //console.log("ndid=", ndid);
-            //console.log("ndlongDescription=", ndlongDescription);
-
-
-            updateAttributeContainer();
+            populateAttributeContainer(onexactnode);
 
         }
 
@@ -2519,6 +2584,21 @@ function selectNode(nodeId) {
 
 }
 
+
+function populateAttributeContainer(nd) {
+    //console.log("Container Node", nd);
+    //console.log("Container Node ID ", nd.id);
+
+    ndid = nd.id;
+    ndshortDescription = nd.label;
+    ndlongDescription = nd.description;
+    ndicon = nd.icon;
+    ndcompleted = nd.completed;
+    ndcompletionDateTime = nd.compdate;
+
+    updateAttributeContainer();
+
+}
 
 // Function to update the attribute container with the values of global variables
 function updateAttributeContainer() {
@@ -2636,10 +2716,12 @@ function hideBoxIconBox() {
 }
 
 // Function to show the attribute container
-function showAttributeContainer() {
+function showAttributeContainer(selnode) {
     const attributeContainer = document.getElementById('attributeContainer');
     attributeContainer.style.display = 'block'; // Show the container
+
 }
+
 
 // Function to hide the attribute container
 function hideAttributeContainer() {
@@ -2913,12 +2995,13 @@ async function updateUndoRedoButtons() {
 
 
 function handleRectEdit() {
-    console.log('Handling Edit for ' + selectedNode);
+    //console.log('Handling Edit for ' + selectedNode);
     if (selectedNode) {
         const selectedNodeId = selectedNode;
         const selectedNodeElement = document.getElementById(`${selectedNodeId}`);
         const textElement = selectedNodeElement.querySelector('text[data-tag="recttext"], text[data-tag="ellipsetext"], [data-tag="parallelogramtext"]');
-
+        // Open the attribute container when nodeId is not null
+        showAttributeContainer(); // Call a function to show the attribute container
 
         if (textElement) {
             //console.log('Rect Text Foud ..');
@@ -2956,7 +3039,7 @@ function handleRectEdit() {
             // Hide the original text element while editing
             textElement.style.visibility = 'hidden';
 
-            console.log('handleEdit 1');
+            //console.log('handleEdit 1');
             // Apply focus and selection after the input element is rendered
             requestAnimationFrame(() => {
                 //console.log('handleEdit 2');
@@ -2983,6 +3066,7 @@ function handleRectEdit() {
 
             inputElement.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
+                    hideAttributeContainer();
                     event.preventDefault();
                     inputElement.blur(); // Trigger blur event to save the entered text
                 }
