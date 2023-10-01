@@ -1,7 +1,7 @@
 // Import everything from common.js as a module
 import * as common from './common.js';
 
-async function saveDrawing(fileName, mindMapData) {
+async function saveDrawing(fileName, mindMapData, userId, sessionId) {
     // Check if the user provided a file name
     if (fileName !== "") {
         //console.log("Handle saving with file name:", fileName);
@@ -14,6 +14,7 @@ async function saveDrawing(fileName, mindMapData) {
             const response = await fetch('http://localhost:3000/api/savedraw', {
                 method: 'POST',
                 body: JSON.stringify({
+                    userid: userId,
                     fileName: fileName,
                     jsondrw: mindMapData
                 }),
@@ -25,6 +26,7 @@ async function saveDrawing(fileName, mindMapData) {
             if (response.ok) {
                 //console.log('Drawing saved successfully');
                 common.showMessage('Drawing saved successfully ...', 2000);
+                common.setFileName(fileName);
                 return true; // Return true on success
             } else {
                 console.error('Failed to save drawing');
@@ -41,6 +43,7 @@ async function saveDrawing(fileName, mindMapData) {
         return false; // Return false if the file name is not provided
     }
 }
+
 
 
 async function getDrawings() {

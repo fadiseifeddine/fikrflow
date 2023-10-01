@@ -7,7 +7,7 @@ let mindMapData = '';
 let userInput = '';
 let selectedNode = null;
 let sourceNode = null;
-
+let ismodified = 0;
 let svg = null;
 
 // Define a variable for the icon size (adjust as needed)
@@ -76,7 +76,7 @@ let currentVersion = 0;
 let vsessionID = ''; // Declare sessionID as a global variable
 let vuserID = 'johndoe'; // Replace with actual user information
 
-// The Edit Page
+// The Edit Page Attribute Container
 let ndid = null;
 let ndshortDescription = null;
 let ndlongDescription = null;
@@ -98,6 +98,9 @@ const drawingContainer = document.getElementById('drawingContainer');
 
 // Modal for Saving the Drawing under a File Name
 const fileNameModal = new bootstrap.Modal(document.getElementById('fileNameModal'));
+// Save Confirmation of the File
+const saveconfirmationModal = new bootstrap.Modal(document.getElementById("saveconfirmationModal"));
+
 
 // the File Name of the Drawing
 const selectedFileNameElement = document.getElementById('selectedFileName');
@@ -109,18 +112,23 @@ var dropdownList = dropdownElementList.map(function(dropdownToggleEl) {
     return new bootstrap.Dropdown(dropdownToggleEl)
 })
 
-// Handle click event on importxlsdropdown element
-document.getElementById('importxlsdropdown').addEventListener('click', function() {
-    var importXlsModal = new bootstrap.Modal(document.getElementById('importxls'), {
-        backdrop: true
-    });
-    importXlsModal.show();
-});
 
-// Add a click event listener to the drawingContainer
-drawingContainer.addEventListener('click', function(event) {
-    // Call the selectNode(null) function when the container is clicked
-    selectNode(null);
+// Retrieve the session ID when the page loads
+window.addEventListener('load', async() => {
+    try {
+        await common.retrieveSessionId(common.getUserId())
+            .then(() => {
+                vsessionID = common.getSessionId();
+                if (!vsessionID) {
+                    // Handle the case where no session ID is retrieved
+                    alert('Error: No session ID');
+                }
+            });
+    } catch (error) {
+        // Handle any errors that occur during session retrieval
+        console.error('Error retrieving session:', error);
+        alert('Error: Failed to retrieve session ID');
+    }
 });
 
 
@@ -146,13 +154,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
+// Handle click event on importxlsdropdown element
+document.getElementById('importxlsdropdown').addEventListener('click', function() {
+    var importXlsModal = new bootstrap.Modal(document.getElementById('importxls'), {
+        backdrop: true
+    });
+    importXlsModal.show();
+});
+
+// Add a click event listener to the drawingContainer
+drawingContainer.addEventListener('click', function(event) {
+    // Call the selectNode(null) function when the container is clicked
+    selectNode(null);
+});
+
+
+
 // MAINNNNNNNNNNNNNNNNNNNNNNN
 async function sendChatMessage(message) {
     try {
-        console.log("------------------------- MAIN = sendChatMessage");
-        await common.retrieveSessionId(vuserID);
-        vsessionID = common.getSessionId();
-        console.log("--- vsessionID = " + vsessionID);
+
         const response = await fetch('http://localhost:3000/api/sendprompt', {
             method: 'POST',
             headers: {
@@ -2625,9 +2646,10 @@ saveNodeDetails.addEventListener('click', saveShapeDetails);
 function saveShapeDetails() {
     const selectedNode = mindMapData.nodes.find((node) => node.id === ndid);
     selectedNode.description = ndlongDescription;
+    takeSnapshot(mindMapData);
     // Update the color property in the mind map data
-    renderMindMap(mindMapData);
-
+    // renderMindMap(mindMapData);
+    hideAttributeContainer();
     common.showMessage('Saved ...', 2000);
 
 }
@@ -2737,8 +2759,8 @@ function hideAttributeContainer() {
 
 // Listeners =============================
 document.getElementById('submitButton').addEventListener('click', handleInputSubmit);
-document.getElementById('saveButton').addEventListener('click', handleInputSave);
-document.getElementById('openButton').addEventListener('click', handleOpen);
+document.getElementById('r_savefile_Button').addEventListener('click', r_save_Button_handleSave);
+document.getElementById('r_openfile_Button').addEventListener('click', r_open_Button_handleOpen);
 // Attach undo and redo functions to Bootstrap buttons
 document.getElementById('undoButton').addEventListener('click', undo);
 document.getElementById('redoButton').addEventListener('click', redo);
@@ -2831,6 +2853,7 @@ function handleAddNode() {
 function takeSnapshot(mindMapData) {
     console.log("Taking the Snapshot ....");
     // Fetch the latest current version or default to 0 if not found
+    ismodified = 1;
     console.log("Current Version currentVersion before update = ", currentVersion);
     //console.log('--- mindMapData before  updateversion', mindMapData);
     common.setMindMapData(mindMapData);
@@ -3083,16 +3106,34 @@ function handleInputSubmit() {
     sendChatMessage(userInput);
     common.showMessage('Generate Drawing ...', 2000);
     selectedFileNameElement.textContent = "";
+    common.setFileName(null);
 
 
 }
 
 
-function handleInputSave() {
+function r_open_Button_handleSave() {
 
-    fileNameModal.show();
+    if (common.getFileName() === null)
+        fileNameModal.show();
+    else {
+        r_open_Button_handleSaveDrawing();
+        ismodified = 0;
+    }
+}
 
 
+function r_save_Button_handleSave() {
+    console.log("r_save_Button_handleSave common.getFileName() ...", common.getFileName());
+
+    if (common.getFileName() === null) {
+        console.log("r_save_Button_handleSave common filename is null ...");
+        fileNameModal.show();
+    } else {
+        console.log("r_save_Button_handleSave common filename is not null ...");
+        r_save_Button_conf_handleSaveDrawing();
+        ismodified = 0;
+    }
 }
 
 
@@ -3206,33 +3247,97 @@ function showColorPalette(type, id) {
 
 
 
-async function handleOpen() {
+async function r_open_Button_handleOpen() {
+
+
+    console.log("common.getFileName() = ", common.getFileName());
+    console.log("ismodified = ", ismodified);
+
+
+    if (common.getFileName()) {
+        ////////////////////// File Already Selected 
+        console.log("File Already Selected Ask to Save Before showing File Selection ...");
+
+        if (ismodified == 1) {
+            ////////////////////// File Already Selected and Modified ====> SAVE or IGNORE
+            console.log("file is not null and ismodified is already equal 1");
+
+            showSaveConfirmationModal();
+        } else {
+            displayfilelist();
+
+        }
+
+
+    } else {
+        if (ismodified == 1)
+        //////////////////////  File not there and is Modified
+        {
+
+            console.log("file is null and ismodified is already equal 1");
+
+            showSaveConfirmationModal();
+
+        } else // ismodified == 0 and file is null
+        {
+            displayfilelist();
+
+        }
+
+    }
+
+
+
+    // Handle the "Save Changes" button click on the confirmation modal trigerred by open File button
+    document.getElementById("r_open_Button_conf_saveDrawingButton").addEventListener("click", function() {
+        // Perform your save changes logic here
+        r_open_Button_conf_handleSaveDrawing();
+        console.log("... Changes saved Now.");
+        hideSaveConfirmationModal();
+        console.log("... common.getFileName() =", common.getFileName());
+        console.log("... ismodified =", ismodified)
+
+        // saved existing file. Now shoe the list of existing files to switch to another file.
+        if (common.getFileName() === null && ismodified == 1) {
+            console.log("... File Empty and ismodified == 1")
+            const fileNameInput = document.getElementById('fileNameInput');
+            fileNameInput.value = "";
+            fileNameModal.show(); // show the dialog where u need to enter the file name.
+        }
+        ismodified = 0;
+    });
+}
+
+async function displayfilelist() {
+    ////////////////////// File Not There Select File and Save
+    console.log("File Not There Select File then Save...");
+
     const fileList = await fikrdraw.getDrawings();
     //console.log("printing the array to populate ...");
-    //console.log(fileList);
+    //console.log("File List = ", fileList);
     populateFileList(fileList);
 
-    const modalElement = document.getElementById('fileListModal');
-    const modal = new bootstrap.Modal(modalElement);
+    const filelistmodalElement = document.getElementById('fileListModal');
+    const filelistmodal = new bootstrap.Modal(filelistmodalElement);
 
     const fileListSelect = document.getElementById('fileListSelect');
-    let selectedFileName = null;
 
     fileListSelect.addEventListener('change', () => {
-        selectedFileName = fileListSelect.value;
+        common.setFileName(fileListSelect.value);
     });
 
-    const selectButton = document.getElementById('selectFileButton');
-    const cancelButton = document.querySelector('[data-bs-dismiss="modal"]');
+    const selectFileNameButton = document.getElementById('selectFileButton');
+    const cancelFileNameButton = document.querySelector('[data-bs-dismiss="modal"]');
 
-    selectButton.addEventListener('click', () => {
-        if (selectedFileName) {
-            modal.hide();
-            const selectedFile = fileList.find((file) => file.fileName === selectedFileName);
+    selectFileNameButton.addEventListener('click', () => {
+        if (fileListSelect.value) {
+            filelistmodal.hide();
+            const selectedFile = fileList.find((file) => file.fileName === fileListSelect.value);
             const selectedJsondrw = selectedFile.jsondrw;
             //console.log('Selected jsondrw file', selectedFile.fileName);
             //console.log('Selected jsondrw:', selectedJsondrw);
-            selectedFileNameElement.textContent = selectedFileName;
+            //console.log("selectedFileNameElement.textContent fileListSelect.value = ", fileListSelect.value);
+            selectedFileNameElement.textContent = fileListSelect.value;
             mindMapData = selectedJsondrw
             renderMindMap(mindMapData);
 
@@ -3241,16 +3346,25 @@ async function handleOpen() {
         }
     });
 
-    cancelButton.addEventListener('click', () => {
-        selectedFileName = null;
-        modal.hide();
+    cancelFileNameButton.addEventListener('click', () => {
+        filelistmodal.hide();
     });
 
-    modal.show();
+    filelistmodal.show();
+
 }
 
 
+// Function to show the Save confirmation modal
+function showSaveConfirmationModal() {
+    saveconfirmationModal.show();
+}
 
+// Function to hide the Save confirmation modal
+function hideSaveConfirmationModal() {
+    console.log("Hiding now the Confirmation Dialog ....");
+    saveconfirmationModal.hide();
+}
 
 
 
@@ -3335,6 +3449,8 @@ async function deleteversions(vsessionid, vversion) {
 // Function to populate the file list select options
 function populateFileList(fileList) {
     const fileListSelect = document.getElementById('fileListSelect');
+    // Clear existing options
+    fileListSelect.innerHTML = '';
 
     fileList.forEach((file) => {
         const option = document.createElement('option');
@@ -3405,7 +3521,7 @@ function calculateNodePositions(response) {
 }
 
 // Function to handle the form submission
-export function handleRegistrationForm(event) {
+export function handleuserRegistrationForm(event) {
     event.preventDefault(); // Prevent the form from submitting and reloading the page
 
     // Get the values from the input fields
@@ -3419,6 +3535,7 @@ export function handleRegistrationForm(event) {
     selectedUserElement.textContent = vuserID;
     common.setUserId(userId);
     vsessionID = common.getSessionId(vuserID);
+    // fadi here we are reusing the same session when switching from non user to user
 
 
 
@@ -3445,36 +3562,74 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
 
-    // Add a click event listener to the "Save" button
-    const saveDrawingButton = document.getElementById("saveDrawingButton");
+    // Add a click event listener to the "Save" button (add name to drawing and save)
+    const r_save_Button_conf_saveDrawingButton = document.getElementById("r_save_Button_conf_saveDrawingButton");
 
-    if (saveDrawingButton) {
+    if (r_save_Button_conf_saveDrawingButton) {
         // console.log("Save Drawing - Clicked Save Button");
-        saveDrawingButton.addEventListener("click", handleSaveDrawing);
+        r_save_Button_conf_saveDrawingButton.addEventListener("click", r_save_Button_conf_handleSaveDrawing);
     }
 
     // Add a click event listener to the "Save" button in the modal
-    const saveRegistrationButton = document.getElementById("saveRegistration");
-    if (saveRegistrationButton) {
-        saveRegistrationButton.addEventListener("click", handleRegistrationForm);
+    const saveuserRegistrationButton = document.getElementById("saveUserRegistration");
+    if (saveuserRegistrationButton) {
+        saveuserRegistrationButton.addEventListener("click", handleuserRegistrationForm);
     }
 });
 
 
-function handleSaveDrawing() {
+function r_open_Button_conf_handleSaveDrawing() {
     // Get the file name from the input field
-    const fileNameInput = document.getElementById('fileNameInput');
+    console.log("r_open_Button_conf_handleSaveDrawing FileName : ", common.getFileName());
 
-    if (fileNameInput) {
-        const fileName = fileNameInput.value.trim();
-        //console.log("Selected File Name: " + fileName);
+    if (common.getFileName()) {
+        console.log("r_open_Button_conf_handleSaveDrawing = Selected File Name: " + common.getFileName());
 
         // Now you can use the fileName for your save operation
-        if (fikrdraw.saveDrawing(fileName, mindMapData)) {
-            selectedFileNameElement.textContent = fileName;
+        if (fikrdraw.saveDrawing(common.getFileName(), mindMapData, vuserID, vsessionID)) {
+            console.log("fileNameInputhas been saved under : ", common.getFileName());
+            //console.log("selectedFileNameElement.textContent from fileName = ", fileName);
+            //selectedFileNameElement.textContent = fileName; // the Banner Selected File Updated
+            // now ensure always that the "Select File Name" form has no value when selecting again to save
+            const fileNameInput = document.getElementById('fileNameInput');
+            fileNameInput.value = "";
+        }
+    } else {
+        console.error("FileName not found or is null");
+    }
+}
+
+function r_save_Button_conf_handleSaveDrawing() {
+    // Get the file name from the input field
+    console.log("r_save_Button_conf_handleSaveDrawing FileName : ", common.getFileName());
+    //common.setFileName(fileNameInput.value);
+    const fileNameInput = document.getElementById('fileNameInput');
+
+    if (common.getFileName()) {
+        console.log("r_save_Button_conf_handleSaveDrawing = common.getFileName: " + common.getFileName());
+
+        // Now you can use the fileName for your save operation
+        if (fikrdraw.saveDrawing(common.getFileName(), mindMapData, vuserID, vsessionID)) {
+            ismodified = 0;
+
+        }
+    } else if (fileNameInput.value) { // File Name is null but User has gave already the name to set 
+        console.log("r_save_Button_conf_handleSaveDrawing = Selected File Name: " + fileNameInput.value);
+
+        // Now you can use the fileName for your save operation
+        if (fikrdraw.saveDrawing(fileNameInput.value, mindMapData, vuserID, vsessionID)) {
+            common.setFileName(fileNameInput.value);
+            console.log("fileNameInputhas been saved under : ", common.getFileName());
+            //console.log("selectedFileNameElement.textContent from fileName = ", fileName);
+            //selectedFileNameElement.textContent = fileName; // the Banner Selected File Updated
+            // now ensure always that the "Select File Name" form has no value when selecting again to save
+            fileNameInput.value = "";
+            selectedFileNameElement.textContent = common.getFileName();
+            ismodified = 0;
         }
     } else {
         console.error("fileNameInput not found or is null");
+        alert("Specify a File Name ...");
     }
 }
 

@@ -13,6 +13,7 @@
 
 <body>
 
+
     <div id="containerWrapper">
 
         <div id="chatContainer">
@@ -22,8 +23,8 @@
                 <button id="addButton" class="btn btn-secondary"><i class="bi bi-plus"></i></button>
                 <button id="deleteButton" class="btn btn-secondary" disabled><i class="bi bi-trash"></i></button>
                 <button id="editButton" class="btn btn-secondary" disabled> <i class="bi bi-pencil-fill"></i></button>
-                <button id="saveButton" class="btn btn-secondary"><i class="bi bi-save"></i></button>
-                <button id="openButton" class="btn btn-secondary"><i class="bi bi-folder2-open"></i></button>
+                <button id="r_savefile_Button" class="btn btn-secondary"><i class="bi bi-save"></i></button>
+                <button id="r_openfile_Button" class="btn btn-secondary"><i class="bi bi-folder2-open"></i></button>
                 <button id="addNodeButton" class="btn btn-secondary" disabled><i class="bi bi-node-plus"></i></button>
                 <button id="addRelationButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-right"></i></button>
                 <button id="undoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
@@ -100,7 +101,7 @@
 
 
 
-        <!-- File Name Input Modal -->
+        <!-- File Name Input Modal r_save ... -->
         <div class="modal fade" id="fileNameModal" tabindex="-1" aria-labelledby="fileNameModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -113,7 +114,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" id="saveDrawingButton" class="btn btn-primary">Save</button>
+                        <button type="button" id="r_save_Button_conf_saveDrawingButton" class="btn btn-primary">Save</button>
                     </div>
                 </div>
             </div>
@@ -167,7 +168,26 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="saveRegistration">Save</button>
+                        <button type="button" class="btn btn-primary" id="saveUserRegistration">Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div class="modal fade" id="saveconfirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmationModalLabel">Save Changes?</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>You have unsaved changes. Do you want to save them before performing this action?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard Changes</button>
+                        <button type="button" class="btn btn-primary" id="r_open_Button_conf_saveDrawingButton">Save Changes</button>
                     </div>
                 </div>
             </div>
