@@ -20,13 +20,6 @@ function getFileName() {
     return selectedFileName;
 }
 
-function getUserId(userid) {
-    if (userId === null) {
-        return "johndoe"; // Return "johndoe" if userId is null
-    } else {
-        return userId; // Return the actual userId if it's not null
-    }
-}
 
 function getMindMapData(mindMapData) {
 
@@ -34,10 +27,6 @@ function getMindMapData(mindMapData) {
 }
 
 
-
-function setUserId(newUserId) {
-    userId = newUserId;
-}
 
 function setFileName(file) {
     selectedFileName = file;
@@ -105,4 +94,4 @@ function showMessage(message, delay) {
 }
 
 
-export { retrieveSessionId, getUserId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setUserId, setMindMapData, setFileName };
+export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName };

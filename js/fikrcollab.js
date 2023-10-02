@@ -2,6 +2,7 @@
 
 // Import everything from common.js as a module
 import * as common from './common.js';
+import * as fikruser from './fikruser.js';
 import * as fikrmap from './fikrmap.js';
 
 
@@ -30,7 +31,7 @@ document.addEventListener('mousemove', (e) => {
     // Emit your mouse move data to the server here (if needed)
     const mouseX = e.clientX;
     const mouseY = e.clientY;
-    const vuserId = common.getUserId();
+    const vuserId = fikruser.getUserId();
     socket.emit('mousemove', {
         sessionId: sessionId,
         userId: vuserId,
@@ -45,7 +46,7 @@ document.addEventListener('mousemove', (e) => {
 
 function createPointer(sessionId, userId, x, y, color) {
     // Check if the pointer should be created for another user (not the current user)
-    if (userId !== common.getUserId()) {
+    if (userId !== fikruser.getUserId()) {
         // Create a custom cursor element
         const customCursor = document.createElement('div');
         customCursor.className = 'custom-cursor';

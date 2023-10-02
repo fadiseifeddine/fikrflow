@@ -1,5 +1,6 @@
 // Import everything from common.js as a module
 import * as common from './common.js';
+import * as fikruser from './fikruser.js';
 import * as fikrdraw from './fikrdraw.js';
 import * as fikrcollab from './fikrcollab.js';
 
@@ -73,8 +74,6 @@ let addingreltarget = null;
 
 // Define global variables to keep track of history and current version
 let currentVersion = 0;
-let vsessionID = ''; // Declare sessionID as a global variable
-let vuserID = 'johndoe'; // Replace with actual user information
 
 // The Edit Page Attribute Container
 let ndid = null;
@@ -90,9 +89,7 @@ let heartButtonDimmed = false;
 let smileyButtonDimmed = false;
 
 
-//Registered Users
-let userId = null;
-let userName = null;
+
 
 const drawingContainer = document.getElementById('drawingContainer');
 
@@ -104,7 +101,6 @@ const saveconfirmationModal = new bootstrap.Modal(document.getElementById("savec
 
 // the File Name of the Drawing
 const selectedFileNameElement = document.getElementById('selectedFileName');
-const selectedUserElement = document.getElementById('selectedUser');
 
 // Initialize the dropdown
 var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'))
@@ -116,9 +112,9 @@ var dropdownList = dropdownElementList.map(function(dropdownToggleEl) {
 // Retrieve the session ID when the page loads
 window.addEventListener('load', async() => {
     try {
-        await common.retrieveSessionId(common.getUserId())
+        await common.retrieveSessionId(fikruser.getUserId())
             .then(() => {
-                vsessionID = common.getSessionId();
+                const vsessionID = common.getSessionId();
                 if (!vsessionID) {
                     // Handle the case where no session ID is retrieved
                     alert('Error: No session ID');
@@ -2858,12 +2854,12 @@ function takeSnapshot(mindMapData) {
     //console.log('--- mindMapData before  updateversion', mindMapData);
     common.setMindMapData(mindMapData);
     fikrcollab.sendUpdate(mindMapData);
-    updateversion(vsessionID, 'increment')
+    updateversion(common.getSessionId(), 'increment')
         .then(updatedCurrentVersion => {
             //console.log('mindMapData before delete ', mindMapData);
             currentVersion = updatedCurrentVersion;
             console.log("Current Version currentVersion after update = ", currentVersion);
-            return deleteversions(vsessionID, currentVersion);
+            return deleteversions(common.getSessionId(), currentVersion);
         })
         .then(() => {
             console.log("Now taking the Snapshot .,,,");
@@ -2872,8 +2868,8 @@ function takeSnapshot(mindMapData) {
             return fetch('http://localhost:3000/api/savesnapshot', {
                 method: 'POST',
                 body: JSON.stringify({
-                    user: vuserID,
-                    sessionid: vsessionID,
+                    user: fikruser.getUserId(),
+                    sessionid: common.getSessionId(),
                     jsondrw: mindMapData,
                     version: currentVersion
                 }),
@@ -2899,8 +2895,10 @@ function takeSnapshot(mindMapData) {
 // Function to fetch and render a specific versioned snapshot
 async function fetchAndRenderVersion(version) {
     try {
-        // console.log("searching for the element with vuserId = " + vuserID)
-        // console.log("searching for the element with vsessionID = " + vsessionID)
+        // console.log("searching for the element with fikruser.getUserId() = " + fikruser.getUserId())
+        // console.log("searching for the element with common.getSessionId() = " + common.getSessionId())
+        const vuserID = fikruser.getUserId();
+        const vsessionID = common.getSessionId();
         const response = await fetch(`http://localhost:3000/api/getsnapshot?user=${vuserID}&sessionid=${vsessionID}&version=${version}`, {
             method: 'GET', // Use GET request
             headers: {
@@ -2922,9 +2920,10 @@ async function fetchAndRenderVersion(version) {
 
 async function fetchcurrentdrawchainversion() {
     try {
-        //console.log("fetchcurrentdrawchainversion searching for the element with vuserId = " + vuserID)
-        //console.log("fetchcurrentdrawchainversion searching for the element with vsessionID = " + vsessionID)
-
+        console.log("fetchcurrentdrawchainversion searching for the element with fikruser.getUserId() = " + fikruser.getUserId())
+            //console.log("fetchcurrentdrawchainversion searching for the element with common.getSessionId() = " + common.getSessionId())
+        const vuserID = fikruser.getUserId();
+        const vsessionID = common.getSessionId();
         const response = await fetch(`http://localhost:3000/api/fetchcurrentdrawchainversion?user=${vuserID}&sessionid=${vsessionID}`, {
             method: 'GET',
             headers: {
@@ -2947,9 +2946,10 @@ async function fetchcurrentdrawchainversion() {
 
 async function fetchcurrentdrawsessionversion() {
     try {
-        //console.log("fetchcurrentdrawsessionversion searching for the element with vuserId = " + vuserID)
-        //console.log("fetchcurrentdrawsessionversion searching for the element with vsessionID = " + vsessionID)
-
+        //console.log("fetchcurrentdrawsessionversion searching for the element with fikruser.getUserId() = " + fikruser.getUserId())
+        //console.log("fetchcurrentdrawsessionversion searching for the element with common.getSessionId() = " + common.getSessionId())
+        const vuserID = fikruser.getUserId();
+        const vsessionID = common.getSessionId();
         const response = await fetch(`http://localhost:3000/api/fetchcurrentdrawsessionversion?user=${vuserID}&sessionid=${vsessionID}`, {
             method: 'GET',
             headers: {
@@ -2976,7 +2976,7 @@ async function undo() {
     //currentVersion = await fetchcurrentdrawchainversion() || 0; // Fetch the latest current version
     //currentVersion = await fetchcurrentdrawsessionversion().catch(() => 0);
     //console.log("undo = currentVersion = " + currentVersion)
-    currentVersion = await updateversion(vsessionID, 'decrement');
+    currentVersion = await updateversion(common.getSessionId(), 'decrement');
     console.log("undo = currentVersion = " + currentVersion)
     await fetchAndRenderVersion(currentVersion);
     updateUndoRedoButtons();
@@ -2989,7 +2989,7 @@ async function redo(sessonID) {
     //currentVersion = await fetchcurrentdrawsessionversion().catch(() => 0);
     // console.log("redo = currentVersion = " + currentVersion)
 
-    currentVersion = await updateversion(vsessionID, 'increment');
+    currentVersion = await updateversion(common.getSessionId(), 'increment');
     console.log("redo = currentVersion = " + currentVersion)
     await fetchAndRenderVersion(currentVersion);
 
@@ -3004,7 +3004,7 @@ async function updateUndoRedoButtons() {
     const undoButton = document.getElementById('undoButton');
     const redoButton = document.getElementById('redoButton');
 
-    //console.log("Now getting the current version for session id = " + vsessionID);
+    //console.log("Now getting the current version for session id = " + common.getSessionId());
     const chainVersion = await fetchcurrentdrawchainversion() || 0; // Fetch the latest current version
     console.log("updateUndoRedoButtons = currentVersion = " + currentVersion)
     console.log("updateUndoRedoButtons = chainVersion = " + chainVersion)
@@ -3520,47 +3520,8 @@ function calculateNodePositions(response) {
     return response;
 }
 
-// Function to handle the form submission
-export function handleuserRegistrationForm(event) {
-    event.preventDefault(); // Prevent the form from submitting and reloading the page
 
-    // Get the values from the input fields
-    const userId = document.getElementById("userIdInput").value;
-    const userName = document.getElementById("userNameInput").value;
-
-    // Display the collected User ID and User Name
-    const registrationResult = document.getElementById("registrationResult");
-    //console.log(`User ID: ${userId}, User Name: ${userName}`);
-    vuserID = userId;
-    selectedUserElement.textContent = vuserID;
-    common.setUserId(userId);
-    vsessionID = common.getSessionId(vuserID);
-    // fadi here we are reusing the same session when switching from non user to user
-
-
-
-    // Close the modal
-    var myModalEl = document.getElementById('registrationModal');
-    var modal = bootstrap.Modal.getInstance(myModalEl); // Returns a Bootstrap modal instance
-    modal.hide();
-}
-
-// Add an event listener for the "Register User" button to open the modal
 document.addEventListener("DOMContentLoaded", function() {
-    // Add a click event listener to the "Register User" button
-    const registerUserButton = document.getElementById("registeruser");
-    if (registerUserButton) {
-        registerUserButton.addEventListener("click", function() {
-            // Clear the form fields when opening the modal
-            document.getElementById("userIdInput").value = "";
-            document.getElementById("userNameInput").value = "";
-
-            // Trigger the modal to show
-            const registrationModal = new bootstrap.Modal(document.getElementById("registrationModal"));
-            registrationModal.show();
-        });
-    }
-
 
     // Add a click event listener to the "Save" button (add name to drawing and save)
     const r_save_Button_conf_saveDrawingButton = document.getElementById("r_save_Button_conf_saveDrawingButton");
@@ -3570,11 +3531,7 @@ document.addEventListener("DOMContentLoaded", function() {
         r_save_Button_conf_saveDrawingButton.addEventListener("click", r_save_Button_conf_handleSaveDrawing);
     }
 
-    // Add a click event listener to the "Save" button in the modal
-    const saveuserRegistrationButton = document.getElementById("saveUserRegistration");
-    if (saveuserRegistrationButton) {
-        saveuserRegistrationButton.addEventListener("click", handleuserRegistrationForm);
-    }
+
 });
 
 
@@ -3586,7 +3543,7 @@ function r_open_Button_conf_handleSaveDrawing() {
         console.log("r_open_Button_conf_handleSaveDrawing = Selected File Name: " + common.getFileName());
 
         // Now you can use the fileName for your save operation
-        if (fikrdraw.saveDrawing(common.getFileName(), mindMapData, vuserID, vsessionID)) {
+        if (fikrdraw.saveDrawing(common.getFileName(), mindMapData, fikruser.getUserId(), common.getSessionId())) {
             console.log("fileNameInputhas been saved under : ", common.getFileName());
             //console.log("selectedFileNameElement.textContent from fileName = ", fileName);
             //selectedFileNameElement.textContent = fileName; // the Banner Selected File Updated
@@ -3609,7 +3566,7 @@ function r_save_Button_conf_handleSaveDrawing() {
         console.log("r_save_Button_conf_handleSaveDrawing = common.getFileName: " + common.getFileName());
 
         // Now you can use the fileName for your save operation
-        if (fikrdraw.saveDrawing(common.getFileName(), mindMapData, vuserID, vsessionID)) {
+        if (fikrdraw.saveDrawing(common.getFileName(), mindMapData, fikruser.getUserId(), common.getSessionId())) {
             ismodified = 0;
 
         }
@@ -3617,7 +3574,7 @@ function r_save_Button_conf_handleSaveDrawing() {
         console.log("r_save_Button_conf_handleSaveDrawing = Selected File Name: " + fileNameInput.value);
 
         // Now you can use the fileName for your save operation
-        if (fikrdraw.saveDrawing(fileNameInput.value, mindMapData, vuserID, vsessionID)) {
+        if (fikrdraw.saveDrawing(fileNameInput.value, mindMapData, fikruser.getUserId(), common.getSessionId())) {
             common.setFileName(fileNameInput.value);
             console.log("fileNameInputhas been saved under : ", common.getFileName());
             //console.log("selectedFileNameElement.textContent from fileName = ", fileName);

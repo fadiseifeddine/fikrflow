@@ -156,23 +156,45 @@
                     </div>
                     <div class="modal-body">
                         <form id="registrationForm">
+                            <!-- User ID -->
                             <div class="mb-3">
-                                <label for="userIdInput" class="form-label">User ID:</label>
-                                <input type="text" class="form-control" id="userIdInput" required>
+                                <label for="userId" class="form-label">User ID:</label>
+                                <input type="text" class="form-control" id="userId" required>
+                                <div id="userIdError" class="text-danger"></div>
                             </div>
+
+                            <!-- User Name -->
                             <div class="mb-3">
-                                <label for="userNameInput" class="form-label">User Name:</label>
-                                <input type="text" class="form-control" id="userNameInput" required>
+                                <label for="userName" class="form-label">User Name:</label>
+                                <input type="text" class="form-control" id="userName" required>
+                                <div id="userNameError" class="text-danger"></div>
+                            </div>
+
+                            <!-- Password -->
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password:</label>
+                                <input type="password" class="form-control" id="password" required>
+                                <div id="passwordError" class="text-danger"></div>
+                                <div id="passwordStrength" class="mt-2"></div>
+
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm Password:</label>
+                                <input type="password" class="form-control" id="confirmPassword" required>
+                                <div id="confirmPasswordError" class="text-danger"></div>
                             </div>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="saveUserRegistration">Save</button>
+                        <button type="button" class="btn btn-primary" id="saveUserRegistration">Register Account</button>
                     </div>
                 </div>
             </div>
         </div>
+
 
         <!-- Confirmation Modal -->
         <div class="modal fade" id="saveconfirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
@@ -206,6 +228,8 @@
         <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
         <!-- Import fikrmap.js as an ES6 module -->
         <script type="module" src="js/fikrmap.js"></script>
+        <!-- Import fikruser.js as an ES6 module -->
+        <script type="module" src="js/fikruser.js"></script>
         <!-- Import fikrcollab.js as an ES6 module -->
         <script type="module" src="js/fikrcollab.js"></script>
         <!-- Import fikrdraw.js as an ES6 module -->
