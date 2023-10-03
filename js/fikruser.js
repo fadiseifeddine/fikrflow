@@ -429,6 +429,10 @@ async function authenticateuser(userId, password) {
 // Function to check if a user exists
 // Function to check if a user exists and authenticate
 async function checkUserPassword(loginUserId, loginPassword) {
+
+    console.log("checkUserPassword.loginUserId = ", loginUserId);
+    console.log("checkUserPassword.loginPassword = ", loginPassword);
+
     try {
         const response = await fetch('http://localhost:3000/api/authenticate', {
             method: 'POST',
