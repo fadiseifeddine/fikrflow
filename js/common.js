@@ -93,5 +93,28 @@ function showMessage(message, delay) {
     }, delay);
 }
 
+// Function to check if a field is empty
+function isFieldEmpty(fieldValue) {
+    return fieldValue.trim() === '';
+}
 
-export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName };
+
+// Function to show or clear an error message for a field
+function showFieldError(fieldId, errorMessage, clearError = false) {
+    const fieldElement = document.getElementById(fieldId);
+    const errorElement = document.getElementById(`${fieldId}Error`);
+
+    if (clearError) {
+        fieldElement.classList.remove('is-invalid');
+        errorElement.textContent = '';
+        errorElement.style.display = 'none';
+    } else {
+        fieldElement.classList.add('is-invalid');
+        errorElement.textContent = errorMessage;
+        errorElement.style.display = 'block';
+    }
+}
+
+
+
+export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName, isFieldEmpty, showFieldError };

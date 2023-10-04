@@ -99,6 +99,7 @@ const fileNameModal = new bootstrap.Modal(document.getElementById('fileNameModal
 const saveconfirmationModal = new bootstrap.Modal(document.getElementById("saveconfirmationModal"));
 
 
+
 // the File Name of the Drawing
 const selectedFileNameElement = document.getElementById('selectedFileName');
 
@@ -3526,13 +3527,194 @@ document.addEventListener("DOMContentLoaded", function() {
     // Add a click event listener to the "Save" button (add name to drawing and save)
     const r_save_Button_conf_saveDrawingButton = document.getElementById("r_save_Button_conf_saveDrawingButton");
 
+
+    const fileNameInput = document.getElementById("fileNameInput");
+    let drawingExistsInBlur = false; // Initialize a flag
+    let blurEventPromise = Promise.resolve(); // Initialize a resolved promise
+
+    // Add a blur event listener to the userIdInput field
+    fileNameInput.addEventListener("blur", async() => {
+        console.log("on blur of duplicate drawing field - Start - ....");
+        const drawingname = fileNameInput.value;
+        console.log("on blur of duplicate drawing field drawingname.... ", drawingname);
+        if (!common.isFieldEmpty(drawingname)) {
+            console.log("on blur of duplicate drawing field drawingname is not empty ", drawingname);
+            // Check if the user already exists
+            blurEventPromise = fikrdraw.getDrawings(drawingname)
+                .then(drawingExists => {
+                    console.log("drawingExists", drawingExists);
+                    if (drawingExists.status == "drawing_found") {
+                        // Show an error message with the suggestion
+                        common.showFieldError('fileNameInput', 'Drawing Exist Already, Choose another Name ...');
+                        drawingExistsInBlur = true;
+                        return;
+                    } else {
+                        common.showFieldError('fileNameInput', '', true); // Clear the error
+                        console.log("Blur - Drawing Name entered is not found, so continue");
+                        drawingExistsInBlur = false;
+
+                    }
+                })
+                .catch(error => {
+                    console.error('Error getting drawing:', error);
+                });
+        } else {
+            common.showFieldError('fileNameInput', 'File Name is required.');
+        }
+
+        console.log("on blur of duplicate drawing field - End - ....");
+    });
+
     if (r_save_Button_conf_saveDrawingButton) {
         // console.log("Save Drawing - Clicked Save Button");
         r_save_Button_conf_saveDrawingButton.addEventListener("click", r_save_Button_conf_handleSaveDrawing);
     }
 
+    async function r_save_Button_conf_handleSaveDrawing() {
+        console.log("r_save_Button_conf_handleSaveDrawing Clicked - Start - ..");
+
+
+        // Wait for the blur event promise to resolve
+        await blurEventPromise;
+
+
+        // if drawing exist in Blur then don't continue
+        if (drawingExistsInBlur == true)
+            return;
+        if (common.getFileName()) {
+            console.log("r_save_Button_conf_handleSaveDrawing = common.getFileName: " + common.getFileName());
+
+            // Now you can use the fileName for your save operation
+            if (fikrdraw.saveDrawing(common.getFileName(), mindMapData, fikruser.getUserId(), common.getSessionId())) {
+                ismodified = 0;
+
+            }
+        } else if (fileNameInput.value) { // File Name is null but User has gave already the name to set 
+            console.log("r_save_Button_conf_handleSaveDrawing = Selected File Name: " + fileNameInput.value);
+
+            // Now you can use the fileName for your save operation
+            if (fikrdraw.saveDrawing(fileNameInput.value, mindMapData, fikruser.getUserId(), common.getSessionId())) {
+                common.setFileName(fileNameInput.value);
+                console.log("fileNameInputhas been saved under : ", common.getFileName());
+                //console.log("selectedFileNameElement.textContent from fileName = ", fileName);
+                //selectedFileNameElement.textContent = fileName; // the Banner Selected File Updated
+                // now ensure always that the "Select File Name" form has no value when selecting again to save
+                fileNameInput.value = "";
+                selectedFileNameElement.textContent = common.getFileName();
+                ismodified = 0;
+            }
+        } else {
+            console.error("fileNameInput not found or is null");
+            common.showFieldError('fileNameInput', 'File Name is required.');
+        }
+
+
+
+
+
+    }
+
+
+
+    // Add a click event listener to the "Save" button (add name to drawing and save)
+    const r_duplicate_Button_conf_duplicateDrawingButton = document.getElementById("r_duplicate_Button_conf_duplicateDrawingButton");
+
+    if (r_duplicate_Button_conf_duplicateDrawingButton) {
+        //console.log("Duplicate Drawing - Clicked Duplicate Form Button");
+        r_duplicate_Button_conf_duplicateDrawingButton.addEventListener("click", r_duplicate_Button_conf_handleDuplicateDrawing);
+    }
+
+    // Add a click event listener to the "Duplicate" button (MENU DUPLICATE)
+    const duplicateButton = document.getElementById("duplicate");
+    if (duplicateButton) {
+        duplicateButton.addEventListener("click", function() {
+            // Clear the form fields when opening the modal
+            document.getElementById("fileNameDuplicateInput").value = "";
+
+            // Trigger the modal to show
+            const fileNameDuplicateModal = new bootstrap.Modal(document.getElementById('fileNameDuplicateModal'));
+            fileNameDuplicateModal.show();
+        });
+    }
+
+
+    const fileNameDuplicateInput = document.getElementById("fileNameDuplicateInput");
+    drawingExistsInBlur = false; // Initialize a flag
+    blurEventPromise = Promise.resolve(); // Initialize a resolved promise
+
+    // Add a blur event listener to the userIdInput field
+    fileNameDuplicateInput.addEventListener("blur", async() => {
+        console.log("on blur of duplicate drawing field - Start - ....");
+        const drawingname = fileNameDuplicateInput.value;
+        console.log("on blur of duplicate drawing field drawingname.... ", drawingname);
+        if (!common.isFieldEmpty(drawingname)) {
+            console.log("on blur of duplicate drawing field drawingname is not empty ", drawingname);
+            // Check if the user already exists
+            blurEventPromise = fikrdraw.getDrawings(drawingname)
+                .then(drawingExists => {
+                    console.log("drawingExists", drawingExists);
+                    if (drawingExists.status == "drawing_found") {
+                        // Show an error message with the suggestion
+                        common.showFieldError('fileNameDuplicateInput', 'Drawing Exist Already, Choose another Name ...');
+                        drawingExistsInBlur = true;
+                        return;
+                    } else {
+                        common.showFieldError('fileNameDuplicateInput', '', true); // Clear the error
+                        console.log("Blur - Drawing Name entered is not found, so continue");
+                        drawingExistsInBlur = false;
+
+                    }
+                })
+                .catch(error => {
+                    console.error('Error getting drawing:', error);
+                });
+        } else {
+            common.showFieldError('fileNameDuplicateInput', 'File Name is required.');
+        }
+
+        console.log("on blur of duplicate drawing field - End - ....");
+    });
+
+
+    async function r_duplicate_Button_conf_handleDuplicateDrawing() {
+        console.log("r_duplicate_Button_conf_handleDuplicateDrawing Clicked - Start - ..");
+
+
+        // Wait for the blur event promise to resolve
+        await blurEventPromise;
+
+
+        // if drawing exist in Blur then don't continue
+        if (drawingExistsInBlur == true)
+            return;
+
+        if (fileNameDuplicateInput.value) { // File Name is null but User has gave already the name to set 
+            console.log("r_duplicate_Button_conf_handleDuplicateDrawing = Selected File Name: " + fileNameDuplicateInput.value);
+            common.setFileName(fileNameDuplicateModal.value);
+
+            // Now you can use the fileName for your save operation
+            if (fikrdraw.duplicateDrawing(fileNameDuplicateInput.value, mindMapData, fikruser.getUserId(), common.getSessionId())) {
+                common.setFileName(fileNameDuplicateInput.value);
+                console.log("fileNameDuplicateInput has been saved under : ", common.getFileName());
+                //console.log("selectedFileNameElement.textContent from fileName = ", fileName);
+                //selectedFileNameElement.textContent = fileName; // the Banner Selected File Updated
+                // now ensure always that the "Select File Name" form has no value when selecting again to save
+                fileNameDuplicateInput.value = "";
+                selectedFileNameElement.textContent = common.getFileName();
+                ismodified = 0;
+                $('#fileNameDuplicateModal').modal('hide');
+
+            }
+        } else {
+            console.error("fileNameDuplicateInput not found or is null");
+            common.showFieldError('fileNameDuplicateInput', 'File Name is required.');
+        }
+    }
 
 });
+
+
+
 
 
 function r_open_Button_conf_handleSaveDrawing() {
@@ -3556,38 +3738,6 @@ function r_open_Button_conf_handleSaveDrawing() {
     }
 }
 
-function r_save_Button_conf_handleSaveDrawing() {
-    // Get the file name from the input field
-    console.log("r_save_Button_conf_handleSaveDrawing FileName : ", common.getFileName());
-    //common.setFileName(fileNameInput.value);
-    const fileNameInput = document.getElementById('fileNameInput');
 
-    if (common.getFileName()) {
-        console.log("r_save_Button_conf_handleSaveDrawing = common.getFileName: " + common.getFileName());
-
-        // Now you can use the fileName for your save operation
-        if (fikrdraw.saveDrawing(common.getFileName(), mindMapData, fikruser.getUserId(), common.getSessionId())) {
-            ismodified = 0;
-
-        }
-    } else if (fileNameInput.value) { // File Name is null but User has gave already the name to set 
-        console.log("r_save_Button_conf_handleSaveDrawing = Selected File Name: " + fileNameInput.value);
-
-        // Now you can use the fileName for your save operation
-        if (fikrdraw.saveDrawing(fileNameInput.value, mindMapData, fikruser.getUserId(), common.getSessionId())) {
-            common.setFileName(fileNameInput.value);
-            console.log("fileNameInputhas been saved under : ", common.getFileName());
-            //console.log("selectedFileNameElement.textContent from fileName = ", fileName);
-            //selectedFileNameElement.textContent = fileName; // the Banner Selected File Updated
-            // now ensure always that the "Select File Name" form has no value when selecting again to save
-            fileNameInput.value = "";
-            selectedFileNameElement.textContent = common.getFileName();
-            ismodified = 0;
-        }
-    } else {
-        console.error("fileNameInput not found or is null");
-        alert("Specify a File Name ...");
-    }
-}
 
 export { renderMindMap };

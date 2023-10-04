@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const userId = userIdElement.value;
 
-        if (!isFieldEmpty(userId)) {
+        if (!common.isFieldEmpty(userId)) {
 
             // Check if the user already exists
             const userExists = await checkuser(userId);
@@ -74,15 +74,15 @@ document.addEventListener("DOMContentLoaded", function() {
                 const suggestedUserId = `${userId}${randomTwoDigitNumber}`;
 
                 // Show an error message with the suggestion
-                showFieldError('userId', `User ID "${userId}" is already taken. You can use "${suggestedUserId}" or choose another.`);
+                common.showFieldError('userId', `User ID "${userId}" is already taken. You can use "${suggestedUserId}" or choose another.`);
                 return;
             } else {
                 console.log("User Not Found. Registering User =", userId);
-                showFieldError('userId', '', true); // Clear the error
+                common.showFieldError('userId', '', true); // Clear the error
 
             }
         } else {
-            showFieldError('userId', 'User ID is required.');
+            common.showFieldError('userId', 'User ID is required.');
             return;
         }
     });
@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const confirmPassword = document.getElementById('confirmPassword').value;
 
 
-            if (!isFieldEmpty(userId)) {
+            if (!common.isFieldEmpty(userId)) {
 
                 // Check if the user already exists
                 const userExists = await checkuser(userId);
@@ -120,41 +120,41 @@ document.addEventListener("DOMContentLoaded", function() {
                     const suggestedUserId = `${userId}${randomTwoDigitNumber}`;
 
                     // Show an error message with the suggestion
-                    showFieldError('userId', `User ID "${userId}" is already taken. You can use "${suggestedUserId}" or choose another.`);
+                    common.showFieldError('userId', `User ID "${userId}" is already taken. You can use "${suggestedUserId}" or choose another.`);
                     return;
                 } else {
                     console.log("User Not Found. Registering User =", userId);
-                    showFieldError('userId', '', true); // Clear the error
+                    common.showFieldError('userId', '', true); // Clear the error
 
                 }
             } else {
-                showFieldError('userId', 'User ID is required.');
+                common.showFieldError('userId', 'User ID is required.');
                 return;
             }
 
-            if (isFieldEmpty(userName)) {
-                showFieldError('userName', 'User Name is required.');
+            if (common.isFieldEmpty(userName)) {
+                common.showFieldError('userName', 'User Name is required.');
                 return;
             }
 
-            if (isFieldEmpty(password)) {
-                showFieldError('password', 'Password is required.');
+            if (common.isFieldEmpty(password)) {
+                common.showFieldError('password', 'Password is required.');
                 return;
             }
 
-            if (isFieldEmpty(confirmPassword)) {
-                showFieldError('confirmPassword', 'Confirm Password is required.');
+            if (common.isFieldEmpty(confirmPassword)) {
+                common.showFieldError('confirmPassword', 'Confirm Password is required.');
                 return;
             }
 
             if (password !== confirmPassword) {
-                showFieldError('password', 'Password and confirm password do not match.');
-                showFieldError('confirmPassword', 'Password and confirm password do not match.');
+                common.showFieldError('password', 'Password and confirm password do not match.');
+                common.showFieldError('confirmPassword', 'Password and confirm password do not match.');
                 return;
             }
 
             if (!checkPasswordStrength(password)) {
-                showFieldError('password', 'Password does not meet the strength requirements.');
+                common.showFieldError('password', 'Password does not meet the strength requirements.');
                 return;
             }
 
@@ -204,13 +204,13 @@ document.addEventListener("DOMContentLoaded", function() {
         const userId = document.getElementById('loginuserid').value;
         const password = document.getElementById('loginpassword').value;
 
-        if (isFieldEmpty(userId)) {
-            showFieldError('loginuserid', 'User ID is required.');
+        if (common.isFieldEmpty(userId)) {
+            common.showFieldError('loginuserid', 'User ID is required.');
             return;
         }
 
-        if (isFieldEmpty(password)) {
-            showFieldError('loginpassword', 'Password is required.');
+        if (common.isFieldEmpty(password)) {
+            common.showFieldError('loginpassword', 'Password is required.');
             return;
         }
 
@@ -324,27 +324,6 @@ document.getElementById('password').addEventListener('input', updatePasswordStre
 
 
 
-// Function to check if a field is empty
-function isFieldEmpty(fieldValue) {
-    return fieldValue.trim() === '';
-}
-
-// Function to show or clear an error message for a field
-function showFieldError(fieldId, errorMessage, clearError = false) {
-    const fieldElement = document.getElementById(fieldId);
-    const errorElement = document.getElementById(`${fieldId}Error`);
-
-    if (clearError) {
-        fieldElement.classList.remove('is-invalid');
-        errorElement.textContent = '';
-        errorElement.style.display = 'none';
-    } else {
-        fieldElement.classList.add('is-invalid');
-        errorElement.textContent = errorMessage;
-        errorElement.style.display = 'block';
-    }
-}
-
 
 // Function to clear error messages for all fields
 function clearFieldErrors(fields) {
@@ -418,8 +397,8 @@ async function authenticateuser(userId, password) {
 
     } else {
 
-        showFieldError('loginuserid', 'User and/Or Combination Not Valid...');
-        showFieldError('loginpassword', 'User and/Or Combination Not Valid...');
+        common.showFieldError('loginuserid', 'User and/Or Combination Not Valid...');
+        common.showFieldError('loginpassword', 'User and/Or Combination Not Valid...');
         return false;
 
     }
