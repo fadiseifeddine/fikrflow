@@ -2848,7 +2848,7 @@ function handleAddNode() {
 }
 
 function takeSnapshot(mindMapData) {
-    console.log("Taking the Snapshot ....");
+    console.log("Taking the Snapshot ....", mindMapData);
     // Fetch the latest current version or default to 0 if not found
     ismodified = 1;
     console.log("Current Version currentVersion before update = ", currentVersion);

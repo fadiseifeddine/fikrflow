@@ -28,12 +28,115 @@ function setUserName(name) {
     userName = name;
 }
 
+
+
+const sendVerificationCodeButton = document.getElementById('sendVerificationCode');
+const verificationCode = document.getElementById('verificationCode');
+const verifyProceedButton = document.getElementById("verifyProceed");
+const nextTabButton = document.getElementById("nextTab");
+const backTabButton = document.getElementById("backTab");
+
+const verificationtab = document.getElementById('verificationInfo-tab'); // Selects the second tab
+
+const saveuserRegistrationButton = document.getElementById("saveUserRegistration");
+
+
 const selectedUserElement = document.getElementById('selectedUser');
+const selectedStatusElement = document.getElementById('selectedStatus');
+
 
 // Add an event listener for the "Register User" button to open the modal
 document.addEventListener("DOMContentLoaded", function() {
 
+    // BACK
+    if (backTabButton) {
+        backTabButton.addEventListener("click", function() {
+
+
+            // Select the tab you want to activate
+            $('#userInfo-tab').tab('show');
+
+
+        });
+    }
+
+    // NEXT
+    if (nextTabButton) {
+        nextTabButton.addEventListener("click", function() {
+
+
+            $('#verificationInfo-tab').tab('show');
+
+
+
+        });
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////// Registration SIGNUP
+    // Send Verification Code
+    if (sendVerificationCodeButton) {
+        sendVerificationCodeButton.addEventListener("click", function() {
+            // Enable the input field
+            verificationCode.disabled = false;
+
+            generateVerificationCode(userId)
+                .then(retval => {
+                    console.log("retval =", retval);
+                    const expectedval = 'verification_code_generated'; // Replace with your expected code
+                    if (retval === expectedval) {
+                        console.log('Verification code Generated');
+                        common.showFieldError('verificationCode', 'Verification Code has been generated. Check your email');
+                        verifyProceedButton.removeAttribute("disabled");
+
+                        // Do something when the verification code matches your expectation
+                    } else {
+                        console.error('Verification code not Geenrated');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+
+        });
+    }
+
+
+    // Verify Verification Code
+    if (verifyProceedButton) {
+        verifyProceedButton.addEventListener("click", function() {
+            const userverifcode = verificationCode.value;
+            console.log("Passing userId", userId);
+            console.log("Passing userverifcode", userverifcode);
+
+            verifyCode(userId, userverifcode)
+                .then(retval => {
+                    console.log("retval =", retval);
+                    const expectedval = 'user_verified'; // Replace with your expected code
+                    if (retval === expectedval) {
+                        console.log("Showing Verificaton done");
+
+                        verificationCodeError.textContent = 'User Verified';
+                        verificationCodeError.classList.remove('text-danger');
+                        verificationCodeError.classList.add('text-success');
+                        selectedStatusElement.textContent = 'Verified';
+                        console.log("Verification Done ...");
+
+                        // Do something when the verification code matches your expectation
+                    } else {
+                        console.log('User not Verified');
+                        common.showFieldError('verificationCode', 'You have entered invalid verification code');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+
+        });
+    }
+
+
+
     // Add a click event listener to the "Register User" button (MENU SIGN-UP / REGISTER USER)
     const registerUserButton = document.getElementById("registeruser");
     if (registerUserButton) {
@@ -48,8 +151,23 @@ document.addEventListener("DOMContentLoaded", function() {
 
             // Trigger the modal to show
             const registrationModal = new bootstrap.Modal(document.getElementById("registrationModal"));
+            initiateregistrationModal();
             registrationModal.show();
         });
+    }
+
+    function initiateregistrationModal() {
+        saveUserRegistration.setAttribute("disabled", "disabled");
+        nextTabButton.setAttribute("disabled", "disabled");
+
+        // sendVerificationCode.setAttribute("disabled", "disabled");
+        // verifyProceed.setAttribute("disabled", "disabled");
+        document.getElementById("userId").value = "";
+        document.getElementById("userName").value = "";
+        document.getElementById("password").value = "";
+        document.getElementById("confirmPassword").value = "";
+        verificationtab.classList.add('disabled'); // Add the "disabled" class
+
     }
 
 
@@ -57,9 +175,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Add a blur event listener to the userIdInput field
     userIdElement.addEventListener("blur", async() => {
-
-        const userId = userIdElement.value;
-
+        userId = userIdElement.value;
+        console.log("userID Entered ", userId);
         if (!common.isFieldEmpty(userId)) {
 
             // Check if the user already exists
@@ -79,6 +196,8 @@ document.addEventListener("DOMContentLoaded", function() {
             } else {
                 console.log("User Not Found. Registering User =", userId);
                 common.showFieldError('userId', '', true); // Clear the error
+                saveuserRegistrationButton.removeAttribute("disabled");
+
 
             }
         } else {
@@ -88,8 +207,28 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
 
+    const userEmailElement = document.getElementById("userEmail");
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+
+
+    // Add a blur event listener to the userIdInput field
+    userEmailElement.addEventListener("blur", async() => {
+        const userEmail = userEmailElement.value;
+        if (!emailRegex.test(userEmail)) {
+            // Display an error message or take appropriate action
+            console.error('Invalid email format');
+            common.showFieldError('userEmail', 'You have entered non valid email format');
+
+        } else {
+            // Email format is valid
+            console.error('Valid email format');
+            sendVerificationCode.removeAttribute("disabled");
+
+        }
+    });
+
+
     // Add a click event listener to the "Save" button in the modal
-    const saveuserRegistrationButton = document.getElementById("saveUserRegistration");
     if (saveuserRegistrationButton) {
         saveuserRegistrationButton.addEventListener("click", async(event) => {
 
@@ -246,12 +385,15 @@ function handleuserRegistrationForm(event) {
     registeruser(userId, userName, password);
 
 
-    // Close the modal
-    var myModalEl = document.getElementById('registrationModal');
-    var modal = bootstrap.Modal.getInstance(myModalEl); // Returns a Bootstrap modal instance
-    modal.hide();
+    // fadi consider redoing the UI and Split of Register vs Generate Code
+    // // Close the modal
+    // var myModalEl = document.getElementById('registrationModal');
+    // var modal = bootstrap.Modal.getInstance(myModalEl); // Returns a Bootstrap modal instance
+    // modal.hide();
 
     selectedUserElement.textContent = userId;
+    selectedStatusElement.textContent = 'None Verified (NEW)';
+
     // fadi here we are reusing the same session when switching from non user to user
 }
 
@@ -367,11 +509,18 @@ async function registeruser(userId, userName, password) {
         console.log("response =", response);
 
         if (response.ok) {
-            //console.log('Drawing saved successfully');
+            console.log('User Registered successfully');
             common.showMessage('User Registered successfully ...', 2000);
+            verificationtab.classList.remove('disabled');
+            nextTabButton.removeAttribute("disabled");
+
+            const userIdElement = document.getElementById("userId");
+
+            userIdElement.value = userId;
+
             return true; // Return true on success
         } else {
-            console.error('Failed to save drawing');
+            console.error('Failed to Register User');
             // Handle the error and provide appropriate user feedback
             return false; // Return false on failure
         }
@@ -431,6 +580,45 @@ async function checkUserPassword(loginUserId, loginPassword) {
         return { success: false, error: error.message };
     }
 }
+
+async function generateVerificationCode(userId) {
+    try {
+
+        console.log("Generating Verification Code function userId = ", userId);
+        const response = await fetch(`http://localhost:3000/api/generate-verification-code?userId=${userId}`);
+        const data = await response.json();
+
+        if (response.ok) {
+            return data.result;
+        } else {
+            console.error('Error:', data.error || response.statusText);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        return null;
+    }
+}
+
+
+async function verifyCode(userId, verificationCode) {
+    try {
+        const response = await fetch(`http://localhost:3000/api/verifycode?userId=${userId}&verificationcode=${verificationCode}`, {
+            method: 'GET',
+        });
+
+        const data = await response.json();
+
+        console.log("data", data);
+        return data.result;
+
+    } catch (error) {
+        console.error('Error:', error);
+        return error;
+    }
+}
+
+
 
 
 export { getUserId, getUserName, setUserId, setUserName };

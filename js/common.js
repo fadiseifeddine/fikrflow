@@ -117,4 +117,6 @@ function showFieldError(fieldId, errorMessage, clearError = false) {
 
 
 
+
+
 export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName, isFieldEmpty, showFieldError };
