@@ -131,6 +131,7 @@ window.addEventListener('load', async() => {
 
 document.addEventListener('DOMContentLoaded', function() {
 
+    // File Import Start ------------------------------------------------------------
     const dragDropArea = document.getElementById("dragDropArea");
 
     dragDropArea.addEventListener("dragover", function(event) {
@@ -143,17 +144,44 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     dragDropArea.addEventListener("drop", function(event) {
+        console.log("drop");
         event.preventDefault();
         dragDropArea.classList.remove("drag-over");
         const files = event.dataTransfer.files;
         handleFiles(files);
     });
+
+    // Event listener for the Import button
+    document.getElementById('importButton').addEventListener('click', async function() {
+        const fileInput = document.getElementById('xlsInput');
+        const file = fileInput.files[0];
+        if (file) {
+            try {
+                await handleFiles(file);
+                // You now have the mindMapData object from the XLSX file
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // File Import End ------------------------------------------------------------
+
+
+    });
+
+
+
+
 });
 
 
 // Handle click event on importxlsdropdown element
 document.getElementById('importxls').addEventListener('click', function() {
-    var importXlsModal = new bootstrap.Modal(document.getElementById('importxls'), {
+    console.log("Importing Modal ....");
+
+    const importXlsElement = document.getElementById('importxlsmodal');
+    console.log("importXlsElement", importXlsElement);
+    const importXlsModal = new bootstrap.Modal(importXlsElement, {
         backdrop: true
     });
     importXlsModal.show();
@@ -208,25 +236,8 @@ async function sendChatMessage(message) {
 }
 //////////////////////
 
-function handleDragOver(event) {
-    event.preventDefault();
-    dragDropArea.classList.add("drag-over");
-}
-
-function handleDragLeave() {
-    dragDropArea.classList.remove("drag-over");
-}
-
-function handleDrop(event) {
-    //console.log("In handleDrop ...... ");
-    event.preventDefault();
-    dragDropArea.classList.remove("drag-over");
-    const files = event.dataTransfer.files;
-    handleFiles(files);
-}
-
-async function handleFiles(files) {
-    const file = files[0];
+async function handleFiles(file) {
+    console.log("Handling the files ....", file);
     if (
         file.type === "application/vnd.ms-excel" ||
         file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
@@ -243,11 +254,12 @@ async function handleFiles(files) {
 
             if (response.ok) {
                 const data = await response.json();
-                //console.log(data.message); // Log the server's response
+                console.log("data", data); // Log the server's response
                 //console.log('Hiding the Modal ....');
                 $('#fileNameModal').modal('hide');
-                const importxlsModal = bootstrap.Modal.getInstance(document.getElementById('importxls'));
+                const importxlsModal = bootstrap.Modal.getInstance(document.getElementById('importxlsmodal'));
                 importxlsModal.hide();
+                renderMindMap(data.result);
             } else {
                 console.error("Error uploading the file:", response.statusText);
             }
@@ -3779,6 +3791,42 @@ async function generateXLSX(mindMapData) {
         console.error('Error:', error);
     }
 }
+
+
+// Function to read an XLSX file and convert it to mindMapData
+function readXLSXFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            try {
+                const data = e.target.result;
+                const workbook = xlsx.read(data, { type: 'binary' });
+
+                // Assuming that the 'Nodes' and 'Relationships' sheets exist in the XLSX file
+                const nodesSheet = workbook.Sheets['Nodes'];
+                const relationshipsSheet = workbook.Sheets['Relationships'];
+
+                // Convert sheets to JSON objects
+                const nodesData = xlsx.utils.sheet_to_json(nodesSheet);
+                const relationshipsData = xlsx.utils.sheet_to_json(relationshipsSheet);
+
+                // Construct the mindMapData object
+                const mindMapData = {
+                    nodes: nodesData,
+                    relationships: relationshipsData
+                };
+
+                resolve(mindMapData);
+            } catch (error) {
+                reject(error);
+            }
+        };
+
+        reader.readAsBinaryString(file);
+    });
+}
+
 
 
 export { renderMindMap };

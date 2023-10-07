@@ -349,6 +349,25 @@
         </div>
 
 
+        <!-- Import XLS Modal -->
+        <div id="importxlsmodal" class="modal fade" tabindex="-1" aria-labelledby="importxlslabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importxlsoption">Import XLS</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="file" id="xlsInput" accept=".xls,.xlsx" />
+                        <div id="dragDropArea" class="drop-area">
+                            <p>Drag and drop your XLS file here</p>
+                        </div>
+                        <button id="importButton" class="btn btn-primary">Import</button>
+                        <!-- Add Import button -->
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Load jQuery and Bootstrap JS before your custom scripts -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -371,23 +390,7 @@
         <script type="module" src="js/common.js"></script>
 
 
-        <!-- Import XLS Modal -->
-        <div id="importxls" class="modal fade" tabindex="-1" aria-labelledby="importxlslabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="importxlsoption">Import XLS</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="file" id="xlsInput" accept=".xls,.xlsx" />
-                        <div id="dragDropArea" class="drop-area">
-                            <p>Drag and drop your XLS file here</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+
     </div>
 </body>
 
