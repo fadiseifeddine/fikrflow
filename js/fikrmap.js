@@ -152,11 +152,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // Handle click event on importxlsdropdown element
-document.getElementById('importxlsdropdown').addEventListener('click', function() {
+document.getElementById('importxls').addEventListener('click', function() {
     var importXlsModal = new bootstrap.Modal(document.getElementById('importxls'), {
         backdrop: true
     });
     importXlsModal.show();
+});
+
+// Handle click event on importxlsdropdown element
+document.getElementById('exportxls').addEventListener('click', function() {
+    generateXLSX(mindMapData);
 });
 
 // Add a click event listener to the drawingContainer
@@ -3738,6 +3743,42 @@ function r_open_Button_conf_handleSaveDrawing() {
     }
 }
 
+// Function to send a POST request to generate the XLSX file
+async function generateXLSX(mindMapData) {
+    try {
+        const response = await fetch('http://localhost:3000/api/export-xlsx', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(mindMapData),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("data returned =", data);
+            if (data) {
+                // If the request was successful, initiate the download
+                console.log("Got downloadable link :", data.downloadLink);
+                // Construct the full URL with the host and port of your container
+                const fullUrl = "http://localhost:3000/" + data.downloadLink;
+
+                // Set the href attribute of the download link
+                const downloadLink = document.getElementById('downloadLink');
+                downloadLink.href = fullUrl;
+
+                // Show the modal
+                $('#downloadModal').modal('show');
+            } else {
+                console.error('Error:', data.error);
+            }
+        } else {
+            console.error('Request failed with status:', response.status);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 
 
 export { renderMindMap };
