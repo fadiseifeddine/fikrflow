@@ -226,7 +226,7 @@ async function sendChatMessage(message) {
             mindMapData = calculateNodePositions(mindMapDataJson)
                 //console.log('Adjusted mind map data with positions:', mindMapData);
             takeSnapshot(mindMapData); // the version 1
-            renderMindMap(mindMapData);
+            renderMindMap(mindMapData, 'initial');
         } else {
             console.error('Error sending chat message:', response.status);
         }
@@ -440,7 +440,7 @@ function getCenterY(selection, nodeId) {
 
 
 
-function renderMindMap(mindMapData) {
+function renderMindMap(mindMapData, renderstatus = 'refresh') {
     console.log("Rendering the mindMapData start ...");
     const mindMapContainer = document.getElementById('mindMapContainer');
     mindMapContainer.innerHTML = '';
@@ -471,6 +471,11 @@ function renderMindMap(mindMapData) {
             .attr('stroke', 'white') // Add a white stroke to the arrow
             .attr('stroke-width', 1); // Set the stroke width as needed
 
+        if (renderstatus == "initial") {
+            // For Hierarchal, we need to change when network (Fadi)
+            assignDepth(mindMapData.nodes);
+
+        }
 
         // Define a custom force to avoid overlap between relationships
         function avoidOverlapForce(strength = 0.1) {
@@ -511,8 +516,9 @@ function renderMindMap(mindMapData) {
             .force('collision', d3.forceCollide()
                 .strength(0.2) // Adjust the strength value as needed
                 .radius((d) => (d.shape === 'ellipse' ? ellipseRx : d.shape === 'parallelogram' ? plgrmWidth / 2 : d.shape === 'diamond' ? diamondWidth / 2 : rectWidth / 2) + spacingBetweenNodes)
-            ).force('collide', d3.forceCollide().radius( /* specify the desired separation radius */ ))
-            .force('avoidOverlapRelationships', avoidOverlapForce(0.2)) // Adjust the strength value as needed
+            ) //.force('collide', d3.forceCollide().radius( /* specify the desired separation radius */ ))
+            //.force('avoidOverlapRelationships', avoidOverlapForce(0.2)) // Adjust the strength value as needed
+            .force('verticalAlignment', verticalAlignmentForce(100)) // Adjust the level value as needed
             .on('tick', ticked);
 
 
@@ -525,6 +531,43 @@ function renderMindMap(mindMapData) {
             // Also update the links (curved paths) here if you have them
         }
 
+        function verticalAlignmentForce(level) {
+            console.log("renderstatus=", renderstatus);
+
+            if (renderstatus == "refresh") {
+                return;
+            }
+            const force = (alpha) => {
+                mindMapData.nodes.forEach(node => {
+                    //console.log('node.depth:', node.depth); // Debugging line
+                    const targetY = level * node.depth;
+                    // console.log('targetY:', targetY); // Debugging line
+                    node.y += (targetY - node.y) * alpha;
+                });
+            };
+            return force;
+        }
+
+        function assignDepth(nodes) {
+            nodes.forEach(node => {
+                node.depth = getDepth(node, nodes);
+                console.log("node .id  =", node.id);
+                console.log("node .depth =", node.depth);
+
+            });
+        }
+
+        function getDepth(node, nodes, depth = 0) {
+            if (!node.parentId) {
+                return depth;
+            }
+            const parentNode = nodes.find(n => n.id === node.parentId);
+            if (!parentNode) {
+                console.error('Parent node not found:', node.parentId);
+                return depth;
+            }
+            return getDepth(parentNode, nodes, depth + 1);
+        }
 
 
 
@@ -2818,6 +2861,7 @@ function handleAddNode() {
     //console.log("handleAddNode .... Start")
     if (selectedNode && mindMapData && mindMapData.nodes && mindMapData.nodes.length > 0) {
         const newNodeId = `s${mindMapData.nodes.length + 1}`;
+        const newNodeparentId = `s${mindMapData.nodes.length}`;
         const selectedNodeData = mindMapData.nodes.find((node) => node.id === selectedNode);
 
         if (selectedNodeData) {
@@ -2829,9 +2873,11 @@ function handleAddNode() {
                 nextX += 100;
             }
 
+            console.log("parentID calculated for the new node =", newNodeparentId);
 
             const newNode = {
                 id: newNodeId,
+                parentId: newNodeparentId,
                 label: 'Double Click to Edit',
                 color: selectedNodeData.color,
                 textColor: selectedNodeData.textColor,
@@ -3826,6 +3872,7 @@ function readXLSXFile(file) {
         reader.readAsBinaryString(file);
     });
 }
+
 
 
 
