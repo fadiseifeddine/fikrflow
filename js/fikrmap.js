@@ -11,6 +11,9 @@ let sourceNode = null;
 let ismodified = 0;
 let svg = null;
 
+// prevent dragging when clicking the checkbox in the node
+let allowDrag = true;
+
 // Define a variable for the icon size (adjust as needed)
 const iconSize = 24; // You can change this value to control the icon size
 
@@ -777,13 +780,25 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .style('align-items', 'center')
             .style('justify-content', 'center');
 
+
+
         checkboxDivs
             .append('input')
             .attr('type', 'checkbox')
-            .attr('style', 'transform: scale(1.5)') // Scale the checkbox by a factor of 1.5
+            .attr('style', 'transform: scale(1.5)')
             .property('checked', (d) => d.completed)
-            .on('change', (event, d) => toggleCompletion(mindMapData, d.id));
-
+            .on('mousedown', () => {
+                allowDrag = false; // Disable dragging
+            })
+            .on('mouseup', () => {
+                allowDrag = true; // Re-enable dragging
+            })
+            .on('mouseout', () => {
+                allowDrag = true; // Re-enable dragging
+            })
+            .on('change', (event, d) => {
+                toggleCompletion(mindMapData, d.id);
+            });
 
         // make selected nodes highlighted
         nodes.classed('selected', (d) => d.id === selectedNode);
@@ -1043,6 +1058,9 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             selection.call(drag);
 
             function dragStart(event, d) {
+
+                if (!allowDrag) return;
+
                 // Only handle as a drag event if the Shift key is not held down
                 if (event.sourceEvent.shiftKey) return;
                 d3.select(this).raise().classed('active', true);
@@ -1051,6 +1069,9 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
             function dragMove(event, d) {
+
+                if (!allowDrag) return;
+
                 // Only handle as a drag event if the Shift key is not held down
                 if (event.sourceEvent.shiftKey) return;
                 d3.select(this).attr('transform', `translate(${event.x - 50}, ${event.y - 25})`);
@@ -1090,6 +1111,8 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             }
 
             function dragEnd(event, d) {
+
+                if (!allowDrag) return;
 
                 // Only handle as a drag event if the Shift key is not held down
                 if (event.sourceEvent.shiftKey) return;
