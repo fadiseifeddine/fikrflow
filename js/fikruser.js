@@ -420,6 +420,7 @@ async function handleuserLoginForm(event) {
         modal.hide();
 
         selectedUserElement.textContent = userId;
+        setUserId(userId);
         // fadi here we are reusing the same session when switching from non user to user
 
     } else {

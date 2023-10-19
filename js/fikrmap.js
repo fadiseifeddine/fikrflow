@@ -271,11 +271,44 @@ async function handleFiles(file) {
     }
 }
 
+// Create the zoom behavior
+const zoom = d3.zoom()
+    .scaleExtent([0.1, 10]) // This defines the min and max zoom scale, feel free to change these values
+    .on("zoom", zoomed);
+
+// Create a function to handle zooming
+function zoomed(event) {
+    // Only handle as a zoom/pan event if the Shift key is held down
+    if (!event.sourceEvent.shiftKey) return;
+
+    // Update the transform
+    d3.select("#mindMapContainer").attr("transform", event.transform);
+}
+
+
+// Apply the zoom behavior to your SVG
+d3.select("#mindMapContainer").call(zoom);
+
+// Optionally, if you want to programmatically reset the zoom:
+function resetZoom() {
+    d3.select("#mindMapContainer").transition().duration(750).call(
+        zoom.transform,
+        d3.zoomIdentity,
+        d3.zoomTransform(d3.select("#mindMapContainer").node()).invert([window.innerWidth / 2, window.innerHeight / 2])
+    );
+}
 
 function resizeDrawingContainer() {
     const windowHeight = window.innerHeight;
     const chatContainerHeight = document.getElementById('chatContainer').offsetHeight;
+
+    const drawingContainer = document.getElementById('drawingContainer'); // Get the drawingContainer element
     drawingContainer.style.height = `${windowHeight - chatContainerHeight - 150}px`;
+
+
+    const svg = document.getElementById('mindMapContainer');
+    svg.setAttribute('width', window.innerWidth);
+    svg.setAttribute('height', window.innerHeight);
 }
 
 window.addEventListener('resize', resizeDrawingContainer);
@@ -1010,12 +1043,16 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             selection.call(drag);
 
             function dragStart(event, d) {
+                // Only handle as a drag event if the Shift key is not held down
+                if (event.sourceEvent.shiftKey) return;
                 d3.select(this).raise().classed('active', true);
             }
 
 
 
             function dragMove(event, d) {
+                // Only handle as a drag event if the Shift key is not held down
+                if (event.sourceEvent.shiftKey) return;
                 d3.select(this).attr('transform', `translate(${event.x - 50}, ${event.y - 25})`);
 
                 const selectedNode = mindMapData.nodes.find((node) => node.id === d.id);
@@ -1053,6 +1090,10 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             }
 
             function dragEnd(event, d) {
+
+                // Only handle as a drag event if the Shift key is not held down
+                if (event.sourceEvent.shiftKey) return;
+
                 d3.select(this).classed('active', false);
                 // Update the positions of the node in mindMapData
                 const selectedNode = mindMapData.nodes.find((node) => node.id === d.id);

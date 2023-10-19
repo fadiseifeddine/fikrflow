@@ -63,37 +63,6 @@ body {
     display: none;
 }
 
-#drawingContainer {
-    position: relative;
-    top: 150px;
-    /* Adjust the top position to start below the chatContainer */
-    left: 0;
-    width: 100%;
-    height: calc(100% - 150px);
-    overflow-x: auto;
-    background-color: #FFFFFF;
-    z-index: 0;
-}
-
-#mindMapContainer {
-    width: 100%;
-    height: 100%;
-    background-color: #FFFFFF;
-    pointer-events: all;
-    position: relative;
-}
-
-#mindMapContainer svg {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    margin: 100;
-    /* Set margin to 0 */
-    padding: 0;
-    /* Set padding to 0 */
-}
-
 .node rect {
     fill: #ffe0b2;
     stroke: #000;
@@ -459,4 +428,19 @@ foreignObject input {
     left: 0;
     font-size: 12px;
     font-weight: bold;
+}
+
+#drawingContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 2px solid black;
+}
+
+#mindMapContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 2px solid red;
+    /* Change 'black' to any color you prefer */
 }

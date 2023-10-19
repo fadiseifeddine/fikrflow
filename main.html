@@ -18,55 +18,71 @@
 
         <div id="chatContainer">
             <textarea id="textInput" rows="3" placeholder="Enter your text"></textarea>
-            <div class="btn-group" role="group">
-                <button id="submitButton" class="btn btn-secondary"><i class="bi bi-check"></i></button>
-                <button id="addButton" class="btn btn-secondary"><i class="bi bi-plus"></i></button>
-                <button id="deleteButton" class="btn btn-secondary" disabled><i class="bi bi-trash"></i></button>
-                <button id="editButton" class="btn btn-secondary" disabled> <i class="bi bi-pencil-fill"></i></button>
-                <button id="r_savefile_Button" class="btn btn-secondary"><i class="bi bi-save"></i></button>
-                <button id="r_openfile_Button" class="btn btn-secondary"><i class="bi bi-folder2-open"></i></button>
-                <button id="addNodeButton" class="btn btn-secondary" disabled><i class="bi bi-node-plus"></i></button>
-                <button id="addRelationButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-right"></i></button>
-                <button id="undoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
-                <button id="redoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-clockwise"></i></button>
+            <div id="btnContainer">
 
+                <div class="btn-group" role="group">
+                    <button id="submitButton" class="btn btn-secondary"><i class="bi bi-check"></i></button>
+                    <button id="addButton" class="btn btn-secondary"><i class="bi bi-plus"></i></button>
+                    <button id="deleteButton" class="btn btn-secondary" disabled><i class="bi bi-trash"></i></button>
+                    <button id="editButton" class="btn btn-secondary" disabled> <i class="bi bi-pencil-fill"></i></button>
+                    <button id="r_savefile_Button" class="btn btn-secondary"><i class="bi bi-save"></i></button>
+                    <button id="r_openfile_Button" class="btn btn-secondary"><i class="bi bi-folder2-open"></i></button>
+                    <button id="addNodeButton" class="btn btn-secondary" disabled><i class="bi bi-node-plus"></i></button>
+                    <button id="addRelationButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-right"></i></button>
+                    <button id="undoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
+                    <button id="redoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-clockwise"></i></button>
+
+                </div>
             </div>
-            <!-- New div with three buttons -->
-            <div id="filterButtons" class="d-flex justify-content-center">
-                <button id="heartButton" class="btn btn-secondary icon-button">
-                    <i class="bi bi-heart"></i>
-                </button>
 
-                <button id="smileyButton" class="btn btn-secondary icon-button">
-                    <i class="bi bi-emoji-smile"></i>
-                </button>
+            <div id="filterContainer">
 
-                <button id="starButton" class="btn btn-secondary icon-button">
-                    <i class="bi bi-star"></i>
-                </button>
+                <!-- New div with three buttons -->
+                <div id="filterButtons" class="d-flex justify-content-center">
+                    <button id="heartButton" class="btn btn-secondary icon-button">
+                        <i class="bi bi-heart"></i>
+                    </button>
 
-            </div>
-            <!-- Settings menu -->
-            <div class="dropdown">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                   Settings
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
-                    <li><a class="dropdown-item" href="#" id="importxls">Import (XLS)</a></li>
-                    <li><a class="dropdown-item" href="#" id="exportxls">Export (XLS)</a></li>
-                    <li><a class="dropdown-item" href="#" id="registeruser">Sign-Up</a></li>
-                    <li><a class="dropdown-item" href="#" id="loginuser">Sign-In</a></li>
-                    <li><a class="dropdown-item" href="#" id="duplicate">Duplicate</a></li>
+                    <button id="smileyButton" class="btn btn-secondary icon-button">
+                        <i class="bi bi-emoji-smile"></i>
+                    </button>
 
+                    <button id="starButton" class="btn btn-secondary icon-button">
+                        <i class="bi bi-star"></i>
+                    </button>
 
-                    <!-- ... Other menu options ... -->
-                </ul>
+                </div>
             </div>
 
 
+            <div id="settingsContainer">
 
+                <!-- Settings menu -->
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                       Settings
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
+                        <li><a class="dropdown-item" href="#" id="importxls">Import (XLS)</a></li>
+                        <li><a class="dropdown-item" href="#" id="exportxls">Export (XLS)</a></li>
+                        <li><a class="dropdown-item" href="#" id="registeruser">Sign-Up</a></li>
+                        <li><a class="dropdown-item" href="#" id="loginuser">Sign-In</a></li>
+                        <li><a class="dropdown-item" href="#" id="duplicate">Duplicate</a></li>
+
+
+                        <!-- ... Other menu options ... -->
+                    </ul>
+                </div>
+            </div>
+
+
+            <div id="drawingContainer">
+                <svg width="100%" height="100%" id="mindMapContainer"></svg>
+            </div>
 
         </div>
+
+
 
         <div id="centerContainer">
             <span id="selectedFileLabel">Selected File:</span>
@@ -78,320 +94,326 @@
             <!-- Add a message bar -->
             <div id="messageBar">
             </div>
-        </div>
 
-        <div id="drawingContainer">
-
-            <svg id="mindMapContainer"></svg>
-        </div>
-
-
-
-
-        <!-- Add the attribute container -->
-        <div id="attributeContainer">
-            <h4>Shape Attributes</h4>
-            <ul>
-                <li><strong>ID:</strong> <span id="ndid"></span></li>
-                <li><strong>Short Description:</strong> <span id="ndshortDescription"></span></li>
-                <li><strong>Long Description:</strong></li>
-                <li><textarea id="ndlongDescription" rows="10" cols="50"></textarea></li>
-                <li><strong>Icon:</strong> <span id="ndicon"></span></li>
-                <li><strong>Completed:</strong> <span id="ndcompleted"></span></li>
-                <li><strong>Completion Date/Time:</strong> <span id="ndcompletionDateTime"></span></li>
-            </ul>
-            <button id="saveNodeDetails" disabled>Save</button>
 
         </div>
 
 
+    </div>
 
 
 
-        <!-- File Name Input Modal r_save ... -->
-        <div class="modal fade" id="fileNameModal" tabindex="-1" aria-labelledby="fileNameModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="fileNameModalLabel">Enter File Name</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="text" id="fileNameInput" class="form-control" placeholder="File Name" autofocus required>
-                        <div id="fileNameInputError" class="text-danger"></div>
 
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" id="r_save_Button_conf_saveDrawingButton" class="btn btn-primary">Save</button>
-                    </div>
+
+
+    <!-- Add the attribute container -->
+    <div id="attributeContainer">
+        <h4>Shape Attributes</h4>
+        <ul>
+            <li><strong>ID:</strong> <span id="ndid"></span></li>
+            <li><strong>Short Description:</strong> <span id="ndshortDescription"></span></li>
+            <li><strong>Long Description:</strong></li>
+            <li><textarea id="ndlongDescription" rows="10" cols="50"></textarea></li>
+            <li><strong>Icon:</strong> <span id="ndicon"></span></li>
+            <li><strong>Completed:</strong> <span id="ndcompleted"></span></li>
+            <li><strong>Completion Date/Time:</strong> <span id="ndcompletionDateTime"></span></li>
+        </ul>
+        <button id="saveNodeDetails" disabled>Save</button>
+
+    </div>
+
+
+
+
+
+    <!-- File Name Input Modal r_save ... -->
+    <div class="modal fade" id="fileNameModal" tabindex="-1" aria-labelledby="fileNameModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileNameModalLabel">Enter File Name</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="fileNameInput" class="form-control" placeholder="File Name" autofocus required>
+                    <div id="fileNameInputError" class="text-danger"></div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="r_save_Button_conf_saveDrawingButton" class="btn btn-primary">Save</button>
                 </div>
             </div>
         </div>
+    </div>
 
 
-        <!-- File Name Input Modal r_save ... -->
-        <div class="modal fade" id="fileNameDuplicateModal" tabindex="-1" aria-labelledby="fileNameDuplicateModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="fileNameDuplicateModalLabel">Enter File Name</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="text" id="fileNameDuplicateInput" class="form-control" placeholder="File Name" autofocus required>
-                        <div id="fileNameDuplicateInputError" class="text-danger"></div>
+    <!-- File Name Input Modal r_save ... -->
+    <div class="modal fade" id="fileNameDuplicateModal" tabindex="-1" aria-labelledby="fileNameDuplicateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileNameDuplicateModalLabel">Enter File Name</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="fileNameDuplicateInput" class="form-control" placeholder="File Name" autofocus required>
+                    <div id="fileNameDuplicateInputError" class="text-danger"></div>
 
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" id="r_duplicate_Button_conf_duplicateDrawingButton" class="btn btn-primary">Duplicate</button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="r_duplicate_Button_conf_duplicateDrawingButton" class="btn btn-primary">Duplicate</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- File Select File Input Modal -->
-        <div class="modal fade" id="fileListModal" tabindex="-1" aria-labelledby="fileListModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="fileListModalLabel">Select File</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <select id="fileListSelect" class="form-select" size="5">
+    <!-- File Select File Input Modal -->
+    <div class="modal fade" id="fileListModal" tabindex="-1" aria-labelledby="fileListModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileListModalLabel">Select File</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <select id="fileListSelect" class="form-select" size="5">
                         <!-- Option elements will be dynamically added here -->
                     </select>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="selectFileButton">Select</button>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="selectFileButton">Select</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div id="colorPalette" class="color-palette">
-            <!-- Color palette generated using JavaScript -->
-        </div>
+    <div id="colorPalette" class="color-palette">
+        <!-- Color palette generated using JavaScript -->
+    </div>
 
 
-        <!-- User Registration Modal -->
-        <div class="modal fade" id="registrationModal" aria-labelledby="registrationModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="registrationModalLabel">User Registration</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="registrationForm">
-                            <!-- Nav Tabs -->
-                            <ul class="nav nav-tabs" id="registrationTabs" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link active" id="userInfo-tab" data-bs-toggle="tab" href="#userInfo" role="tab" aria-controls="userInfo" aria-selected="true">User Info</a>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <a class="nav-link" id="verificationInfo-tab" data-bs-toggle="tab" href="#verificationInfo" role="tab" aria-controls="verificationInfo" aria-selected="false">Verification</a>
-                                </li>
-                            </ul>
-                            <!-- Tab Content -->
-                            <div class="tab-content" id="registrationTabsContent">
-                                <!-- User Info Tab -->
-                                <div class="tab-pane fade show active" id="userInfo" role="tabpanel" aria-labelledby="userInfo-tab">
-                                    <!-- User ID -->
-                                    <div class="mb-3">
-                                        <label for="userId" class="form-label">User ID:</label>
-                                        <input type="text" class="form-control" id="userId" required>
-                                        <div id="userIdError" class="text-danger"></div>
-                                    </div>
-
-                                    <!-- User Name -->
-                                    <div class="mb-3">
-                                        <label for="userName" class="form-label">User Name:</label>
-                                        <input type="text" class="form-control" id="userName" required>
-                                        <div id="userNameError" class="text-danger"></div>
-                                    </div>
-
-                                    <!-- Password -->
-                                    <div class="mb-3">
-                                        <label for="password" class="form-label">Password:</label>
-                                        <input type="password" class="form-control" id="password" required>
-                                        <div id="passwordError" class="text-danger"></div>
-                                        <div id="passwordStrength" class="mt-2"></div>
-                                    </div>
-
-                                    <!-- Confirm Password -->
-                                    <div class="mb-3">
-                                        <label for="confirmPassword" class="form-label">Confirm Password:</label>
-                                        <input type="password" class="form-control" id="confirmPassword" required>
-                                        <div id="confirmPasswordError" class="text-danger"></div>
-                                    </div>
-                                    <!-- Cancel, Register Account, and Next Buttons (All in Footer) -->
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="button" class="btn btn-primary" id="saveUserRegistration" disabled>Register Account</button>
-                                        <button type="button" class="btn btn-primary" id="nextTab">Next</button>
-                                    </div>
-                                </div>
-                                <!-- Verification Info Tab -->
-                                <div class="tab-pane fade" id="verificationInfo" role="tabpanel" aria-labelledby="verificationInfo-tab">
-                                    <!-- User Email -->
-                                    <div class="mb-3">
-                                        <label for="userEmail" class="form-label">User Email:</label>
-                                        <input type="email" class="form-control" id="userEmail" required>
-                                        <div id="userEmailError" class="text-danger"></div>
-                                    </div>
-
-                                    <!-- Verification Code -->
-                                    <div class="mb-3">
-                                        <label for="verificationCode" class="form-label">Verification Code:</label>
-                                        <input type="text" class="form-control" id="verificationCode" disabled>
-                                        <div id="verificationCodeError" class="text-danger"></div>
-                                    </div>
-
-                                    <!-- Send Verification Code, Verify and Proceed, and Back Buttons (All in Footer) -->
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" id="backTab">Back</button>
-                                        <button type="button" class="btn btn-primary" id="sendVerificationCode">Send Verification Code</button>
-                                        <button type="button" class="btn btn-primary" id="verifyProceed">Verify and Proceed</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+    <!-- User Registration Modal -->
+    <div class="modal fade" id="registrationModal" aria-labelledby="registrationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="registrationModalLabel">User Registration</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            </div>
-        </div>
+                <div class="modal-body">
+                    <form id="registrationForm">
+                        <!-- Nav Tabs -->
+                        <ul class="nav nav-tabs" id="registrationTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link active" id="userInfo-tab" data-bs-toggle="tab" href="#userInfo" role="tab" aria-controls="userInfo" aria-selected="true">User Info</a>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <a class="nav-link" id="verificationInfo-tab" data-bs-toggle="tab" href="#verificationInfo" role="tab" aria-controls="verificationInfo" aria-selected="false">Verification</a>
+                            </li>
+                        </ul>
+                        <!-- Tab Content -->
+                        <div class="tab-content" id="registrationTabsContent">
+                            <!-- User Info Tab -->
+                            <div class="tab-pane fade show active" id="userInfo" role="tabpanel" aria-labelledby="userInfo-tab">
+                                <!-- User ID -->
+                                <div class="mb-3">
+                                    <label for="userId" class="form-label">User ID:</label>
+                                    <input type="text" class="form-control" id="userId" required>
+                                    <div id="userIdError" class="text-danger"></div>
+                                </div>
 
+                                <!-- User Name -->
+                                <div class="mb-3">
+                                    <label for="userName" class="form-label">User Name:</label>
+                                    <input type="text" class="form-control" id="userName" required>
+                                    <div id="userNameError" class="text-danger"></div>
+                                </div>
 
+                                <!-- Password -->
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password:</label>
+                                    <input type="password" class="form-control" id="password" required>
+                                    <div id="passwordError" class="text-danger"></div>
+                                    <div id="passwordStrength" class="mt-2"></div>
+                                </div>
 
-
-
-        <div class="modal fade" id="loginModal" aria-labelledby="loginModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <!-- Login Form -->
-                    <form action="">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Login Page</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="loginuserid">Username<span class="text-danger">*</span></label>
-                                <input type="text" name="loginuserid" class="form-control" id="loginuserid" placeholder="Enter User ID">
-                                <div id="loginuseridError" class="text-danger"></div>
-
+                                <!-- Confirm Password -->
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirm Password:</label>
+                                    <input type="password" class="form-control" id="confirmPassword" required>
+                                    <div id="confirmPasswordError" class="text-danger"></div>
+                                </div>
+                                <!-- Cancel, Register Account, and Next Buttons (All in Footer) -->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-primary" id="saveUserRegistration" disabled>Register Account</button>
+                                    <button type="button" class="btn btn-primary" id="nextTab">Next</button>
+                                </div>
                             </div>
+                            <!-- Verification Info Tab -->
+                            <div class="tab-pane fade" id="verificationInfo" role="tabpanel" aria-labelledby="verificationInfo-tab">
+                                <!-- User Email -->
+                                <div class="mb-3">
+                                    <label for="userEmail" class="form-label">User Email:</label>
+                                    <input type="email" class="form-control" id="userEmail" required>
+                                    <div id="userEmailError" class="text-danger"></div>
+                                </div>
 
-                            <div class="mb-3">
-                                <label for="loginpassword">Password<span class="text-danger">*</span></label>
-                                <input type="password" name="loginpassword" class="form-control" id="loginpassword" placeholder="Enter Password">
-                                <div id="loginpasswordError" class="text-danger"></div>
+                                <!-- Verification Code -->
+                                <div class="mb-3">
+                                    <label for="verificationCode" class="form-label">Verification Code:</label>
+                                    <input type="text" class="form-control" id="verificationCode" disabled>
+                                    <div id="verificationCodeError" class="text-danger"></div>
+                                </div>
 
-                            </div>
-                            <div class="mb-3">
-                                <input class="form-check-input" type="checkbox" value="" id="remember" required>
-                                <label class="form-check-label" for="remember">Remember Me</label>
-                                <a href="#" class="float-end">Forgot Password</a>
+                                <!-- Send Verification Code, Verify and Proceed, and Back Buttons (All in Footer) -->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" id="backTab">Back</button>
+                                    <button type="button" class="btn btn-primary" id="sendVerificationCode">Send Verification Code</button>
+                                    <button type="button" class="btn btn-primary" id="verifyProceed">Verify and Proceed</button>
+                                </div>
                             </div>
                         </div>
-                        <div class="modal-footer pt-4">
-                            <button type="button" class="btn btn-primary mx-auto w-100" id="loginButton">Login</button>
-                        </div>
-                        <p class="text-center">Not yet account, <a href="#">Signup</a></p>
                     </form>
                 </div>
             </div>
         </div>
-        <!-- Confirmation Modal -->
-        <div class="modal fade" id="saveconfirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
+    </div>
+
+
+
+
+
+    <div class="modal fade" id="loginModal" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <!-- Login Form -->
+                <form action="">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="confirmationModalLabel">Save Changes?</h5>
+                        <h5 class="modal-title">Login Page</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>You have unsaved changes. Do you want to save them before performing this action?</p>
+                        <div class="mb-3">
+                            <label for="loginuserid">Username<span class="text-danger">*</span></label>
+                            <input type="text" name="loginuserid" class="form-control" id="loginuserid" placeholder="Enter User ID">
+                            <div id="loginuseridError" class="text-danger"></div>
+
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="loginpassword">Password<span class="text-danger">*</span></label>
+                            <input type="password" name="loginpassword" class="form-control" id="loginpassword" placeholder="Enter Password">
+                            <div id="loginpasswordError" class="text-danger"></div>
+
+                        </div>
+                        <div class="mb-3">
+                            <input class="form-check-input" type="checkbox" value="" id="remember" required>
+                            <label class="form-check-label" for="remember">Remember Me</label>
+                            <a href="#" class="float-end">Forgot Password</a>
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard Changes</button>
-                        <button type="button" class="btn btn-primary" id="r_open_Button_conf_saveDrawingButton">Save Changes</button>
+                    <div class="modal-footer pt-4">
+                        <button type="button" class="btn btn-primary mx-auto w-100" id="loginButton">Login</button>
                     </div>
+                    <p class="text-center">Not yet account, <a href="#">Signup</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="saveconfirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Save Changes?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>You have unsaved changes. Do you want to save them before performing this action?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard Changes</button>
+                    <button type="button" class="btn btn-primary" id="r_open_Button_conf_saveDrawingButton">Save Changes</button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Bootstrap Modal -->
-        <div class="modal fade" id="downloadModal" tabindex="-1" role="dialog" aria-labelledby="downloadModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="downloadModalLabel">Download Link</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <!-- Bootstrap Modal -->
+    <div class="modal fade" id="downloadModal" tabindex="-1" role="dialog" aria-labelledby="downloadModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="downloadModalLabel">Download Link</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Content goes here -->
-                        <p>Click the link below to download the file:</p>
-                        <a id="downloadLink" href="#" download>Download</a>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Content goes here -->
+                    <p>Click the link below to download the file:</p>
+                    <a id="downloadLink" href="#" download>Download</a>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 
-                    </div>
                 </div>
             </div>
         </div>
+    </div>
 
 
-        <!-- Import XLS Modal -->
-        <div id="importxlsmodal" class="modal fade" tabindex="-1" aria-labelledby="importxlslabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="importxlsoption">Import XLS</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Import XLS Modal -->
+    <div id="importxlsmodal" class="modal fade" tabindex="-1" aria-labelledby="importxlslabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importxlsoption">Import XLS</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="file" id="xlsInput" accept=".xls,.xlsx" />
+                    <div id="dragDropArea" class="drop-area">
+                        <p>Drag and drop your XLS file here</p>
                     </div>
-                    <div class="modal-body">
-                        <input type="file" id="xlsInput" accept=".xls,.xlsx" />
-                        <div id="dragDropArea" class="drop-area">
-                            <p>Drag and drop your XLS file here</p>
-                        </div>
-                        <button id="importButton" class="btn btn-primary">Import</button>
-                        <!-- Add Import button -->
-                    </div>
+                    <button id="importButton" class="btn btn-primary">Import</button>
+                    <!-- Add Import button -->
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Load jQuery and Bootstrap JS before your custom scripts -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-        <!-- Add Popper.js -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.0/umd/popper.min.js"></script>
-        <!-- Add Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"></script>
-        <script src="https://d3js.org/d3.v6.min.js"></script>
+    <!-- Load jQuery and Bootstrap JS before your custom scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Add Popper.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.0/umd/popper.min.js"></script>
+    <!-- Add Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
 
-        <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-        <!-- Import fikrmap.js as an ES6 module -->
-        <script type="module" src="js/fikrmap.js"></script>
-        <!-- Import fikruser.js as an ES6 module -->
-        <script type="module" src="js/fikruser.js"></script>
-        <!-- Import fikrcollab.js as an ES6 module -->
-        <script type="module" src="js/fikrcollab.js"></script>
-        <!-- Import fikrdraw.js as an ES6 module -->
-        <script type="module" src="js/fikrdraw.js"></script>
-        <!-- Import common.js as an ES6 module -->
-        <script type="module" src="js/common.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <!-- Import fikrmap.js as an ES6 module -->
+    <script type="module" src="js/fikrmap.js"></script>
+    <!-- Import fikruser.js as an ES6 module -->
+    <script type="module" src="js/fikruser.js"></script>
+    <!-- Import fikrcollab.js as an ES6 module -->
+    <script type="module" src="js/fikrcollab.js"></script>
+    <!-- Import fikrdraw.js as an ES6 module -->
+    <script type="module" src="js/fikrdraw.js"></script>
+    <!-- Import common.js as an ES6 module -->
+    <script type="module" src="js/common.js"></script>
+
 
 
 
     </div>
+
+
+
 </body>
 
 </html>

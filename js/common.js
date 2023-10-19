@@ -115,6 +115,23 @@ function showFieldError(fieldId, errorMessage, clearError = false) {
     }
 }
 
+// Function to handle keydown event
+function handleKeydown(event) {
+    if (event.key === 'Shift') {
+        document.body.style.cursor = 'move'; // Change cursor to move cursor
+    }
+}
+
+// Function to handle keyup event
+function handleKeyup(event) {
+    if (event.key === 'Shift') {
+        document.body.style.cursor = ''; // Change cursor back to default
+    }
+}
+
+// Add event listeners for keydown and keyup events
+window.addEventListener('keydown', handleKeydown);
+window.addEventListener('keyup', handleKeyup);
 
 
 
