@@ -548,22 +548,45 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
         // Define the link force
         const linkForce = d3.forceLink(mindMapData.links)
             .id(d => d.id) // Assume each node has a unique id
-            .distance(100); // You can adjust this value to set the desired distance between linked nodes
+            .distance(10); // You can adjust this value to set the desired distance between linked nodes
         // Define the charge force
         const chargeForce = d3.forceManyBody()
-            .strength(-10); // Negative value for repulsion. You can adjust the strength of the repulsion here
+            .strength(-100); // Negative value for repulsion. You can adjust the strength of the repulsion here
+
+        // Force Directed Graph
         // Now add these forces to your simulation
+        // const simulation = d3
+        //     .forceSimulation(mindMapData.nodes)
+        //     .force('link', linkForce)
+        //     .force('charge', chargeForce)
+        //     .alphaDecay(0.09) // Default is 0.0228 will make node stabilize quickly
+        //     .force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2))
+        //     .on('tick', ticked);
+
+
+        // Vertical Graph
         const simulation = d3
             .forceSimulation(mindMapData.nodes)
-            .force('link', linkForce)
-            .force('charge', chargeForce)
             .force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2))
+            .force('collision', d3.forceCollide()
+                .strength(0.2) // Adjust the strength value as needed
+                .radius((d) => (d.shape === 'ellipse' ? ellipseRx : d.shape === 'parallelogram' ? plgrmWidth / 2 : d.shape === 'diamond' ? diamondWidth / 2 : rectWidth / 2) + spacingBetweenNodes)
+            ) //.force('collide', d3.forceCollide().radius( /* specify the desired separation radius */ ))
+            //.force('avoidOverlapRelationships', avoidOverlapForce(0.2)) // Adjust the strength value as needed
+            .force('verticalAlignment', verticalAlignmentForce(100)) // Adjust the level value as needed
             .on('tick', ticked);
 
         // Your existing ticked function
         function ticked() {
             nodes.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
             renderRelationships();
+
+            // Check if the simulation's alpha value has fallen below a threshold
+            if (simulation.alpha() < 0.005) {
+                simulation.stop(); // Stop the simulation
+                console.log('Simulation stabilized');
+
+            }
             // If you have links, you'll want to update their positions here too
         }
 
@@ -637,8 +660,6 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
         const scaleX = 4; // Scale factor for horizontal scaling
         const scaleY = 0; // Scale factor for vertical scaling
-
-
 
         const rectNodes = nodes
             //.append('rect')
@@ -1001,6 +1022,11 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             ToggleButtons(event, d);
         })
 
+        nodes.on("mouseout", function(event, d) {
+            console.log("out");
+            //RemoveToggleButtons();
+        })
+
 
         // Add the mousedown event listener to the parent container
         // the click didn't fire on the first time / it is binding on first and firing on second
@@ -1071,6 +1097,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             function dragMove(event, d) {
 
                 if (!allowDrag) return;
+
 
                 // Only handle as a drag event if the Shift key is not held down
                 if (event.sourceEvent.shiftKey) return;
@@ -1318,6 +1345,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     ToggleButtons(event, d);
                 })
                 .on("mouseout", function() {
+                    //RemoveToggleButtons();
                     d3.select(this).attr("class", "solid-relationship");
                 })
                 .on("click", function() {
@@ -1501,6 +1529,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 })
                 .on('mouseout', function() {
                     //console.log('mouseout');
+                    //RemoveToggleButtons();
                     d3.select(this).attr('class', 'dash-relationship');
                 });
 
@@ -1818,10 +1847,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             var pencalcY = 0
 
 
-            // Remove any existing circles with the "below" classes
-            svg.selectAll(".three-dots-group").remove();
-            svg.selectAll(".plus-button").remove();
-            svg.selectAll(".pen-button").remove();
+            RemoveToggleButtons();
             hideAttributeContainer();
 
 
@@ -2140,6 +2166,9 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             penCircle.attr("cx", pencalcX).attr("cy", pencalcY).attr("visibility", "visible");
             penIcon.attr("x", pencalcX - 8).attr("y", pencalcY - 12).attr("visibility", "visible");
+
+
+
 
             function clickpenbutton(event, d) {
                 event.stopPropagation();
@@ -3370,6 +3399,7 @@ function showColorPalette(type, id) {
     }
 
     // Show the color palette
+    colorPalette.style.zIndex = "1000";
     colorPalette.style.display = "block";
 }
 
@@ -3938,6 +3968,12 @@ function readXLSXFile(file) {
 }
 
 
+function RemoveToggleButtons() {
+    // Remove any existing circles with the "below" classes
+    svg.selectAll(".three-dots-group").remove();
+    svg.selectAll(".plus-button").remove();
+    svg.selectAll(".pen-button").remove();
+}
 
 
 export { renderMindMap };
