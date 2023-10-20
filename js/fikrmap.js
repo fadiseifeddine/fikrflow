@@ -545,26 +545,26 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             return force;
         }
 
-        // Add the custom force to your simulation
+        // Define the link force
+        const linkForce = d3.forceLink(mindMapData.links)
+            .id(d => d.id) // Assume each node has a unique id
+            .distance(100); // You can adjust this value to set the desired distance between linked nodes
+        // Define the charge force
+        const chargeForce = d3.forceManyBody()
+            .strength(-10); // Negative value for repulsion. You can adjust the strength of the repulsion here
+        // Now add these forces to your simulation
         const simulation = d3
             .forceSimulation(mindMapData.nodes)
+            .force('link', linkForce)
+            .force('charge', chargeForce)
             .force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2))
-            .force('collision', d3.forceCollide()
-                .strength(0.2) // Adjust the strength value as needed
-                .radius((d) => (d.shape === 'ellipse' ? ellipseRx : d.shape === 'parallelogram' ? plgrmWidth / 2 : d.shape === 'diamond' ? diamondWidth / 2 : rectWidth / 2) + spacingBetweenNodes)
-            ) //.force('collide', d3.forceCollide().radius( /* specify the desired separation radius */ ))
-            //.force('avoidOverlapRelationships', avoidOverlapForce(0.2)) // Adjust the strength value as needed
-            .force('verticalAlignment', verticalAlignmentForce(100)) // Adjust the level value as needed
             .on('tick', ticked);
 
-
-
-
-
+        // Your existing ticked function
         function ticked() {
             nodes.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
             renderRelationships();
-            // Also update the links (curved paths) here if you have them
+            // If you have links, you'll want to update their positions here too
         }
 
         function verticalAlignmentForce(level) {
