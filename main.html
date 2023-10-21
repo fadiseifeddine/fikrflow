@@ -34,6 +34,10 @@
                     <button id="zoomInButton">Zoom In</button>
                     <button id="zoomOutButton">Zoom Out</button>
                     <button id="resetZoomButton">Reset Zoom</button>
+                    <button onclick="move('left')">Move Left</button>
+                    <button onclick="move('right')">Move Right</button>
+                    <button onclick="move('up')">Move Up</button>
+                    <button onclick="move('down')">Move Down</button>
                 </div>
             </div>
 
@@ -398,6 +402,9 @@
     <script src="https://d3js.org/d3.v6.min.js"></script>
 
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+    <script type="module" src="js/setup.js"></script>
+
     <!-- Import fikrmap.js as an ES6 module -->
     <script type="module" src="js/fikrmap.js"></script>
     <!-- Import fikruser.js as an ES6 module -->
