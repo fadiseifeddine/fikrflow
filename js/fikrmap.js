@@ -11,9 +11,7 @@ let ismodified = 0;
 let svg = null;
 let graphGroup = null;
 
-// Button moving the SVG Left , Right, Up and Down
-let currentTranslate = { x: 0, y: 0 };
-const moveStep = 50; // Define the step size for each movement
+
 
 // prevent dragging when clicking the checkbox in the node
 let allowDrag = true;
@@ -276,24 +274,6 @@ async function handleFiles(file) {
     } else {
         alert("Please upload a valid XLS or XLSX file.");
     }
-}
-
-// Create the zoom behavior
-const zoom = d3.zoom()
-    .scaleExtent([0.1, 10]) // This defines the min and max zoom scale, feel free to change these values
-    .filter(event => event.type === 'wheel' && event.shiftKey) // Only allow zoom when shift key is pressed
-    .on("zoom", zoomed);
-
-
-
-
-// Create a function to handle zooming
-function zoomed(event) {
-
-    d3.select("#graphGroup").attr("transform", event.transform);
-
-    // Update the transform
-    //d3.select("#mindMapContainer").attr("transform", event.transform);
 }
 
 
@@ -2660,12 +2640,6 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
         }
 
 
-        // Apply the zoom behavior to your SVG
-        //d3.select("#mindMapContainer").call(zoom);
-        // Apply the zoom behavior to the SVG element
-        svg.call(zoom);
-
-
         // end of try renderMindMap
     } catch (error) {
         console.error('Failed to render mind map:', error);
@@ -3868,24 +3842,7 @@ function RemoveToggleButtons() {
 }
 
 
-function move(direction) {
-    switch (direction) {
-        case 'left':
-            currentTranslate.x -= moveStep;
-            break;
-        case 'right':
-            currentTranslate.x += moveStep;
-            break;
-        case 'up':
-            currentTranslate.y -= moveStep;
-            break;
-        case 'down':
-            currentTranslate.y += moveStep;
-            break;
-    }
-    d3.select('#mindMapSVG')
-        .attr('transform', `translate(${currentTranslate.x},${currentTranslate.y})`);
-}
 
 
-export { renderMindMap, move, sendChatMessage };
+
+export { renderMindMap, sendChatMessage };

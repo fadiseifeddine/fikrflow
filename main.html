@@ -31,13 +31,14 @@
                     <button id="addRelationButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-right"></i></button>
                     <button id="undoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
                     <button id="redoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-clockwise"></i></button>
-                    <button id="zoomInButton">Zoom In</button>
-                    <button id="zoomOutButton">Zoom Out</button>
-                    <button id="resetZoomButton">Reset Zoom</button>
-                    <button onclick="move('left')">Move Left</button>
-                    <button onclick="move('right')">Move Right</button>
-                    <button onclick="move('up')">Move Up</button>
-                    <button onclick="move('down')">Move Down</button>
+                    <button id="zoomInButton"><i class="bi bi-zoom-in"></i></button>
+                    <button id="zoomOutButton"><i class="bi bi-zoom-out"></i></button>
+                    <button id="resetZoomButton"><i class="bi bi-aspect-ratio"></i></button>
+                    <button id="move-left"><i class="bi bi-arrow-left-circle"></i></button>
+                    <button id="move-right"><i class="bi bi-arrow-right-circle"></i></button>
+                    <button id="move-up"><i class="bi bi-arrow-up-circle"></i></button>
+                    <button id="move-down"><i class="bi bi-arrow-down-circle"></i></button>
+
                 </div>
             </div>
 
@@ -402,6 +403,8 @@
     <script src="https://d3js.org/d3.v6.min.js"></script>
 
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+
+    <!-- Import setup.js as an ES6 module -->
 
     <script type="module" src="js/setup.js"></script>
 

@@ -1,9 +1,25 @@
-import { move } from './fikrmap.js';
-import { sendChatMessage } from './fikrmap.js';
-import { showMessage } from './common.js';
 import * as common from './common.js';
 
+import { sendChatMessage } from './fikrmap.js';
+import { showMessage } from './common.js';
 
+// Button moving the SVG Left , Right, Up and Down
+let currentTranslate = { x: 0, y: 0 };
+const moveStep = 50; // Define the step size for each movement
+
+
+// the File Name of the Drawing
+const selectedFileNameElement = document.getElementById('selectedFileName');
+
+
+// Zoom
+// Create the zoom behavior
+const zoom = d3.zoom()
+    .scaleExtent([0.1, 10]) // This defines the min and max zoom scale, feel free to change these values
+    .filter(event => event.type === 'wheel' && event.shiftKey) // Only allow zoom when shift key is pressed
+    .on("zoom", zoomed);
+// Apply the zoom behavior to your SVG
+d3.select("#graphGroup").call(zoom);
 
 // Listeners =============================
 document.getElementById('submitButton').addEventListener('click', handleInputSubmit);
@@ -27,6 +43,12 @@ document.getElementById('addRelationButton').addEventListener('click', function(
 document.getElementById('zoomInButton').addEventListener('click', zoomIn);
 document.getElementById('zoomOutButton').addEventListener('click', zoomOut);
 document.getElementById('resetZoomButton').addEventListener('click', resetZoom);
+
+// Button moving Left / Righ / Up and Down
+document.getElementById('move-left').addEventListener('click', () => move('left'));
+document.getElementById('move-right').addEventListener('click', () => move('right'));
+document.getElementById('move-up').addEventListener('click', () => move('up'));
+document.getElementById('move-down').addEventListener('click', () => move('down'));
 
 
 
@@ -168,21 +190,54 @@ async function redo(sessonID) {
 
 // Function to zoom in
 function zoomIn() {
-    const currentTransform = d3.zoomTransform(svg.node());
+    const currentTransform = d3.zoomTransform(d3.select('#graphGroup').node());
     const newScale = currentTransform.k * 1.2; // Increase the current scale by 20%
     const newTransform = d3.zoomIdentity.translate(currentTransform.x, currentTransform.y).scale(newScale);
-    svg.transition().duration(750).call(zoom.transform, newTransform); // Apply the new transform with a transition
+    d3.select('#graphGroup').transition().duration(750).call(zoom.transform, newTransform); // Apply the new transform with a transition
 }
 
 // Function to zoom out
 function zoomOut() {
-    const currentTransform = d3.zoomTransform(svg.node());
+    const currentTransform = d3.zoomTransform(d3.select('#graphGroup').node());
     const newScale = currentTransform.k / 1.2; // Decrease the current scale by 20%
     const newTransform = d3.zoomIdentity.translate(currentTransform.x, currentTransform.y).scale(newScale);
-    svg.transition().duration(750).call(zoom.transform, newTransform); // Apply the new transform with a transition
+    d3.select('#graphGroup').transition().duration(750).call(zoom.transform, newTransform); // Apply the new transform with a transition
 }
 
 // Function to reset zoom
 function resetZoom() {
-    svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity); // Reset the transform to the identity transform
+    d3.select('#graphGroup').transition().duration(750).call(zoom.transform, d3.zoomIdentity); // Reset the transform to the identity transform
+}
+
+
+
+function move(direction) {
+    console.log("Moving the SVG in Direction =" + direction);
+    switch (direction) {
+        case 'left':
+            currentTranslate.x -= moveStep;
+            break;
+        case 'right':
+            currentTranslate.x += moveStep;
+            break;
+        case 'up':
+            currentTranslate.y -= moveStep;
+            break;
+        case 'down':
+            currentTranslate.y += moveStep;
+            break;
+    }
+    d3.select('#graphGroup')
+        .attr('transform', `translate(${currentTranslate.x},${currentTranslate.y})`);
+}
+
+
+
+// Create a function to handle zooming
+function zoomed(event) {
+
+    d3.select("#graphGroup").attr("transform", event.transform);
+
+    // Update the transform
+    //d3.select("#mindMapContainer").attr("transform", event.transform);
 }
