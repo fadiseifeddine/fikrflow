@@ -10,6 +10,7 @@ let selectedNode = null;
 let sourceNode = null;
 let ismodified = 0;
 let svg = null;
+let graphGroup = null;
 
 // prevent dragging when clicking the checkbox in the node
 let allowDrag = true;
@@ -277,29 +278,43 @@ async function handleFiles(file) {
 // Create the zoom behavior
 const zoom = d3.zoom()
     .scaleExtent([0.1, 10]) // This defines the min and max zoom scale, feel free to change these values
+    .filter(event => event.type === 'wheel' && event.shiftKey) // Only allow zoom when shift key is pressed
     .on("zoom", zoomed);
+
+
+
 
 // Create a function to handle zooming
 function zoomed(event) {
-    // Only handle as a zoom/pan event if the Shift key is held down
-    if (!event.sourceEvent.shiftKey) return;
+
+    d3.select("#graphGroup").attr("transform", event.transform);
 
     // Update the transform
-    d3.select("#mindMapContainer").attr("transform", event.transform);
+    //d3.select("#mindMapContainer").attr("transform", event.transform);
 }
 
 
-// Apply the zoom behavior to your SVG
-d3.select("#mindMapContainer").call(zoom);
+// Function to zoom in
+function zoomIn() {
+    const currentTransform = d3.zoomTransform(svg.node());
+    const newScale = currentTransform.k * 1.2; // Increase the current scale by 20%
+    const newTransform = d3.zoomIdentity.translate(currentTransform.x, currentTransform.y).scale(newScale);
+    svg.transition().duration(750).call(zoom.transform, newTransform); // Apply the new transform with a transition
+}
 
-// Optionally, if you want to programmatically reset the zoom:
+// Function to zoom out
+function zoomOut() {
+    const currentTransform = d3.zoomTransform(svg.node());
+    const newScale = currentTransform.k / 1.2; // Decrease the current scale by 20%
+    const newTransform = d3.zoomIdentity.translate(currentTransform.x, currentTransform.y).scale(newScale);
+    svg.transition().duration(750).call(zoom.transform, newTransform); // Apply the new transform with a transition
+}
+
+// Function to reset zoom
 function resetZoom() {
-    d3.select("#mindMapContainer").transition().duration(750).call(
-        zoom.transform,
-        d3.zoomIdentity,
-        d3.zoomTransform(d3.select("#mindMapContainer").node()).invert([window.innerWidth / 2, window.innerHeight / 2])
-    );
+    svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity); // Reset the transform to the identity transform
 }
+
 
 function resizeDrawingContainer() {
     const windowHeight = window.innerHeight;
@@ -494,6 +509,11 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
 
+        // Create a group element to contain nodes and relationships
+        graphGroup = svg.append('g')
+            .attr('id', 'graphGroup');
+
+
         svg.append('svg:defs').append('svg:marker')
             .attr('id', 'arrowhead')
             .attr('viewBox', '0 -5 10 10')
@@ -512,6 +532,35 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             assignDepth(mindMapData.nodes);
 
         }
+
+        svg.on("wheel", function(event) {
+            // Prevent the default behavior of the wheel event
+            console.log("on wheel 1");
+            event.preventDefault();
+
+            // Check if the shift key is held down
+            if (event.shiftKey) {
+                console.log("on wheel 1");
+
+                // Get the current mouse coordinates
+                const [x, y] = d3.pointer(event);
+
+                // Calculate the zoom scale based on the deltaY property of the event
+                const zoomScale = event.deltaY > 0 ? 1.1 : 0.9;
+
+                // Get the current zoom transform
+                const currentTransform = d3.zoomTransform(this);
+
+                // Create a new zoom transform by scaling around the current mouse coordinates
+                const newTransform = currentTransform.scale(zoomScale).translate(
+                    (x - currentTransform.x) * (1 - zoomScale),
+                    (y - currentTransform.y) * (1 - zoomScale)
+                );
+
+                // Apply the new zoom transform to the graphGroup
+                graphGroup.attr("transform", newTransform);
+            }
+        });
 
         // Define a custom force to avoid overlap between relationships
         function avoidOverlapForce(strength = 0.1) {
@@ -630,7 +679,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
 
-        nodes = svg
+        nodes = graphGroup
             .selectAll('.node')
             .data(mindMapData.nodes)
             .enter()
@@ -1034,6 +1083,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             //         console.log('LLLL2-Node clicked:');
             const clickedNode = event.target.closest('.node');
             //         console.log('LLLL3-Node clicked:', clickedNode.id);
+
             selectNode(clickedNode.id);
 
         });
@@ -1047,6 +1097,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             // console.log('LLLL2-Node clicked:');
             const clickedNode = event.target.closest('.node');
             //   console.log('LLLL3-Node clicked:', clickedNode.id);
+            event.stopPropagation();
             selectNode(clickedNode.id);
         });
 
@@ -1088,7 +1139,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 if (!allowDrag) return;
 
                 // Only handle as a drag event if the Shift key is not held down
-                if (event.sourceEvent.shiftKey) return;
+                //if (event.sourceEvent.shiftKey) return;
                 d3.select(this).raise().classed('active', true);
             }
 
@@ -1100,7 +1151,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
                 // Only handle as a drag event if the Shift key is not held down
-                if (event.sourceEvent.shiftKey) return;
+                //if (event.sourceEvent.shiftKey) return;
                 d3.select(this).attr('transform', `translate(${event.x - 50}, ${event.y - 25})`);
 
                 const selectedNode = mindMapData.nodes.find((node) => node.id === d.id);
@@ -1142,7 +1193,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 if (!allowDrag) return;
 
                 // Only handle as a drag event if the Shift key is not held down
-                if (event.sourceEvent.shiftKey) return;
+                //if (event.sourceEvent.shiftKey) return;
 
                 d3.select(this).classed('active', false);
                 // Update the positions of the node in mindMapData
@@ -1169,7 +1220,8 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
         function updateSolidRelationships() {
             //console.log("In updateSolidRelationships Render the Solid Relationship ...", svg);
-            const solidRelationships = svg
+
+            const solidRelationships = graphGroup
                 .selectAll('.solid-relationship')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'solid'));
 
@@ -1380,7 +1432,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
         function updateCurvedRelationships() {
-            const curvedRelationships = svg
+            const curvedRelationships = graphGroup
                 .selectAll('.dash-relationship')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'dash'));
 
@@ -2625,6 +2677,12 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
         }
 
 
+        // Apply the zoom behavior to your SVG
+        //d3.select("#mindMapContainer").call(zoom);
+        // Apply the zoom behavior to the SVG element
+        svg.call(zoom);
+
+
         // end of try renderMindMap
     } catch (error) {
         console.error('Failed to render mind map:', error);
@@ -2925,6 +2983,11 @@ document.getElementById('addRelationButton').addEventListener('click', function(
     handleAddRelation();
 });
 
+// Assume buttons with ids 'zoomInButton', 'zoomOutButton', and 'resetZoomButton' exist
+document.getElementById('zoomInButton').addEventListener('click', zoomIn);
+document.getElementById('zoomOutButton').addEventListener('click', zoomOut);
+document.getElementById('resetZoomButton').addEventListener('click', resetZoom);
+
 function handleAddRelation() {
 
     addingrel = true;
@@ -3174,12 +3237,12 @@ async function updateUndoRedoButtons() {
 
 
 
-function handleRectEdit() {
-    //console.log('Handling Edit for ' + selectedNode);
+function handleRectEdit() { // double click
+    console.log('Handling Edit for ' + selectedNode);
     if (selectedNode) {
         const selectedNodeId = selectedNode;
         const selectedNodeElement = document.getElementById(`${selectedNodeId}`);
-        const textElement = selectedNodeElement.querySelector('text[data-tag="recttext"], text[data-tag="ellipsetext"], [data-tag="parallelogramtext"]');
+        const textElement = selectedNodeElement.querySelector('text[data-tag="recttext"], text[data-tag="ellipsetext"], [data-tag="parallelogramtext"],[data-tag="diamondtext"]');
         // Open the attribute container when nodeId is not null
         showAttributeContainer(); // Call a function to show the attribute container
 
