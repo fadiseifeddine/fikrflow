@@ -1973,48 +1973,56 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 .style("color", "black"); // Adjust the color as needed
 
 
+            // Assume `zoomG` is the group element to which the zoom behavior is applied
+            const zoomTransform = d3.zoomTransform(d3.select('#graphGroup').node());
+
             // setting the coordinates for the toggled icons
 
             if (d.label) // Rectangle / Box
             { // dot and plus shape position
                 if (d.shape === 'ellipse') {
                     const bbox = dotGroup.node().getBBox();
-                    dotcalcX = d.x;
-                    dotcalcY = d.y - bbox.height / 2 + 35; // Adjust the value as needed for the vertical position above the ellipse
-                    pluscalcX = d.x;
-                    pluscalcY = d.y + rectHeight;
+                    //dotcalcX = d.x;
+                    //dotcalcY = d.y - bbox.height / 2 + 35; // Adjust the value as needed for the vertical position above the ellipse
+
+                    dotcalcX = zoomTransform.applyX(d.x); // Apply the current zoom transform to d.x
+                    dotcalcY = zoomTransform.applyY(d.y - bbox.height / 2 + 35); // Apply the current zoom transform to the y calculation
+
+
+                    pluscalcX = zoomTransform.applyX(d.x);
+                    pluscalcY = zoomTransform.applyY(d.y + rectHeight);
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
-                    pencalcX = d.x + 80;
-                    pencalcY = d.y - bbox.height / 2 + 50;
+                    pencalcX = zoomTransform.applyX(d.x + 80);
+                    pencalcY = zoomTransform.applyY(d.y - bbox.height / 2 + 50);
                 } else if (d.shape === 'parallelogram') {
-                    dotcalcX = d.x + plgrmWidth / 2;
+                    dotcalcX = zoomTransform.applyX(d.x + plgrmWidth / 2);
                     dotcalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
-                    pluscalcX = d.x + plgrmWidth / 2;
-                    pluscalcY = d.y + plgrmHeight;
+                    pluscalcX = zoomTransform.applyX(d.x + plgrmWidth / 2);
+                    pluscalcY = zoomTransform.applyY(d.y + plgrmHeight);
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
-                    pencalcX = d.x + plgrmWidth - 25;
-                    pencalcY = d.y - plgrmHeight / 2 + 15; // Adjust the value as needed for the vertical position above the ellipse
+                    pencalcX = zoomTransform.applyX(d.x + plgrmWidth - 25);
+                    pencalcY = zoomTransform.applyY(d.y - plgrmHeight / 2 + 15); // Adjust the value as needed for the vertical position above the ellipse
                 } else if (d.shape === 'diamond') {
-                    dotcalcX = d.x + diamondWidth / 2;
-                    dotcalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
-                    pluscalcX = d.x + diamondWidth / 2;
-                    pluscalcY = d.y + diamondHeight;
+                    dotcalcX = zoomTransform.applyX(d.x + diamondWidth / 2);
+                    dotcalcY = zoomTransform.applyY(d.y - ellipseRy + 25); // Adjust the value as needed for the vertical position above the ellipse
+                    pluscalcX = zoomTransform.applyX(d.x + diamondWidth / 2);
+                    pluscalcY = zoomTransform.applyY(d.y + diamondHeight);
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
-                    pencalcX = d.x + diamondWidth / 2 + 55;
-                    pencalcY = d.y - ellipseRy / 2 + 30; // Adjust the value as needed for the vertical position above the ellipse
+                    pencalcX = zoomTransform.applyX(d.x + diamondWidth / 2 + 55);
+                    pencalcY = zoomTransform.applyY(d.y - ellipseRy / 2 + 30); // Adjust the value as needed for the vertical position above the ellipse
 
                 } else {
-                    dotcalcX = d.x + rectWidth / 2;
-                    dotcalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
-                    pluscalcX = d.x + rectWidth / 2;
-                    pluscalcY = d.y + rectHeight;
+                    dotcalcX = zoomTransform.applyX(d.x + rectWidth / 2);
+                    dotcalcY = zoomTransform.applyY(d.y - ellipseRy + 25); // Adjust the value as needed for the vertical position above the ellipse
+                    pluscalcX = zoomTransform.applyX(d.x + rectWidth / 2);
+                    pluscalcY = zoomTransform.applyY(d.y + rectHeight);
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
-                    pencalcX = d.x + rectWidth - 15;
-                    pencalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
+                    pencalcX = zoomTransform.applyX(d.x + rectWidth - 15);
+                    pencalcY = zoomTransform.applyY(d.y - ellipseRy + 25); // Adjust the value as needed for the vertical position above the ellipse
 
                 }
 
@@ -3842,7 +3850,11 @@ function RemoveToggleButtons() {
 }
 
 
+function handleColorPalette(type, id) {
+    const colorPalette = document.getElementById("colorPalette");
+    showColorPalette(type, id);
 
+}
 
 
 export { renderMindMap, sendChatMessage };

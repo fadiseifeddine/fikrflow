@@ -89,11 +89,7 @@ function r_save_Button_handleSave() {
 }
 
 
-function handleColorPalette(type, id) {
-    const colorPalette = document.getElementById("colorPalette");
-    showColorPalette(type, id);
 
-}
 
 
 async function r_open_Button_handleOpen() {
@@ -213,23 +209,30 @@ function resetZoom() {
 
 function move(direction) {
     console.log("Moving the SVG in Direction =" + direction);
+
+    // Get the current zoom transform
+    const currentTransform = d3.zoomTransform(d3.select('#graphGroup').node());
+
     switch (direction) {
         case 'left':
-            currentTranslate.x -= moveStep;
+            currentTranslate.x -= moveStep / currentTransform.k;
             break;
         case 'right':
-            currentTranslate.x += moveStep;
+            currentTranslate.x += moveStep / currentTransform.k;
             break;
         case 'up':
-            currentTranslate.y -= moveStep;
+            currentTranslate.y -= moveStep / currentTransform.k;
             break;
         case 'down':
-            currentTranslate.y += moveStep;
+            currentTranslate.y += moveStep / currentTransform.k;
             break;
     }
-    d3.select('#graphGroup')
-        .attr('transform', `translate(${currentTranslate.x},${currentTranslate.y})`);
+
+    // Now apply this translation to the zoom transform
+    const newTransform = d3.zoomIdentity.translate(currentTranslate.x, currentTranslate.y).scale(currentTransform.k);
+    d3.select('#graphGroup').transition().duration(750).call(zoom.transform, newTransform);
 }
+
 
 
 
