@@ -2,6 +2,12 @@ import * as common from './common.js';
 
 import { sendChatMessage } from './fikrmap.js';
 import { showMessage } from './common.js';
+import { setIsModified, getIsModified } from './fikrmap.js';
+import { displayfilelist } from './fikrmap.js';
+import { showSaveConfirmationModal } from './fikrmap.js';
+import { r_save_Button_conf_handleSaveDrawing } from './fikrmap.js';
+
+
 
 // Button moving the SVG Left , Right, Up and Down
 let currentTranslate = { x: 0, y: 0 };
@@ -10,6 +16,9 @@ const moveStep = 50; // Define the step size for each movement
 
 // the File Name of the Drawing
 const selectedFileNameElement = document.getElementById('selectedFileName');
+
+// Modal for Saving the Drawing under a File Name
+const fileNameModal = new bootstrap.Modal(document.getElementById('fileNameModal'));
 
 
 // Zoom
@@ -50,8 +59,14 @@ document.getElementById('move-right').addEventListener('click', () => move('righ
 document.getElementById('move-up').addEventListener('click', () => move('up'));
 document.getElementById('move-down').addEventListener('click', () => move('down'));
 
+// Add a click event listener to the "Save" button (add name to drawing and save)
+const r_save_Button_conf_saveDrawingButton = document.getElementById("r_save_Button_conf_saveDrawingButton");
 
 
+if (r_save_Button_conf_saveDrawingButton) {
+    // console.log("Save Drawing - Clicked Save Button");
+    r_save_Button_conf_saveDrawingButton.addEventListener("click", r_save_Button_conf_handleSaveDrawing);
+}
 
 function handleInputSubmit() {
     const userInput = document.getElementById('textInput').value;
@@ -70,7 +85,8 @@ function r_open_Button_handleSave() {
         fileNameModal.show();
     else {
         r_open_Button_handleSaveDrawing();
-        ismodified = 0;
+        setIsModified(0);
+        //ismodified = 0;
     }
 }
 
@@ -84,7 +100,8 @@ function r_save_Button_handleSave() {
     } else {
         console.log("r_save_Button_handleSave common filename is not null ...");
         r_save_Button_conf_handleSaveDrawing();
-        ismodified = 0;
+        setIsModified(0);
+        //ismodified = 0;
     }
 }
 
@@ -96,14 +113,14 @@ async function r_open_Button_handleOpen() {
 
 
     console.log("common.getFileName() = ", common.getFileName());
-    console.log("ismodified = ", ismodified);
+    console.log("ismodified = ", getIsModified());
 
 
     if (common.getFileName()) {
         ////////////////////// File Already Selected 
         console.log("File Already Selected Ask to Save Before showing File Selection ...");
 
-        if (ismodified == 1) {
+        if (getIsModified() == 1) {
             ////////////////////// File Already Selected and Modified ====> SAVE or IGNORE
             console.log("file is not null and ismodified is already equal 1");
 
@@ -115,7 +132,7 @@ async function r_open_Button_handleOpen() {
 
 
     } else {
-        if (ismodified == 1)
+        if (getIsModified() == 1)
         //////////////////////  File not there and is Modified
         {
 
@@ -140,16 +157,17 @@ async function r_open_Button_handleOpen() {
         console.log("... Changes saved Now.");
         hideSaveConfirmationModal();
         console.log("... common.getFileName() =", common.getFileName());
-        console.log("... ismodified =", ismodified)
+        console.log("... ismodified =", getIsModified())
 
         // saved existing file. Now shoe the list of existing files to switch to another file.
-        if (common.getFileName() === null && ismodified == 1) {
+        if (common.getFileName() === null && getIsModified() == 1) {
             console.log("... File Empty and ismodified == 1")
             const fileNameInput = document.getElementById('fileNameInput');
             fileNameInput.value = "";
             fileNameModal.show(); // show the dialog where u need to enter the file name.
         }
-        ismodified = 0;
+        //ismodified = 0;
+        setIsModified(0);
     });
 }
 

@@ -46,10 +46,10 @@ async function duplicateDrawing(fileName, mindMapData, userId, sessionId) {
 }
 
 
-async function saveDrawing(fileName, mindMapData, userId, sessionId) {
+async function saveDrawing(fileName, mindMapData, userId, sessionId, zoomScale, translateX, translateY) {
     // Check if the user provided a file name
     if (fileName !== "") {
-        //console.log("Handle saving with file name:", fileName);
+        console.log("saveDrawing Handle saving with file name:", fileName);
 
         // Hide the modal
         $('#fileNameModal').modal('hide');
@@ -61,7 +61,10 @@ async function saveDrawing(fileName, mindMapData, userId, sessionId) {
                 body: JSON.stringify({
                     userid: userId,
                     fileName: fileName,
-                    jsondrw: mindMapData
+                    jsondrw: mindMapData,
+                    zoomScale: zoomScale,
+                    translateX: translateX,
+                    translateY: translateY
                 }),
                 headers: {
                     'Content-Type': 'application/json'

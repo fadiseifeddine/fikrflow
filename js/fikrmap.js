@@ -11,6 +11,8 @@ let ismodified = 0;
 let svg = null;
 let graphGroup = null;
 
+let blurEventPromise = null;
+let drawingExistsInBlur = false; // Initialize a flag
 
 
 // prevent dragging when clicking the checkbox in the node
@@ -454,8 +456,13 @@ function getCenterY(selection, nodeId) {
 
 
 
-function renderMindMap(mindMapData, renderstatus = 'refresh') {
+function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform = { k: 1, x: 0, y: 0 }) {
     console.log("Rendering the mindMapData start ...");
+    console.log("currentTransform k", currentTransform.k);
+    console.log("currentTransform x", currentTransform.x);
+    console.log("currentTransform y", currentTransform.y);
+
+
     const mindMapContainer = document.getElementById('mindMapContainer');
     mindMapContainer.innerHTML = '';
 
@@ -474,7 +481,9 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
         // Create a group element to contain nodes and relationships
         graphGroup = svg.append('g')
-            .attr('id', 'graphGroup');
+            .attr('id', 'graphGroup')
+            .attr('transform', `translate(${currentTransform.x},${currentTransform.y}) scale(${currentTransform.k})`); // Apply the current transform here
+        ;
 
 
         svg.append('svg:defs').append('svg:marker')
@@ -3013,6 +3022,21 @@ function takeSnapshot(mindMapData) {
     //console.log('--- mindMapData before  updateversion', mindMapData);
     common.setMindMapData(mindMapData);
     fikrcollab.sendUpdate(mindMapData);
+
+
+    if (!graphGroup || !graphGroup.node()) {
+        console.error('graphGroup is not properly initialized');
+        return;
+    }
+
+    // Capture the current zoom transform from graphGroup
+    const currentTransform = d3.zoomTransform(graphGroup.node());
+    const zoomScale = currentTransform.k; // zoom scale
+    const translateX = currentTransform.x; // translate x
+    const translateY = currentTransform.y; // translate y
+
+
+
     updateversion(common.getSessionId(), 'increment')
         .then(updatedCurrentVersion => {
             //console.log('mindMapData before delete ', mindMapData);
@@ -3030,7 +3054,10 @@ function takeSnapshot(mindMapData) {
                     user: fikruser.getUserId(),
                     sessionid: common.getSessionId(),
                     jsondrw: mindMapData,
-                    version: currentVersion
+                    version: currentVersion,
+                    zoomScale: zoomScale,
+                    translateX: translateX,
+                    translateY: translateY
                 }),
                 headers: {
                     'Content-Type': 'application/json'
@@ -3366,12 +3393,22 @@ async function displayfilelist() {
             filelistmodal.hide();
             const selectedFile = fileList.find((file) => file.fileName === fileListSelect.value);
             const selectedJsondrw = selectedFile.jsondrw;
-            //console.log('Selected jsondrw file', selectedFile.fileName);
-            //console.log('Selected jsondrw:', selectedJsondrw);
-            //console.log("selectedFileNameElement.textContent fileListSelect.value = ", fileListSelect.value);
+            const zoomScale = selectedFile.zoomScale;
+            const translateX = selectedFile.translateX;
+            const translateY = selectedFile.translateY;
+
+            console.log('Selected jsondrw file', selectedFile.fileName);
+            console.log('Selected jsondrw:', selectedJsondrw);
+            console.log("selectedFileNameElement.textContent fileListSelect.value = ", fileListSelect.value);
+
+            console.log('Selected zoomScale:', zoomScale);
+            console.log('Selected translateX:', translateX);
+            console.log('Selected translateY:', translateY);
+
+
             selectedFileNameElement.textContent = fileListSelect.value;
             mindMapData = selectedJsondrw
-            renderMindMap(mindMapData);
+            renderMindMap(mindMapData, 'refresh', { k: zoomScale, x: translateX, y: translateY });
 
         } else {
             alert('Please select a file.'); // Show an alert to prompt the user to select a file
@@ -3555,13 +3592,11 @@ function calculateNodePositions(response) {
 
 document.addEventListener("DOMContentLoaded", function() {
 
-    // Add a click event listener to the "Save" button (add name to drawing and save)
-    const r_save_Button_conf_saveDrawingButton = document.getElementById("r_save_Button_conf_saveDrawingButton");
 
 
     const fileNameInput = document.getElementById("fileNameInput");
-    let drawingExistsInBlur = false; // Initialize a flag
-    let blurEventPromise = Promise.resolve(); // Initialize a resolved promise
+    drawingExistsInBlur = false; // Initialize a flag
+    blurEventPromise = Promise.resolve(); // Initialize a resolved promise
 
     // Add a blur event listener to the userIdInput field
     fileNameInput.addEventListener("blur", async() => {
@@ -3595,57 +3630,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
         console.log("on blur of duplicate drawing field - End - ....");
     });
-
-    if (r_save_Button_conf_saveDrawingButton) {
-        // console.log("Save Drawing - Clicked Save Button");
-        r_save_Button_conf_saveDrawingButton.addEventListener("click", r_save_Button_conf_handleSaveDrawing);
-    }
-
-    async function r_save_Button_conf_handleSaveDrawing() {
-        console.log("r_save_Button_conf_handleSaveDrawing Clicked - Start - ..");
-
-
-        // Wait for the blur event promise to resolve
-        await blurEventPromise;
-
-
-        // if drawing exist in Blur then don't continue
-        if (drawingExistsInBlur == true)
-            return;
-        if (common.getFileName()) {
-            console.log("r_save_Button_conf_handleSaveDrawing = common.getFileName: " + common.getFileName());
-
-            // Now you can use the fileName for your save operation
-            if (fikrdraw.saveDrawing(common.getFileName(), mindMapData, fikruser.getUserId(), common.getSessionId())) {
-                ismodified = 0;
-
-            }
-        } else if (fileNameInput.value) { // File Name is null but User has gave already the name to set 
-            console.log("r_save_Button_conf_handleSaveDrawing = Selected File Name: " + fileNameInput.value);
-
-            // Now you can use the fileName for your save operation
-            if (fikrdraw.saveDrawing(fileNameInput.value, mindMapData, fikruser.getUserId(), common.getSessionId())) {
-                common.setFileName(fileNameInput.value);
-                console.log("fileNameInputhas been saved under : ", common.getFileName());
-                //console.log("selectedFileNameElement.textContent from fileName = ", fileName);
-                //selectedFileNameElement.textContent = fileName; // the Banner Selected File Updated
-                // now ensure always that the "Select File Name" form has no value when selecting again to save
-                fileNameInput.value = "";
-                selectedFileNameElement.textContent = common.getFileName();
-                ismodified = 0;
-            }
-        } else {
-            console.error("fileNameInput not found or is null");
-            common.showFieldError('fileNameInput', 'File Name is required.');
-        }
-
-
-
-
-
-    }
-
-
 
     // Add a click event listener to the "Save" button (add name to drawing and save)
     const r_duplicate_Button_conf_duplicateDrawingButton = document.getElementById("r_duplicate_Button_conf_duplicateDrawingButton");
@@ -3856,5 +3840,67 @@ function handleColorPalette(type, id) {
 
 }
 
+async function r_save_Button_conf_handleSaveDrawing() {
+    console.log("r_save_Button_conf_handleSaveDrawing Clicked - Start - ..");
 
-export { renderMindMap, sendChatMessage };
+
+    // Capture the current zoom transform from graphGroup
+    const currentTransform = d3.zoomTransform(graphGroup.node());
+    const zoomScale = currentTransform.k; // zoom scale
+    const translateX = currentTransform.x; // translate x
+    const translateY = currentTransform.y; // translate y
+
+
+    // Wait for the blur event promise to resolve
+    await blurEventPromise;
+
+
+    // if drawing exist in Blur then don't continue
+    if (drawingExistsInBlur == true)
+        return;
+    if (common.getFileName()) {
+        console.log("r_save_Button_conf_handleSaveDrawing = common.getFileName: " + common.getFileName());
+
+        // Now you can use the fileName for your save operation
+        if (fikrdraw.saveDrawing(common.getFileName(), mindMapData, fikruser.getUserId(), common.getSessionId(), zoomScale, translateX, translateY)) {
+            ismodified = 0;
+
+        }
+    } else if (fileNameInput.value) { // File Name is null but User has gave already the name to set 
+        console.log("r_save_Button_conf_handleSaveDrawing = Selected File Name: " + fileNameInput.value);
+
+        // Now you can use the fileName for your save operation
+        if (fikrdraw.saveDrawing(fileNameInput.value, mindMapData, fikruser.getUserId(), common.getSessionId(), zoomScale, translateX, translateY)) {
+            common.setFileName(fileNameInput.value);
+            console.log("fileNameInputhas been saved under : ", common.getFileName());
+            //console.log("selectedFileNameElement.textContent from fileName = ", fileName);
+            //selectedFileNameElement.textContent = fileName; // the Banner Selected File Updated
+            // now ensure always that the "Select File Name" form has no value when selecting again to save
+            fileNameInput.value = "";
+            selectedFileNameElement.textContent = common.getFileName();
+            ismodified = 0;
+        }
+    } else {
+        console.error("fileNameInput not found or is null");
+        common.showFieldError('fileNameInput', 'File Name is required.');
+    }
+
+
+
+
+
+}
+
+
+function setIsModified(value) {
+    ismodified = value;
+}
+
+function getIsModified() {
+    return ismodified;
+}
+
+
+
+
+export { renderMindMap, sendChatMessage, setIsModified, getIsModified, displayfilelist, showSaveConfirmationModal, r_save_Button_conf_handleSaveDrawing };
