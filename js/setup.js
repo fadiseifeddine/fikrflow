@@ -224,12 +224,23 @@ function zoomOut() {
     transformManager.currentTransform = newTransform;
 }
 
-// Function to reset zoom
+// Function to reset zoom to 1
 function resetZoom() {
-    d3.select('#graphGroup').transition().duration(750).call(zoom.transform, d3.zoomIdentity); // Reset the transform to the identity transform
-    transformManager.currentTransform = { k: 1, x: 0, y: 0 };
-}
+    // Reset currentTranslate
+    currentTranslate = { x: 0, y: 0 };
 
+    // Create a new zoom transform with the specified values
+    const newTransform = d3.zoomIdentity.scale(1);
+
+    // Apply the new zoom transform to #graphGroup
+    d3.select('#graphGroup')
+        .transition()
+        .duration(750)
+        .call(zoom.transform, newTransform);
+
+    // Update transformManager.currentTransform
+    transformManager.setCurrentTransform({ k: 1, x: 0, y: 0 });
+}
 
 
 function move(direction) {
