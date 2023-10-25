@@ -2027,7 +2027,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             const zoomTransform = d3.zoomTransform(d3.select('#graphGroup').node());
 
             // setting the coordinates for the toggled icons
-
+            // 3dot position
             if (d.label) // Rectangle / Box
             { // dot and plus shape position
                 if (d.shape === 'ellipse') {
@@ -2035,44 +2035,48 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     //dotcalcX = d.x;
                     //dotcalcY = d.y - bbox.height / 2 + 35; // Adjust the value as needed for the vertical position above the ellipse
 
-                    dotcalcX = zoomTransform.applyX(d.x); // Apply the current zoom transform to d.x
-                    dotcalcY = zoomTransform.applyY(d.y - bbox.height / 2 + 35); // Apply the current zoom transform to the y calculation
+                    dotcalcX = currentTransform.k * d.x + currentTransform.x;
+                    dotcalcY = currentTransform.k * (d.y - bbox.height / 2 + 35) + currentTransform.y;
 
-
-                    pluscalcX = zoomTransform.applyX(d.x);
-                    pluscalcY = zoomTransform.applyY(d.y + rectHeight);
+                    pluscalcX = currentTransform.k * d.x + currentTransform.x;
+                    pluscalcY = currentTransform.k * (d.y + rectHeight) + currentTransform.y;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
-                    pencalcX = zoomTransform.applyX(d.x + 80);
-                    pencalcY = zoomTransform.applyY(d.y - bbox.height / 2 + 50);
+                    pencalcX = currentTransform.k * (d.x + 80) + currentTransform.x;
+                    pencalcY = currentTransform.k * (d.y - bbox.height / 2 + 50) + currentTransform.y;
+
                 } else if (d.shape === 'parallelogram') {
-                    dotcalcX = zoomTransform.applyX(d.x + plgrmWidth / 2);
-                    dotcalcY = d.y - ellipseRy + 25; // Adjust the value as needed for the vertical position above the ellipse
-                    pluscalcX = zoomTransform.applyX(d.x + plgrmWidth / 2);
-                    pluscalcY = zoomTransform.applyY(d.y + plgrmHeight);
+
+                    dotcalcX = currentTransform.k * (d.x + plgrmWidth / 2) + currentTransform.x;
+                    dotcalcY = currentTransform.k * (d.y - ellipseRy + 25) + currentTransform.y;
+                    pluscalcX = currentTransform.k * (d.x + plgrmWidth / 2) + currentTransform.x;
+                    pluscalcY = currentTransform.k * (d.y + plgrmHeight) + currentTransform.y;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
-                    pencalcX = zoomTransform.applyX(d.x + plgrmWidth - 25);
-                    pencalcY = zoomTransform.applyY(d.y - plgrmHeight / 2 + 15); // Adjust the value as needed for the vertical position above the ellipse
+                    pencalcX = currentTransform.k * (d.x + plgrmWidth - 25) + currentTransform.x;
+                    pencalcY = currentTransform.k * (d.y - plgrmHeight / 2 + 15) + currentTransform.y;
+
                 } else if (d.shape === 'diamond') {
-                    dotcalcX = zoomTransform.applyX(d.x + diamondWidth / 2);
-                    dotcalcY = zoomTransform.applyY(d.y - ellipseRy + 25); // Adjust the value as needed for the vertical position above the ellipse
-                    pluscalcX = zoomTransform.applyX(d.x + diamondWidth / 2);
-                    pluscalcY = zoomTransform.applyY(d.y + diamondHeight);
+
+                    dotcalcX = currentTransform.k * (d.x + diamondWidth / 2) + currentTransform.x;
+                    dotcalcY = currentTransform.k * (d.y - ellipseRy + 25) + currentTransform.y;
+                    pluscalcX = currentTransform.k * (d.x + diamondWidth / 2) + currentTransform.x;
+                    pluscalcY = currentTransform.k * (d.y + diamondHeight) + currentTransform.y;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
-                    pencalcX = zoomTransform.applyX(d.x + diamondWidth / 2 + 55);
-                    pencalcY = zoomTransform.applyY(d.y - ellipseRy / 2 + 30); // Adjust the value as needed for the vertical position above the ellipse
+                    pencalcX = currentTransform.k * (d.x + diamondWidth / 2 + 55) + currentTransform.x;
+                    pencalcY = currentTransform.k * (d.y - ellipseRy / 2 + 30) + currentTransform.y;
 
                 } else {
-                    dotcalcX = zoomTransform.applyX(d.x + rectWidth / 2);
-                    dotcalcY = zoomTransform.applyY(d.y - ellipseRy + 25); // Adjust the value as needed for the vertical position above the ellipse
-                    pluscalcX = zoomTransform.applyX(d.x + rectWidth / 2);
-                    pluscalcY = zoomTransform.applyY(d.y + rectHeight);
+
+                    dotcalcX = currentTransform.k * (d.x + rectWidth / 2) + currentTransform.x;
+                    dotcalcY = currentTransform.k * (d.y - ellipseRy + 25) + currentTransform.y;
+                    pluscalcX = currentTransform.k * (d.x + rectWidth / 2) + currentTransform.x;
+                    pluscalcY = currentTransform.k * (d.y + rectHeight) + currentTransform.y;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
-                    pencalcX = zoomTransform.applyX(d.x + rectWidth - 15);
-                    pencalcY = zoomTransform.applyY(d.y - ellipseRy + 25); // Adjust the value as needed for the vertical position above the ellipse
+                    pencalcX = currentTransform.k * (d.x + rectWidth - 15) + currentTransform.x;
+                    pencalcY = currentTransform.k * (d.y - ellipseRy + 25) + currentTransform.y;
 
                 }
 
