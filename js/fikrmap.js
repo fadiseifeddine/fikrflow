@@ -41,6 +41,8 @@ let ellipseRy = 40; // Set the vertical radius of the ellipse
 
 let textlength = 28;
 
+
+
 // Calculate the coordinates of the parallelogram points
 var angleDegrees = 85
 var angleRadians = (angleDegrees * Math.PI) / 180;
@@ -95,7 +97,8 @@ let starButtonDimmed = false;
 let heartButtonDimmed = false;
 let smileyButtonDimmed = false;
 
-
+// scale
+let currentTransform = { k: 1, x: 0, y: 0 };
 
 
 const drawingContainer = document.getElementById('drawingContainer');
@@ -106,6 +109,14 @@ const fileNameModal = new bootstrap.Modal(document.getElementById('fileNameModal
 const saveconfirmationModal = new bootstrap.Modal(document.getElementById("saveconfirmationModal"));
 
 
+let transformManager = {
+    get currentTransform() {
+        return currentTransform;
+    },
+    set currentTransform(transform) {
+        currentTransform = transform;
+    }
+};
 
 // the File Name of the Drawing
 const selectedFileNameElement = document.getElementById('selectedFileName');
@@ -230,8 +241,10 @@ async function sendChatMessage(message) {
             //console.log('Received mind map data:', mindMapDataJson);
             //jsondrw = mindMapDataJson;
 
-            mindMapData = calculateNodePositions(mindMapDataJson)
-                //console.log('Adjusted mind map data with positions:', mindMapData);
+            mindMapData = calculateNodePositions(mindMapDataJson);
+            console.log("Takesnapshot trigerred by sendchatmessage ...");
+
+            //console.log('Adjusted mind map data with positions:', mindMapData);
             takeSnapshot(mindMapData); // the version 1
             renderMindMap(mindMapData, 'initial');
         } else {
@@ -456,11 +469,9 @@ function getCenterY(selection, nodeId) {
 
 
 
-function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform = { k: 1, x: 0, y: 0 }) {
-    console.log("Rendering the mindMapData start ...");
-    console.log("currentTransform k", currentTransform.k);
-    console.log("currentTransform x", currentTransform.x);
-    console.log("currentTransform y", currentTransform.y);
+function renderMindMap(mindMapData, renderstatus = 'refresh') {
+    console.log("Rendering the mindMapData start ... renderstatus = ", renderstatus);
+    console.log("renderMindMap currentTransform", currentTransform);
 
 
     const mindMapContainer = document.getElementById('mindMapContainer');
@@ -515,22 +526,26 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
                 console.log("on wheel 1");
 
                 // Get the current mouse coordinates
-                const [x, y] = d3.pointer(event);
+                const [vx, vy] = d3.pointer(event);
 
                 // Calculate the zoom scale based on the deltaY property of the event
                 const zoomScale = event.deltaY > 0 ? 1.1 : 0.9;
 
                 // Get the current zoom transform
-                const currentTransform = d3.zoomTransform(this);
+                currentTransform = d3.zoomTransform(this);
+                console.log("Wheel1 currentTransform =", currentTransform);
 
                 // Create a new zoom transform by scaling around the current mouse coordinates
                 const newTransform = currentTransform.scale(zoomScale).translate(
-                    (x - currentTransform.x) * (1 - zoomScale),
-                    (y - currentTransform.y) * (1 - zoomScale)
+                    (vx - currentTransform.x) * (1 - zoomScale),
+                    (vy - currentTransform.y) * (1 - zoomScale)
                 );
 
                 // Apply the new zoom transform to the graphGroup
                 graphGroup.attr("transform", newTransform);
+
+                x = (vx - currentTransform.x) * (1 - zoomScale);
+                y = (vy - currentTransform.y) * (1 - zoomScale);
             }
         });
 
@@ -598,9 +613,15 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
             .on('tick', ticked);
 
         // Your existing ticked function
+
+
         function ticked() {
             nodes.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
             renderRelationships();
+
+            // will keep the current zoom
+            graphGroup.attr('transform', `translate(${currentTransform.x}, ${currentTransform.y}) scale(${currentTransform.k})`);
+
 
             // Check if the simulation's alpha value has fallen below a threshold
             if (simulation.alpha() < 0.005) {
@@ -1122,15 +1143,23 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
                 if (!allowDrag) return;
 
 
-                // Only handle as a drag event if the Shift key is not held down
-                //if (event.sourceEvent.shiftKey) return;
-                d3.select(this).attr('transform', `translate(${event.x - 50}, ${event.y - 25})`);
+                console.log(" dragmove 1 currentTrasform = ", currentTransform);
+
+                // Invert the drag coordinates to get the correct positions in the zoomed/translated coordinate system
+                const transformedX = (event.x - currentTransform.x) / currentTransform.k;
+                const transformedY = (event.y - currentTransform.y) / currentTransform.k;
+
+                // Adjust the coordinates for your specific use case
+                const adjustedX = transformedX - 50;
+                const adjustedY = transformedY - 25;
+                // Update the position of the dragged element
+                d3.select(this).attr('transform', `translate(${adjustedX}, ${adjustedY})`);
+
 
                 const selectedNode = mindMapData.nodes.find((node) => node.id === d.id);
                 if (selectedNode) {
-                    selectedNode.x = event.x - 50;
-                    selectedNode.y = event.y - 25;
-
+                    selectedNode.x = adjustedX;
+                    selectedNode.y = adjustedY;
                 }
 
                 // console.log("node id" + d.id)
@@ -1149,11 +1178,16 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
                     }
                 });
 
+
+
                 const d3x = event.x;
                 const d3y = event.y;
 
                 //  console.log("d3x = " + d3x + ", d3y =" + d3y);
-                renderMindMap(mindMapData);
+                console.log(" dragmove 2 currentTrasform = ", currentTransform);
+                console.log("Rendering from DragMove ...");
+                renderMindMap(mindMapData, 'refresh');
+
 
                 ToggleButtons(event, d); // so the 3 dots move with the box
 
@@ -1164,16 +1198,21 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
 
                 if (!allowDrag) return;
 
-                // Only handle as a drag event if the Shift key is not held down
-                //if (event.sourceEvent.shiftKey) return;
+                // Invert the drag coordinates to get the correct positions in the zoomed/translated coordinate system
+                const transformedX = (event.x - currentTransform.x) / currentTransform.k;
+                const transformedY = (event.y - currentTransform.y) / currentTransform.k;
+
+                // Adjust the coordinates for your specific use case
+                const adjustedX = transformedX - 50;
+                const adjustedY = transformedY - 25;
 
                 d3.select(this).classed('active', false);
+
                 // Update the positions of the node in mindMapData
                 const selectedNode = mindMapData.nodes.find((node) => node.id === d.id);
                 if (selectedNode) {
-
-                    selectedNode.x = event.x - 50;
-                    selectedNode.y = event.y - 25;
+                    selectedNode.x = adjustedX;
+                    selectedNode.y = adjustedY;
                 }
 
                 //console.log("x=", selectedNode.x);
@@ -1183,6 +1222,8 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
                 // Call takeSnapshot when drag ends
                 // console.log('------------------------------------  DragEnd before taking the snaphot');
                 // console.log('--- dragEnd after mindMapData', mindMapData);
+                console.log("Takesnapshot trigerred by dragend ...");
+
                 takeSnapshot(mindMapData);
                 // console.log('------------------------------------  DragEnd after taking the snaphot');
 
@@ -1796,7 +1837,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
 
             const selectedNode4ShapeChange = mindMapData.nodes.find(node => node.id === nodeId);
             selectedNode4ShapeChange.icon = null;
-            renderMindMap(mindMapData);
+            renderMindMap(mindMapData, 'refresh');
         }
 
         function renderBoxShapeBox() {
@@ -2289,6 +2330,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
                 mindMapData.nodes.splice(nodeIndex, 1); // Remove the node from the nodes array
                 //console.log(`Deleted node: ${nodeId}`);
             }
+            console.log("Takesnapshot trigerred by deleteNodeAndRelatedNodes ...");
 
             // After rendering, capture a snapshot
             takeSnapshot(mindMapData);
@@ -2317,7 +2359,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
 
             const selectedNode4ShapeChange = mindMapData.nodes.find(node => node.id === nodeId);
             selectedNode4ShapeChange.icon = shp;
-            renderMindMap(mindMapData);
+            renderMindMap(mindMapData, 'refresh');
 
         }
 
@@ -2344,7 +2386,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
 
             const selectedNode4ShapeChange = mindMapData.nodes.find(node => node.id === nodeId);
             selectedNode4ShapeChange.shape = shp;
-            renderMindMap(mindMapData);
+            renderMindMap(mindMapData, 'refresh');
 
         }
 
@@ -2393,7 +2435,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
                     // console.log("Set Style to =" + newStrokeWidth);
                     nodeelement.style("stroke-width", `${newStrokeWidth}`);
 
-                    renderMindMap(mindMapData);
+                    renderMindMap(mindMapData, 'refresh');
 
                 }
 
@@ -2405,7 +2447,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh', currentTransform =
 
             } else if (d.text === "Delete") {
                 deleteNodeAndRelatedNodes(nodeId);
-                renderMindMap(mindMapData);
+                renderMindMap(mindMapData, 'refresh');
                 console.log("takeSnapshot trigerred by Delete Box");
                 takeSnapshot(mindMapData);
 
@@ -2674,8 +2716,9 @@ function toggleCompletion(mindMapData, nodeId) {
         } else {
             node.compdate = null; // Clear the compdate attribute
         }
+        console.log("Takesnapshot trigerred by toggleCompletion ...");
         takeSnapshot(mindMapData);
-        renderMindMap(mindMapData);
+        renderMindMap(mindMapData, 'refresh');
     }
 }
 
@@ -2721,7 +2764,8 @@ function selectNode(nodeId) {
 
         } else {
 
-            renderMindMap(mindMapData); // Re-render the mind map to apply the selection highlight
+            renderMindMap(mindMapData, 'refresh');
+            // Re-render the mind map to apply the selection highlight
 
             const addButton = document.getElementById('addNodeButton');
             const editButton = document.getElementById('editButton');
@@ -2778,7 +2822,7 @@ function selectNode(nodeId) {
         mindMapData.relationships.push(newRelationship);
 
         // Re-render the mind map to show the new relationship
-        renderMindMap(mindMapData);
+        renderMindMap(mindMapData, 'refresh');
         addingrelsource = null;
         addingreltarget = null;
         addingrel = null;
@@ -2828,6 +2872,8 @@ saveNodeDetails.addEventListener('click', saveShapeDetails);
 function saveShapeDetails() {
     const selectedNode = mindMapData.nodes.find((node) => node.id === ndid);
     selectedNode.description = ndlongDescription;
+    console.log("Takesnapshot trigerred by saveSjapeDetails ...");
+
     takeSnapshot(mindMapData);
     // Update the color property in the mind map data
     // renderMindMap(mindMapData);
@@ -3007,7 +3053,8 @@ function handleAddNode() {
             selectedNode = newNodeId; // Select the new node
 
             // Re-render the mind map with the updated data
-            renderMindMap(mindMapData);
+            renderMindMap(mindMapData, 'refresh');
+            console.log("Takesnapshot trigerred by handleaddnode ...");
 
             takeSnapshot(mindMapData);
         }
@@ -3029,12 +3076,7 @@ function takeSnapshot(mindMapData) {
         return;
     }
 
-    // Capture the current zoom transform from graphGroup
-    const currentTransform = d3.zoomTransform(graphGroup.node());
-    const zoomScale = currentTransform.k; // zoom scale
-    const translateX = currentTransform.x; // translate x
-    const translateY = currentTransform.y; // translate y
-
+    console.log("takeSnapshot currentTransform", currentTransform);
 
 
     updateversion(common.getSessionId(), 'increment')
@@ -3055,9 +3097,9 @@ function takeSnapshot(mindMapData) {
                     sessionid: common.getSessionId(),
                     jsondrw: mindMapData,
                     version: currentVersion,
-                    zoomScale: zoomScale,
-                    translateX: translateX,
-                    translateY: translateY
+                    zoomScale: currentTransform.k,
+                    translateX: currentTransform.x,
+                    translateY: currentTransform.y
                 }),
                 headers: {
                     'Content-Type': 'application/json'
@@ -3094,7 +3136,7 @@ async function fetchAndRenderVersion(version) {
 
         if (response.ok) {
             const versionedSnapshot = await response.json();
-            renderMindMap(versionedSnapshot.jsondrw);
+            renderMindMap(versionedSnapshot.jsondrw, 'refresh');
             updateUndoRedoButtons();
         } else {
             console.error(`Failed to fetch versioned snapshot for version ${version}`);
@@ -3256,6 +3298,8 @@ function handleRectEdit() { // double click
                 }
             });
 
+            console.log("Takesnapshot trigerred by handlerectedit ...");
+
             takeSnapshot(mindMapData);
         }
     }
@@ -3319,9 +3363,11 @@ function showColorPalette(type, id) {
                         //console.log('Updating mindMapData Color for Id =' + id);
                         nodeData.fill = colorCode;
                     }
-                    renderMindMap(mindMapData);
+                    renderMindMap(mindMapData, 'refresh');
+
                 }
             }
+            console.log("Takesnapshot trigerred by showcolorpalette ...");
 
             takeSnapshot(mindMapData);
         });
@@ -3408,7 +3454,7 @@ async function displayfilelist() {
 
             selectedFileNameElement.textContent = fileListSelect.value;
             mindMapData = selectedJsondrw
-            renderMindMap(mindMapData, 'refresh', { k: zoomScale, x: translateX, y: translateY });
+            renderMindMap(mindMapData, 'refresh');
 
         } else {
             alert('Please select a file.'); // Show an alert to prompt the user to select a file
@@ -3845,11 +3891,10 @@ async function r_save_Button_conf_handleSaveDrawing() {
 
 
     // Capture the current zoom transform from graphGroup
-    const currentTransform = d3.zoomTransform(graphGroup.node());
-    const zoomScale = currentTransform.k; // zoom scale
-    const translateX = currentTransform.x; // translate x
-    const translateY = currentTransform.y; // translate y
-
+    zoomScale = currentTransform.k; // zoom scale
+    translateX = currentTransform.x; // translate x
+    translateY = currentTransform.y; // translate y
+    console.log("in r_save_Button_conf_handleSaveDrawing currentTransform=", currentTransform);
 
     // Wait for the blur event promise to resolve
     await blurEventPromise;
@@ -3903,4 +3948,4 @@ function getIsModified() {
 
 
 
-export { renderMindMap, sendChatMessage, setIsModified, getIsModified, displayfilelist, showSaveConfirmationModal, r_save_Button_conf_handleSaveDrawing };
+export { renderMindMap, sendChatMessage, setIsModified, getIsModified, displayfilelist, showSaveConfirmationModal, r_save_Button_conf_handleSaveDrawing, transformManager };
