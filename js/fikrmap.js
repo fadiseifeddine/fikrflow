@@ -72,8 +72,12 @@ const spacingBetweenNodes = 20; // Adjust as needed
 
 
 // 3dot Button
+let dotGroup = null;
 let dotCircle = null; // Define the variable to hold the dot circle element
 let dotsText = null;
+
+// BoxToolBox
+let BoxToolBox = null;
 
 let nodes = null;
 
@@ -1696,10 +1700,11 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             const lineStrokeWidth = 2;
             const relationshipLineLength = 80;
             // Create the relationship box
-            const BoxToolBox = svg
+            BoxToolBox = svg
                 .append("g")
                 .attr("class", "box-toolbox-box")
                 .style("display", "none");
+
 
             BoxToolBox
                 .append("rect")
@@ -1918,7 +1923,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
             // Create a group for the circle and text
-            const dotGroup = svg
+            dotGroup = svg
                 .append("g")
                 .attr("class", "three-dots-group pointer-cursor")
                 .attr("visibility", "visible")
@@ -2608,32 +2613,34 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             }
         }
 
-        // Function to toggle the relationship tool box trigerred on 3 dots from line
+        // Function to toggle the relationship tool box triggered on 3 dots from line
         function toggleBoxToolBox(box) {
-            // console.log("In the ToggleBoxToolBox ....");
-            //console.log('box.id=' + box.id);
-
+            // Access the currentTransform assuming it's globally available
+            // Or get it from your transformManager or another source if necessary
 
             const display = BoxToolBoxRef.style("display");
-            // console.log('display=' + display);
 
             if (display === "none") {
+                // Get the bounding box of dotGroup
+                const bbox = dotGroup.node().getBBox();
 
+                // Adjust these values to position BoxToolBoxRef where you want it relative to dotGroup
+                const offsetFromDotGroupX = -70; // Horizontal offset from dotGroup
+                const offsetFromDotGroupY = -70; // Vertical offset from dotGroup
 
-                //calcX = d.x + (d.label.length * 10 + 20) / 2;
-                var calcX = box.x + (rectWidth) / 2 - 70;
-                var calcY = box.y - 70;
-
+                // Calculate the new position for BoxToolBoxRef
+                const calcX = bbox.x + bbox.width + offsetFromDotGroupX;
+                const calcY = bbox.y + offsetFromDotGroupY;
 
                 BoxToolBoxRef
                     .attr("transform", `translate(${calcX}, ${calcY})`)
                     .style("display", "block");
 
-
             } else {
                 BoxToolBoxRef.style("display", "none");
             }
         }
+
 
 
         // Function to toggle the BoxShapeBox tool box trigerred on 3 dots from line
