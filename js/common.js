@@ -11,27 +11,27 @@ let nodetext = {
         rectchar: 30,
         parallelogramchar: 40,
         diamondchar: 40,
-        ellipsechar: 40
+        ellipsechar: 35
     },
     maxlines: {
         rectlines: 10,
         parallelogramlines: 6,
         diamondlines: 4,
-        ellipselines: 6
+        ellipselines: 3
     }
 }
 let nodesize = {
     width: {
         rectWidth: 250,
         plgrmWidth: 250,
-        diamondWidth: 300,
-        ellipseRx: 120,
+        diamondWidth: 350,
+        ellipseRx: 150,
     },
     height: {
         rectHeight: 50,
         plgrmHeight: 50,
         diamondHeight: 75,
-        ellipseRy: 40
+        ellipseRy: 50
     },
     icon: {
         iconSize: 24
@@ -45,7 +45,7 @@ function calculateRectHeight(numLines) {
     const lineHeight = 20; // Height for each additional line
     //console.log("The numlines =", numLines);
     if (numLines > 1)
-        return (lineHeight * numLines) + 10;
+        return (lineHeight * numLines) + 15;
     else {
         return baseHeight;
     }

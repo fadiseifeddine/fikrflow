@@ -744,6 +744,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 const numLines = common.countLines(d); // Assume d.label contains the text
                 console.log("d.label=", d.label);
                 console.log("numLines=", numLines);
+                // adjust node height
                 return common.calculateRectHeight(numLines);
             })
             .attr('rx', (d) => {
@@ -795,7 +796,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 if (d.shape === 'ellipse') {
                     return -common.nodesize.width.ellipseRx + 15;
                 } else if (d.shape === 'parallelogram') {
-                    return 5
+                    return 10
                 } else if (d.shape === 'diamond') {
                     return common.nodesize.width.diamondWidth / 4 - 40
                 } else {
@@ -861,22 +862,22 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     return 35;
 
                 } else if (d.shape === 'diamond') {
-                    return 70;
+                    return 75;
 
                 } else
                     return 30;
             })
             .attr('y', (d) => {
                 if (d.shape === 'ellipse') {
-                    return 0; // For ellipse and parallelogram, keep the y-coordinate at the center
+                    return -10; // For ellipse and parallelogram, keep the y-coordinate at the center
                 } else if (d.shape === 'parallelogram') {
-                    return common.nodesize.height.plgrmHeight / 2 + 4; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
+                    return common.nodesize.height.plgrmHeight / 2 - 8; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
 
                 } else if (d.shape === 'diamond') {
-                    return common.nodesize.height.diamondHeight / 2 - 8; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
+                    return common.nodesize.height.diamondHeight / 2; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
 
                 } else {
-                    return common.nodesize.height.rectHeight / 2 + 3; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
+                    return common.nodesize.height.rectHeight / 2 - 8; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
                 }
             })
             //.text((d) => d.label.substring(0, textlength))
