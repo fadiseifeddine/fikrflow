@@ -39,6 +39,7 @@ let nodesize = {
 };
 
 
+
 // Function to calculate the height of the rectangle based on the number of lines
 function calculateRectHeight(numLines) {
     const baseHeight = 50; // Base height for one line

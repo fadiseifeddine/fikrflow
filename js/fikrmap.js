@@ -1909,6 +1909,12 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             var pencalcX = 0
             var pencalcY = 0
 
+            const nodeelement = d3.select(`#${d.id}`);
+            // Get the bounding box of the node element
+            const nodeBBox = nodeelement.node().getBBox();
+
+            // Extract the height from the bounding box
+            const nodeHeight = nodeBBox.height;
 
             RemoveToggleButtons();
             hideAttributeContainer();
@@ -2024,6 +2030,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             // Assume `zoomG` is the group element to which the zoom behavior is applied
             const zoomTransform = d3.zoomTransform(d3.select('#graphGroup').node());
 
+
             // setting the coordinates for the toggled icons
             // 3dot position
             if (d.label) // Rectangle / Box
@@ -2034,10 +2041,10 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     //dotcalcY = d.y - bbox.height / 2 + 35; // Adjust the value as needed for the vertical position above the ellipse
 
                     dotcalcX = currentTransform.k * d.x + currentTransform.x;
-                    dotcalcY = currentTransform.k * (d.y - bbox.height / 2 + 35) + currentTransform.y;
+                    dotcalcY = currentTransform.k * (d.y - bbox.height / 2 + 40) + currentTransform.y;
 
                     pluscalcX = currentTransform.k * d.x + currentTransform.x;
-                    pluscalcY = currentTransform.k * (d.y + common.nodesize.height.rectHeight) + currentTransform.y;
+                    pluscalcY = currentTransform.k * (d.y + nodeHeight) + currentTransform.y - 40;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
                     pencalcX = currentTransform.k * (d.x + 80) + currentTransform.x;
@@ -2052,7 +2059,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     console.log("currentTransform.y=", currentTransform.y);
                     console.log("dotcalcY=", dotcalcY);
                     pluscalcX = currentTransform.k * (d.x + common.nodesize.width.plgrmWidth / 2) + currentTransform.x;
-                    pluscalcY = currentTransform.k * (d.y + common.nodesize.height.plgrmHeight) + currentTransform.y;
+                    pluscalcY = currentTransform.k * (d.y + nodeHeight) + currentTransform.y;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
                     pencalcX = currentTransform.k * (d.x + common.nodesize.width.plgrmWidth - 25) + currentTransform.x;
@@ -2064,7 +2071,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     dotcalcX = currentTransform.k * (d.x + common.nodesize.width.diamondWidth / 2) + currentTransform.x;
                     dotcalcY = currentTransform.k * (d.y - common.nodesize.height.ellipseRy + 25) + currentTransform.y;
                     pluscalcX = currentTransform.k * (d.x + common.nodesize.width.diamondWidth / 2) + currentTransform.x;
-                    pluscalcY = currentTransform.k * (d.y + common.nodesize.height.diamondHeight) + currentTransform.y;
+                    pluscalcY = currentTransform.k * (d.y + nodeHeight) + currentTransform.y;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
                     pencalcX = currentTransform.k * (d.x + common.nodesize.width.diamondWidth / 2 + 55) + currentTransform.x;
@@ -2074,12 +2081,15 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
                     dotcalcX = currentTransform.k * (d.x + common.nodesize.width.rectWidth / 2) + currentTransform.x;
                     dotcalcY = currentTransform.k * (d.y - common.nodesize.height.ellipseRy + 25) + currentTransform.y;
-                    pluscalcX = currentTransform.k * (d.x + common.nodesize.width.rectWidth / 2) + currentTransform.x;
-                    pluscalcY = currentTransform.k * (d.y + common.nodesize.height.rectHeight) + currentTransform.y;
-                    plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
-                    plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
                     pencalcX = currentTransform.k * (d.x + common.nodesize.width.rectWidth - 15) + currentTransform.x;
                     pencalcY = currentTransform.k * (d.y - common.nodesize.height.ellipseRy + 25) + currentTransform.y;
+
+                    pluscalcX = currentTransform.k * (d.x + common.nodesize.width.rectWidth / 2) + currentTransform.x;
+                    // Update pluscalcY calculation to reflect the node height
+                    pluscalcY = currentTransform.k * (d.y + nodeHeight) + currentTransform.y;
+                    //pluscalcY = currentTransform.k * (d.y + common.nodesize.height.rectHeight) + currentTransform.y;
+                    plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
+                    plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
 
                 }
 
@@ -3297,6 +3307,9 @@ function handleRectEdit() { // double click
             });
 
             textareaElement.addEventListener('input', () => {
+
+                RemoveToggleButtons();
+
                 common.adjustTextareaHeight(textareaElement);
 
 
@@ -3331,9 +3344,12 @@ function handleRectEdit() { // double click
                         pathElement.setAttribute('d', newD);
                     }
                 }
+
+
+
             });
 
-
+            // going out / loose focus from the Text Area
             textareaElement.addEventListener('blur', () => {
                 const newText = textareaElement.value;
                 console.log("lines= newText=", newText);
@@ -3360,7 +3376,6 @@ function handleRectEdit() { // double click
                     console.log("shape is diamond ... ");
 
                 }
-
 
 
                 if (selectedNodeData) {
