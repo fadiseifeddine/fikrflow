@@ -16,7 +16,7 @@ let nodetext = {
     maxlines: {
         rectangle: 10,
         parallelogram: 6,
-        diamond: 4,
+        diamond: 2,
         ellipse: 3
     }
 }
@@ -209,10 +209,10 @@ function handleKeyup(event) {
 
 // Function to adjust the height of the textarea element
 function adjustTextareaHeight(textarea) {
-    console.log("Before adjustment - textarea.scrollHeight: ", textarea.scrollHeight);
+    //console.log("Before adjustment - textarea.scrollHeight: ", textarea.scrollHeight);
     textarea.style.height = 'auto'; // Reset the height to auto to shrink the textarea
     textarea.style.height = textarea.scrollHeight + 'px'; // Set the height to the scrollHeight of the textarea
-    console.log("After adjustment - textarea.style.height: ", textarea.style.height);
+    // console.log("After adjustment - textarea.style.height: ", textarea.style.height);
 }
 
 function splitText(text, maxLength, maxLines) {

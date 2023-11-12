@@ -3307,45 +3307,42 @@ function handleRectEdit() { // double click
                 textareaElement.select();
             });
 
-            textareaElement.addEventListener('input', (event) => {
-
-                RemoveToggleButtons();
-
-                common.adjustTextareaHeight(textareaElement);
+            textareaElement.addEventListener('keydown', (event) => {
 
                 // Assuming selectedNodeElement is a g element containing a rect element
                 const selectedNodeData = mindMapData.nodes.find((node) => node.id === selectedNodeId);
 
                 if (selectedNodeData) {
-                    const lines = textareaElement.value.split('\n');
+                    const maxLinesForShape = common.nodetext.maxlines[selectedNodeData.shape];
+                    const maxCharsPerLine = common.nodetext.length[selectedNodeData.shape];
+                    const lines = textareaElement.value.split(/\n|\r\n|\r/);
 
-                    // Get the maxlines for the current shape from common.nodetext
-                    const maxlinesForShape = common.nodetext.maxlines[selectedNodeData.shape];
-                    //const maxLengthPerLine = common.nodetext.length[selectedNodeData.shape];
+                    // Calculate the current number of lines considering wrapping
+                    const currentLines = Math.ceil(textareaElement.scrollHeight / parseFloat(window.getComputedStyle(textareaElement).lineHeight) - 1);
 
+                    //console.log(`Max Lines: ${maxLinesForShape}, Max Chars per Line: ${maxCharsPerLine}, currentLines: ${currentLines} `);
+                    //console.log("lines", lines);
 
+                    if (event.key !== 'Backspace' && event.key !== 'ArrowLeft' && event.key !== 'ArrowRight' && event.key !== 'Delete') {
 
-                    console.log("maxlinesForShape =", maxlinesForShape);
-                    console.log("lines.length =", lines.length);
+                        if (currentLines > maxLinesForShape) {
+                            common.showMessage(`Exceeded maximum lines (${maxLinesForShape}) for shape: ${selectedNodeData.shape}`, 2000);
+                            event.preventDefault();
+                            event.stopPropagation();
 
-                    // Check if the number of lines exceeds the maxlines for the shape
-                    if (lines.length > maxlinesForShape) {
-                        // Display a console log and prevent further input
-                        console.log("lines.length > maxlinesForShape....");
-                        common.showMessage(`Exceeded maximum lines (${maxlinesForShape}) for shape: ${selectedNodeData.shape}`, 2000);
-                        // Stop further input
-                        // Adjust the textarea value by joining the lines without exceeding maxlines
-                        // Freeze the textarea by setting it to readonly
-                        //textareaElement.setAttribute('readonly', 'readonly');
-                        // Prevent further input
-                        // Remove the last added line
-                        textareaElement.value = lines.slice(0, maxlinesForShape).join('\n');
+                        }
 
-                        // Stop further input handling
-                        event.stopImmediatePropagation();
-                        return;
                     }
                 }
+            });
+
+            textareaElement.addEventListener('input', (event) => {
+                RemoveToggleButtons();
+                common.adjustTextareaHeight(textareaElement);
+
+                // Assuming selectedNodeElement is a g element containing a rect element
+                const selectedNodeData = mindMapData.nodes.find((node) => node.id === selectedNodeId);
+
 
                 if (selectedNodeData.shape === "rectangle") {
                     const rectElement = selectedNodeElement.querySelector('rect');
