@@ -7,6 +7,11 @@ import { displayfilelist } from './fikrmap.js';
 import { showSaveConfirmationModal } from './fikrmap.js';
 import { r_save_Button_conf_handleSaveDrawing } from './fikrmap.js';
 import { transformManager } from './fikrmap.js';
+import { handleAddRelation } from './fikrmap.js';
+import { handleAddNode } from './fikrmap.js';
+
+
+
 
 
 

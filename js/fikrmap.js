@@ -3006,6 +3006,8 @@ function hideAttributeContainer() {
 function handleAddRelation() {
 
     addingrel = true;
+    common.showMessage('Select the target node to draw relation between ...', 2000);
+
 
 }
 
@@ -4085,4 +4087,4 @@ function getIsModified() {
 
 
 
-export { renderMindMap, sendChatMessage, setIsModified, getIsModified, displayfilelist, showSaveConfirmationModal, r_save_Button_conf_handleSaveDrawing, transformManager };
+export { renderMindMap, sendChatMessage, setIsModified, getIsModified, displayfilelist, showSaveConfirmationModal, r_save_Button_conf_handleSaveDrawing, transformManager, handleAddRelation, handleAddNode };
