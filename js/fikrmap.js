@@ -24,7 +24,7 @@ let cornerRadius = 10; // Adjust the corner radius as needed
 // Calculate the coordinates of the parallelogram points
 var angleDegrees = 85
 var angleRadians = (angleDegrees * Math.PI) / 180;
-var yOffset = (common.nodesize.width.plgrmWidth / Math.tan(angleRadians)) / 2;
+var yOffset = (common.nodesize.width.parallelogram / Math.tan(angleRadians)) / 2;
 
 // relationship Box
 let relationshipToolBoxRef;
@@ -441,12 +441,12 @@ function getCenterY(selection, nodeId) {
             const ry = parseFloat(shape.getAttribute('ry'));
             return cy;
         } else if (shape.getAttribute('data-tag') === 'rect') {
-            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + common.nodesize.height.rectHeight / 2;
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + common.nodesize.height.rectangle / 2;
         } else if (shape.getAttribute('data-tag') === 'parallelogram') {
-            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + common.nodesize.height.plgrmHeight / 2;
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + common.nodesize.height.parallelogram / 2;
         } else if (shape.getAttribute('data-tag') === 'diamond') {
             //console.log("centerY diamond shape = ", shape);
-            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + common.nodesize.height.diamondHeight / 2;
+            return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]) + common.nodesize.height.diamond / 2;
             //return parseFloat(node.getAttribute('transform').split('(')[1].split(',')[1]); // Center Y-coordinate of the diamond
         }
     }
@@ -592,7 +592,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2))
             .force('collision', d3.forceCollide()
                 .strength(0.2) // Adjust the strength value as needed
-                .radius((d) => (d.shape === 'ellipse' ? common.nodesize.width.ellipseRx : d.shape === 'parallelogram' ? common.nodesize.width.plgrmWidth / 2 : d.shape === 'diamond' ? common.nodesize.width.diamondWidth / 2 : common.nodesize.width.rectWidth / 2) + spacingBetweenNodes)
+                .radius((d) => (d.shape === 'ellipse' ? common.nodesize.width.ellipse : d.shape === 'parallelogram' ? common.nodesize.width.parallelogram / 2 : d.shape === 'diamond' ? common.nodesize.width.diamond / 2 : common.nodesize.width.rectangle / 2) + spacingBetweenNodes)
             ) //.force('collide', d3.forceCollide().radius( /* specify the desired separation radius */ ))
             //.force('avoidOverlapRelationships', avoidOverlapForce(0.2)) // Adjust the strength value as needed
             .force('verticalAlignment', verticalAlignmentForce(100)) // Adjust the level value as needed
@@ -682,6 +682,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 }
                 if (d.shape === 'parallelogram') {
                     const numLines = common.countLines(d) + 1; // Assuming this function counts the number of lines in the text
+                    console.log("Number of Lines = ", numLines);
                     const plgrmPoints = common.calculateParallelogramPoints(numLines);
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                     path.setAttribute("d", "M" + plgrmPoints.map(p => `${p.x},${p.y}`).join("L") + "Z");
@@ -693,7 +694,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     // Create a path for the diamond // Diamons height based on numlines
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                     const numLines = common.countLines(d) + 1;
-                    console.log("numLines=", numLines);
+                    console.log("Number of Lines = ", numLines);
                     const diamondPoints = common.calculateDiamondPoints(numLines);
                     console.log("diamondPoints=", diamondPoints);
                     path.setAttribute("d", "M" + diamondPoints.map(p => `${p.x},${p.y}`).join("L") + "Z");
@@ -708,12 +709,12 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     const numLines = common.countLines(d) + 1;
                     console.log("---------------------- XX S");
                     console.log("d.label=", d.label);
-                    console.log("numLines=", numLines);
+                    console.log("Number of Lines = ", numLines);
                     console.log("---------------------- XX E");
 
-                    const rectHeight = common.calculateRectHeight(numLines);
+                    const rectangle = common.calculateRectHeight(numLines);
 
-                    rect.setAttribute('height', rectHeight);
+                    rect.setAttribute('height', rectangle);
 
                     return rect;
 
@@ -721,7 +722,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             })
             .attr('transform', (d) => { // position of shape
                 if (d.shape === 'parallelogram') {
-                    //return `translate(${-plgrmWidth/2 - 10 }, ${-common.nodesize.height.plgrmHeight*3})`;
+                    //return `translate(${-parallelogram/2 - 10 }, ${-common.nodesize.height.parallelogram*3})`;
                     return null;
                 } else {
                     return null;
@@ -729,27 +730,27 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             })
             .attr('width', (d) => {
                 if (d.shape === 'ellipse') {
-                    return common.nodesize.width.ellipseRx * 2;
+                    return common.nodesize.width.ellipse * 2;
                 } else if (d.shape === 'parallelogram') {
-                    //console.log("setting the width to rectWidth....")
-                    return common.nodesize.width.plgrmWidth; // Set the width of the parallelogram shape
+                    //console.log("setting the width to rectangle....")
+                    return common.nodesize.width.parallelogram; // Set the width of the parallelogram shape
                 } else if (d.shape === 'diamond') {
-                    //console.log("setting the width to rectWidth....")
-                    return common.nodesize.width.diamondWidth; // Set the width of the diamond shape
+                    //console.log("setting the width to rectangle....")
+                    return common.nodesize.width.diamond; // Set the width of the diamond shape
                 } else {
-                    return common.nodesize.width.rectWidth;
+                    return common.nodesize.width.rectangle;
                 }
             })
             .attr('height', (d) => { // for rect
                 const numLines = common.countLines(d); // Assume d.label contains the text
                 console.log("d.label=", d.label);
-                console.log("numLines=", numLines);
+                console.log("Number of Lines = ", numLines);
                 // adjust node height
                 return common.calculateRectHeight(numLines);
             })
             .attr('rx', (d) => {
                 if (d.shape === 'ellipse') {
-                    return common.nodesize.width.ellipseRx;
+                    return common.nodesize.width.ellipse;
                 } else if (d.shape === 'parallelogram') {
                     return 0; // No rounded corners for parallelogram shape
                 } else if (d.shape === 'diamond') {
@@ -761,6 +762,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .attr('ry', (d) => {
                 if (d.shape === 'ellipse') { // for elipse
                     const numLines = common.countLines(d);
+                    console.log("Number of Lines = ", numLines);
                     const totalHeight = common.calculateRectHeight(numLines);
                     return totalHeight / 2; // divide by 2 since ry is a radius, not a diameter
                 } else if (d.shape === 'parallelogram') {
@@ -794,11 +796,11 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .append('foreignObject')
             .attr('x', (d) => {
                 if (d.shape === 'ellipse') {
-                    return -common.nodesize.width.ellipseRx + 15;
+                    return -common.nodesize.width.ellipse + 15;
                 } else if (d.shape === 'parallelogram') {
                     return 10
                 } else if (d.shape === 'diamond') {
-                    return common.nodesize.width.diamondWidth / 4 - 40
+                    return common.nodesize.width.diamond / 4 - 40
                 } else {
                     return 1;
                 }
@@ -809,7 +811,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 } else if (d.shape === 'parallelogram') {
                     return 12.5;
                 } else if (d.shape === 'diamond') {
-                    return common.nodesize.height.diamondHeight / 2 - 15;
+                    return common.nodesize.height.diamond / 2 - 15;
                 } else {
                     return 12.5;
                 }
@@ -871,13 +873,13 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 if (d.shape === 'ellipse') {
                     return -10; // For ellipse and parallelogram, keep the y-coordinate at the center
                 } else if (d.shape === 'parallelogram') {
-                    return common.nodesize.height.plgrmHeight / 2 - 8; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
+                    return common.nodesize.height.parallelogram / 2 - 8; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
 
                 } else if (d.shape === 'diamond') {
-                    return common.nodesize.height.diamondHeight / 2; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
+                    return common.nodesize.height.diamond / 2; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
 
                 } else {
-                    return common.nodesize.height.rectHeight / 2 - 8; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
+                    return common.nodesize.height.rectangle / 2 - 8; // For rectangle, adjust the y-coordinate to be vertically centered within the rectangle
                 }
             })
             //.text((d) => d.label.substring(0, textlength))
@@ -898,8 +900,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .each(function(d) {
                 const textElement = d3.select(this);
                 let label = common.handleShapeText(d);
-
-
+                // console.log("LABEL = ", label);
                 const lines = label.split('\n'); // Split the label into lines
                 for (let i = 0; i < lines.length; i++) {
                     textElement.append('tspan') // Append a tspan for each line
@@ -914,7 +915,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .attr('cx', (d) => {
                 if (d.shape === 'ellipse') {
                     // For ellipses, move the circle to the left side
-                    return -common.nodesize.width.ellipseRx + 10; // Adjust the value as needed
+                    return -common.nodesize.width.ellipse + 10; // Adjust the value as needed
                 } else if (d.shape === 'parallelogram') {
                     // For parallelogram, move the circle to the left side
                     return 5; // For rectangles, keep the x-coordinate as it was
@@ -928,7 +929,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .attr('cy', (d) => {
                 if (d.shape === 'ellipse') {
                     // For ellipses, move the circle up to the top side
-                    return -common.nodesize.height.ellipseRy + 10; // Adjust the value as needed
+                    return -common.nodesize.height.ellipse + 10; // Adjust the value as needed
                 } else if (d.shape === 'parallelogram') {
                     // For parallelogram, move the circle to the top side
                     return 5; // For rectangles and other shapes, keep the y-coordinate as it was
@@ -952,7 +953,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .attr('x', (d) => {
                 if (d.shape === 'ellipse') {
                     // For ellipses, move the text to the left side
-                    return -common.nodesize.width.ellipseRx + 10; // Adjust the value as needed
+                    return -common.nodesize.width.ellipse + 10; // Adjust the value as needed
                 } else if (d.shape === 'parallelogram') {
                     // For parallelogram, move the text to the left side
                     return 6; // For rectangles, keep the x-coordinate as it was
@@ -966,7 +967,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .attr('y', (d) => {
                 if (d.shape === 'ellipse') {
                     // For ellipses, move the text up to the top side
-                    return -common.nodesize.height.ellipseRy + 13; // Adjust the value as needed
+                    return -common.nodesize.height.ellipse + 13; // Adjust the value as needed
                 } else if (d.shape === 'parallelogram') {
                     // For parallelogram, move the text to the top side
                     return 8; // For rectangles and other shapes, keep the y-coordinate as it was
@@ -990,13 +991,13 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .attr('class', 'node-icon')
             .attr('transform', (d) => {
                 if (d.shape === 'ellipse') {
-                    return `translate(${common.nodesize.width.ellipseRx / 2 + 25}, ${-common.nodesize.height.ellipseRy / 2 + 5})`; // Top right corner of ellipse
+                    return `translate(${common.nodesize.width.ellipse / 2 + 25}, ${-common.nodesize.height.ellipse / 2 + 5})`; // Top right corner of ellipse
                 } else if (d.shape === 'parallelogram') {
-                    return `translate(${common.nodesize.width.plgrmWidth -45}, ${-common.nodesize.height.plgrmHeight / 2+35})`; // Top right corner of parallelogram
+                    return `translate(${common.nodesize.width.parallelogram -45}, ${-common.nodesize.height.parallelogram / 2+35})`; // Top right corner of parallelogram
                 } else if (d.shape === 'diamond') {
-                    return `translate(${common.nodesize.width.diamondWidth / 2 - 10}, ${-common.nodesize.height.diamondHeight / 2+30})`; // Top right corner of diamond
+                    return `translate(${common.nodesize.width.diamond / 2 - 10}, ${-common.nodesize.height.diamond / 2+30})`; // Top right corner of diamond
                 } else {
-                    return `translate(${common.nodesize.width.rectWidth -30}, ${-common.nodesize.height.rectHeight / 2 + 35})`; // Top right corner of rectangle
+                    return `translate(${common.nodesize.width.rectangle -30}, ${-common.nodesize.height.rectangle / 2 + 35})`; // Top right corner of rectangle
                 }
             });
         // Append a foreignObject element within the nodeIcons group for the icon
@@ -2052,42 +2053,42 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
                 } else if (d.shape === 'parallelogram') {
 
-                    dotcalcX = currentTransform.k * (d.x + common.nodesize.width.plgrmWidth / 2) + currentTransform.x;
-                    dotcalcY = currentTransform.k * (d.y - common.nodesize.height.ellipseRy + 25) + currentTransform.y;
+                    dotcalcX = currentTransform.k * (d.x + common.nodesize.width.parallelogram / 2) + currentTransform.x;
+                    dotcalcY = currentTransform.k * (d.y - common.nodesize.height.ellipse + 25) + currentTransform.y;
                     console.log("...........currentTransform.k=", currentTransform.k);
-                    console.log("common.nodesize.height.ellipseRy=", common.nodesize.height.ellipseRy);
+                    console.log("common.nodesize.height.ellipse=", common.nodesize.height.ellipse);
                     console.log("currentTransform.y=", currentTransform.y);
                     console.log("dotcalcY=", dotcalcY);
-                    pluscalcX = currentTransform.k * (d.x + common.nodesize.width.plgrmWidth / 2) + currentTransform.x;
+                    pluscalcX = currentTransform.k * (d.x + common.nodesize.width.parallelogram / 2) + currentTransform.x;
                     pluscalcY = currentTransform.k * (d.y + nodeHeight) + currentTransform.y;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
-                    pencalcX = currentTransform.k * (d.x + common.nodesize.width.plgrmWidth - 25) + currentTransform.x;
-                    pencalcY = currentTransform.k * (d.y - common.nodesize.height.plgrmHeight / 2 + 15) + currentTransform.y;
+                    pencalcX = currentTransform.k * (d.x + common.nodesize.width.parallelogram - 25) + currentTransform.x;
+                    pencalcY = currentTransform.k * (d.y - common.nodesize.height.parallelogram / 2 + 15) + currentTransform.y;
 
 
                 } else if (d.shape === 'diamond') {
 
-                    dotcalcX = currentTransform.k * (d.x + common.nodesize.width.diamondWidth / 2) + currentTransform.x;
-                    dotcalcY = currentTransform.k * (d.y - common.nodesize.height.ellipseRy + 25) + currentTransform.y;
-                    pluscalcX = currentTransform.k * (d.x + common.nodesize.width.diamondWidth / 2) + currentTransform.x;
+                    dotcalcX = currentTransform.k * (d.x + common.nodesize.width.diamond / 2) + currentTransform.x;
+                    dotcalcY = currentTransform.k * (d.y - common.nodesize.height.ellipse + 25) + currentTransform.y;
+                    pluscalcX = currentTransform.k * (d.x + common.nodesize.width.diamond / 2) + currentTransform.x;
                     pluscalcY = currentTransform.k * (d.y + nodeHeight) + currentTransform.y;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
-                    pencalcX = currentTransform.k * (d.x + common.nodesize.width.diamondWidth / 2 + 55) + currentTransform.x;
-                    pencalcY = currentTransform.k * (d.y - common.nodesize.height.ellipseRy / 2 + 30) + currentTransform.y;
+                    pencalcX = currentTransform.k * (d.x + common.nodesize.width.diamond / 2 + 55) + currentTransform.x;
+                    pencalcY = currentTransform.k * (d.y - common.nodesize.height.ellipse / 2 + 30) + currentTransform.y;
 
                 } else {
 
-                    dotcalcX = currentTransform.k * (d.x + common.nodesize.width.rectWidth / 2) + currentTransform.x;
-                    dotcalcY = currentTransform.k * (d.y - common.nodesize.height.ellipseRy + 25) + currentTransform.y;
-                    pencalcX = currentTransform.k * (d.x + common.nodesize.width.rectWidth - 15) + currentTransform.x;
-                    pencalcY = currentTransform.k * (d.y - common.nodesize.height.ellipseRy + 25) + currentTransform.y;
+                    dotcalcX = currentTransform.k * (d.x + common.nodesize.width.rectangle / 2) + currentTransform.x;
+                    dotcalcY = currentTransform.k * (d.y - common.nodesize.height.ellipse + 25) + currentTransform.y;
+                    pencalcX = currentTransform.k * (d.x + common.nodesize.width.rectangle - 15) + currentTransform.x;
+                    pencalcY = currentTransform.k * (d.y - common.nodesize.height.ellipse + 25) + currentTransform.y;
 
-                    pluscalcX = currentTransform.k * (d.x + common.nodesize.width.rectWidth / 2) + currentTransform.x;
+                    pluscalcX = currentTransform.k * (d.x + common.nodesize.width.rectangle / 2) + currentTransform.x;
                     // Update pluscalcY calculation to reflect the node height
                     pluscalcY = currentTransform.k * (d.y + nodeHeight) + currentTransform.y;
-                    //pluscalcY = currentTransform.k * (d.y + common.nodesize.height.rectHeight) + currentTransform.y;
+                    //pluscalcY = currentTransform.k * (d.y + common.nodesize.height.rectangle) + currentTransform.y;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
                     plusText.attr("x", pluscalcX).attr("y", pluscalcY - 2).attr("visibility", "visible");
 
@@ -2114,130 +2115,130 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'rectangle')) {
                     console.log('both source and target are rectangle ');
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'rectangle')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'ellipse')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'parallelogram')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'diamond')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'ellipse')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'rectangle')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'parallelogram')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'diamond')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'parallelogram') && (targetNode.shape === 'ellipse')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'diamond') && (targetNode.shape === 'ellipse')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'parallelogram') && (targetNode.shape === 'parallelogram')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'diamond') && (targetNode.shape === 'diamond')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'parallelogram') && (targetNode.shape === 'rectangle')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else if ((sourceNode.shape === 'diamond') && (targetNode.shape === 'rectangle')) {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 } else {
                     // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectWidth; // Assuming the width of the rectangle is "rectWidth"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectWidth"
-                    const targetY = targetNode.y + common.nodesize.height.rectHeight / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectHeight"
+                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
+                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
+                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
+                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
                     dotcalcX = (sourceX + targetX) / 2;
                     dotcalcY = (sourceY + targetY) / 2;
                 }
@@ -2664,7 +2665,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
                 //console.log("Display of Shape is None, we are setting x and y to display ...");
                 //calcX = d.x + (d.label.length * 10 + 20) / 2;
-                var calcX = box.x + (common.nodesize.width.rectWidth) / 2 - 70;
+                var calcX = box.x + (common.nodesize.width.rectangle) / 2 - 70;
                 var calcY = box.y - 70;
 
                 //console.log('calcX', calcX);
@@ -2693,7 +2694,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
                 //console.log("Display of Icon is None, we are setting x and y to display ...");
                 //calcX = d.x + (d.label.length * 10 + 20) / 2;
-                var calcX = box.x + (rectWidth) / 2 - 70;
+                var calcX = box.x + (rectangle) / 2 - 70;
                 var calcY = box.y - 70;
 
                 //console.log('calcX', calcX);
@@ -3265,7 +3266,7 @@ function handleRectEdit() { // double click
             textareaElement.value = currentText;
 
             // Set attributes to match the width, height, x, and y of the original text element
-            foreignObject.setAttribute('width', common.nodesize.width.rectWidth); // Set to rectWidth
+            foreignObject.setAttribute('width', common.nodesize.width.rectangle); // Set to rectangle
             //foreignObject.setAttribute('height', 'auto'); // Set to auto to allow for variable height
             foreignObject.setAttribute('x', rectextBox.x);
             foreignObject.setAttribute('y', rectextBox.y);
@@ -3282,8 +3283,8 @@ function handleRectEdit() { // double click
             textareaElement.style.color = 'blue';
 
             // Set other necessary styles for the textarea element
-            const x = common.nodesize.width.rectWidth - 35;
-            textareaElement.style.width = x + 'px'; // Set to rectWidth
+            const x = common.nodesize.width.rectangle - 35;
+            textareaElement.style.width = x + 'px'; // Set to rectangle
 
             // Assuming line height is 1.2em
             //textareaElement.style.height = 'auto'; // Set to auto to allow for variable height
@@ -3306,15 +3307,45 @@ function handleRectEdit() { // double click
                 textareaElement.select();
             });
 
-            textareaElement.addEventListener('input', () => {
+            textareaElement.addEventListener('input', (event) => {
 
                 RemoveToggleButtons();
 
                 common.adjustTextareaHeight(textareaElement);
 
-
                 // Assuming selectedNodeElement is a g element containing a rect element
                 const selectedNodeData = mindMapData.nodes.find((node) => node.id === selectedNodeId);
+
+                if (selectedNodeData) {
+                    const lines = textareaElement.value.split('\n');
+
+                    // Get the maxlines for the current shape from common.nodetext
+                    const maxlinesForShape = common.nodetext.maxlines[selectedNodeData.shape];
+                    //const maxLengthPerLine = common.nodetext.length[selectedNodeData.shape];
+
+
+
+                    console.log("maxlinesForShape =", maxlinesForShape);
+                    console.log("lines.length =", lines.length);
+
+                    // Check if the number of lines exceeds the maxlines for the shape
+                    if (lines.length > maxlinesForShape) {
+                        // Display a console log and prevent further input
+                        console.log("lines.length > maxlinesForShape....");
+                        common.showMessage(`Exceeded maximum lines (${maxlinesForShape}) for shape: ${selectedNodeData.shape}`, 2000);
+                        // Stop further input
+                        // Adjust the textarea value by joining the lines without exceeding maxlines
+                        // Freeze the textarea by setting it to readonly
+                        //textareaElement.setAttribute('readonly', 'readonly');
+                        // Prevent further input
+                        // Remove the last added line
+                        textareaElement.value = lines.slice(0, maxlinesForShape).join('\n');
+
+                        // Stop further input handling
+                        event.stopImmediatePropagation();
+                        return;
+                    }
+                }
 
                 if (selectedNodeData.shape === "rectangle") {
                     const rectElement = selectedNodeElement.querySelector('rect');
@@ -3336,15 +3367,14 @@ function handleRectEdit() { // double click
                         const newHeight = textareaElement.scrollHeight;
                         const newPoints = [
                             { x: 0, y: 0 },
-                            { x: common.nodesize.width.plgrmWidth - yOffset, y: 0 },
-                            { x: common.nodesize.width.plgrmWidth, y: newHeight },
+                            { x: common.nodesize.width.parallelogram - yOffset, y: 0 },
+                            { x: common.nodesize.width.parallelogram, y: newHeight },
                             { x: yOffset, y: newHeight }
                         ];
                         const newD = "M" + newPoints.map(p => `${p.x},${p.y}`).join("L") + "Z";
                         pathElement.setAttribute('d', newD);
                     }
                 }
-
 
 
             });
@@ -3510,8 +3540,8 @@ function showColorPalette(type, id) {
         const x = parseFloat(boxElement.attr('transform').split(',')[0].split('(')[1]);
         const y = parseFloat(boxElement.attr('transform').split(',')[1].split(')')[0]);
 
-        const paletteX = x + common.nodesize.height.rectHeight;
-        const paletteY = y - common.nodesize.height.rectHeight;
+        const paletteX = x + common.nodesize.height.rectangle;
+        const paletteY = y - common.nodesize.height.rectangle;
 
         colorPalette.style.top = paletteY + "px";
         colorPalette.style.left = paletteX + "px";
@@ -3710,15 +3740,15 @@ function calculateNodePositions(response) {
 
     // Calculate x and y positions for each node
     nodes.forEach((node, index) => {
-        const rectWidth = node.label.length * 10 + 20; // Adjust the box width based on the text length
+        const rectangle = node.label.length * 10 + 20; // Adjust the box width based on the text length
 
         const paddingX = 100; // Horizontal padding between nodes
         const paddingY = 100; // Vertical padding between nodes
 
         const row = Math.floor(index / 3); // Number of rows (adjust the value to control the layout)
 
-        const x = (index % 3) * (rectWidth + paddingX); // Calculate x position
-        const y = row * (common.nodesize.height.rectHeight + paddingY); // Calculate y position
+        const x = (index % 3) * (rectangle + paddingX); // Calculate x position
+        const y = row * (common.nodesize.height.rectangle + paddingY); // Calculate y position
 
         node.x = x; // Set x position
         node.y = y; // Set y position

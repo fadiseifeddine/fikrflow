@@ -8,30 +8,30 @@ let selectedFileName = null;
 
 let nodetext = {
     length: {
-        rectchar: 30,
-        parallelogramchar: 40,
-        diamondchar: 40,
-        ellipsechar: 35
+        rectangle: 30,
+        parallelogram: 40,
+        diamond: 40,
+        ellipse: 35
     },
     maxlines: {
-        rectlines: 10,
-        parallelogramlines: 6,
-        diamondlines: 4,
-        ellipselines: 3
+        rectangle: 10,
+        parallelogram: 6,
+        diamond: 4,
+        ellipse: 3
     }
 }
 let nodesize = {
     width: {
-        rectWidth: 250,
-        plgrmWidth: 250,
-        diamondWidth: 350,
-        ellipseRx: 150,
+        rectangle: 250,
+        parallelogram: 250,
+        diamond: 350,
+        ellipse: 150,
     },
     height: {
-        rectHeight: 50,
-        plgrmHeight: 50,
-        diamondHeight: 75,
-        ellipseRy: 50
+        rectangle: 50,
+        parallelogram: 50,
+        diamond: 75,
+        ellipse: 50
     },
     icon: {
         iconSize: 24
@@ -54,16 +54,16 @@ function calculateRectHeight(numLines) {
 
 function calculateDiamondPoints(numLines) {
     console.log("numLines=", numLines);
-    const totalHeight = calculateRectHeight(numLines); // Assuming this function returns the total height based on the number of lines
+    const totalHeight = nodesize.height.diamond;
     console.log("totalHeight=", totalHeight);
-    const halfWidth = nodesize.width.diamondWidth / 2;
+    const halfWidth = nodesize.width.diamond / 2;
     console.log("halfWidth=", halfWidth);
     const halfHeight = totalHeight / 2;
     console.log("halfHeight=", halfHeight);
 
     // Assuming the top-left corner of the bounding box is at (0, 0)
     const topPoint = { x: halfWidth, y: 0 };
-    const rightPoint = { x: nodesize.width.diamondWidth, y: halfHeight };
+    const rightPoint = { x: nodesize.width.diamond, y: halfHeight };
     const bottomPoint = { x: halfWidth, y: totalHeight };
     const leftPoint = { x: 0, y: halfHeight };
 
@@ -71,14 +71,15 @@ function calculateDiamondPoints(numLines) {
 }
 
 function calculateParallelogramPoints(numLines) {
-    const totalHeight = calculateRectHeight(numLines); // Assuming this function returns the total height based on the number of lines
+    const totalHeight = nodesize.height.parallelogram;
+
     const yOffset = totalHeight * Math.tan(20 * Math.PI / 180); // Adjust the angle if needed
-    const plgrmWidth = nodesize.width.plgrmWidth;
+    const plgrmWidth = nodesize.width.parallelogram;
 
     const points = [
         { x: 0, y: 0 },
-        { x: nodesize.width.plgrmWidth - yOffset, y: 0 },
-        { x: nodesize.width.plgrmWidth, y: totalHeight },
+        { x: nodesize.width.parallelogram - yOffset, y: 0 },
+        { x: nodesize.width.parallelogram, y: totalHeight },
         { x: yOffset, y: totalHeight }
     ];
 
@@ -250,28 +251,12 @@ function splitText(text, maxLength, maxLines) {
 
 function countLines(d) {
     let label = d.label; // Assuming 'label' is a property of 'd'
-    let maxLength, maxLines;
+    let maxLength = nodetext.length[d.shape];
+    let maxLines = nodetext.maxlines[d.shape];
 
-    switch (d.shape) {
-        case 'diamond':
-            maxLength = nodetext.length.diamondchar;
-            maxLines = nodetext.maxlines.diamondlines;
-            break;
-        case 'rectangle':
-            maxLength = nodetext.length.rectchar;
-            maxLines = nodetext.maxlines.rectlines;
-            break;
-        case 'ellipse':
-            maxLength = nodetext.length.ellipsechar;
-            maxLines = nodetext.maxlines.ellipselines;
-            break;
-        case 'parallelogram':
-            maxLength = nodetext.length.parallelogramchar;
-            maxLines = nodetext.maxlines.parallelogramlines;
-            break;
-        default:
-            console.error('Unrecognized shape:', d.shape);
-            return 0; // Handle this case as needed
+    if (!maxLength || !maxLines) {
+        console.error('Unrecognized shape:', d.shape);
+        return 0; // Handle this case as needed
     }
 
     // Now split the text according to the determined maxLength and maxLines
@@ -281,37 +266,23 @@ function countLines(d) {
     return splitTextResult.split('\n').length;
 }
 
-
 function handleShapeText(d) {
-    let label = d.label; // Assuming 'label' is a property of 'd'
-    let maxLength;
+    const shapeConfig = {
+        diamond: { length: nodetext.length.diamond, maxlines: nodetext.maxlines.diamond },
+        rectangle: { length: nodetext.length.rectangle, maxlines: nodetext.maxlines.rectangle },
+        ellipse: { length: nodetext.length.ellipse, maxlines: nodetext.maxlines.ellipse },
+        parallelogram: { length: nodetext.length.parallelogram, maxlines: nodetext.maxlines.parallelogram }
+    };
 
-    switch (d.shape) {
-        case 'diamond':
-            maxLength = nodetext.length.diamondchar;
-            label = splitText(label, maxLength, nodetext.maxlines.diamondlines);
-            break;
-        case 'rectangle':
-            // Define maxLength and maxLines for rectangle
-            maxLength = nodetext.length.rectchar;
-            label = splitText(label, maxLength, nodetext.maxlines.rectlines);
-            break;
-        case 'ellipse':
-            // Define maxLength and maxLines for ellipse
-            maxLength = nodetext.length.ellipsechar;
-            label = splitText(label, maxLength, nodetext.maxlines.ellipselines);
-            break;
-        case 'parallelogram':
-            // Define maxLength and maxLines for parallelogram
-            maxLength = nodetext.length.parallelogramchar;
-            label = splitText(label, maxLength, nodetext.maxlines.parallelogramlines);
-            break;
-        default:
-            console.error('Unrecognized shape:', d.shape);
-            break;
+    const { length, maxlines } = shapeConfig[d.shape] || {};
+
+    if (length && maxlines) {
+        d.label = splitText(d.label, length, maxlines);
+    } else {
+        console.error('Unrecognized shape:', d.shape);
     }
 
-    return label; // Return the modified label
+    return d.label; // Return the modified label
 }
 
 // Add event listeners for keydown and keyup events
