@@ -712,7 +712,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     console.log("Number of Lines = ", numLines);
                     console.log("---------------------- XX E");
 
-                    const rectangle = common.calculateRectHeight(numLines);
+                    const rectangle = common.calculateNodeHeight(d.shape, numLines);
 
                     rect.setAttribute('height', rectangle);
 
@@ -746,7 +746,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 console.log("d.label=", d.label);
                 console.log("Number of Lines = ", numLines);
                 // adjust node height
-                return common.calculateRectHeight(numLines);
+                return common.calculateNodeHeight(d.shape, numLines);
             })
             .attr('rx', (d) => {
                 if (d.shape === 'ellipse') {
@@ -763,7 +763,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 if (d.shape === 'ellipse') { // for elipse
                     const numLines = common.countLines(d);
                     console.log("Number of Lines = ", numLines);
-                    const totalHeight = common.calculateRectHeight(numLines);
+                    const totalHeight = common.calculateNodeHeight(d.shape, numLines);
                     return totalHeight / 2; // divide by 2 since ry is a radius, not a diameter
                 } else if (d.shape === 'parallelogram') {
                     return 0; // No rounded corners for parallelogram shape
@@ -813,7 +813,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 } else if (d.shape === 'diamond') {
                     return common.nodesize.height.diamond / 2 - 15;
                 } else {
-                    return 12.5;
+                    return 10;
                 }
             })
             .attr('width', (d) => {
@@ -2097,154 +2097,45 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
             }
-            if (d.source) // line
-            {
-                // console.log(" My d.source = " + d.source)
-                // console.log(" My d.target = " + d.target)
-                // console.log(" My d.type = " + d.type)
-                // console.log(" My d.lineid = " + d.source + '-' + d.target)
-
+            // line
+            if (d.source && d.target && mindMapData.nodes.length > 1) {
                 // Find the source and target node objects
                 const sourceNode = mindMapData.nodes.find((node) => node.id === d.source);
                 const targetNode = mindMapData.nodes.find((node) => node.id === d.target);
 
-                // console.log("sourceNode shape=" + sourceNode.shape);
-                // console.log("targetNode shape=" + targetNode.shape);
+                // Log node dimensions for debugging
+                // console.log('sourceNode:', sourceNode);
+                // console.log('targetNode:', targetNode);
 
+                const srcnumLines = common.countLines(sourceNode);
+                console.log("Number of Lines For Source = ", srcnumLines);
+                const sourceHeight = common.calculateNodeHeight(sourceNode.shape, srcnumLines);
+                const sourceWidth = common.calculateNodeWidth(sourceNode.shape);
 
-                if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'rectangle')) {
-                    console.log('both source and target are rectangle ');
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'rectangle')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'ellipse')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'parallelogram')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'rectangle') && (targetNode.shape === 'diamond')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'ellipse')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'rectangle')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'parallelogram')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'ellipse') && (targetNode.shape === 'diamond')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'parallelogram') && (targetNode.shape === 'ellipse')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'diamond') && (targetNode.shape === 'ellipse')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'parallelogram') && (targetNode.shape === 'parallelogram')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'diamond') && (targetNode.shape === 'diamond')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'parallelogram') && (targetNode.shape === 'rectangle')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else if ((sourceNode.shape === 'diamond') && (targetNode.shape === 'rectangle')) {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                } else {
-                    // Calculate the middle point between the source and target nodes
-                    const sourceX = sourceNode.x + common.nodesize.width.rectangle; // Assuming the width of the rectangle is "rectangle"
-                    const sourceY = sourceNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    const targetX = targetNode.x; // Assuming the width of the rectangle is "rectangle"
-                    const targetY = targetNode.y + common.nodesize.height.rectangle / 2; // Assuming the height of the rectangle is "common.nodesize.height.rectangle"
-                    dotcalcX = (sourceX + targetX) / 2;
-                    dotcalcY = (sourceY + targetY) / 2;
-                }
+                const trgnumLines = common.countLines(targetNode);
+                console.log("Number of Lines For Target = ", trgnumLines);
+                const targetHeight = common.calculateNodeHeight(targetNode.shape, trgnumLines);
+                const targetWidth = common.calculateNodeWidth(targetNode.shape);
+
+                // Calculate the middle point between the source and target nodes
+                const sourceX = sourceNode.x + sourceWidth / 2;
+                const sourceY = sourceNode.y + sourceHeight / 2;
+                const targetX = targetNode.x + targetWidth / 2;
+                const targetY = targetNode.y + targetHeight / 2;
+
+                // Set dotcalcX and dotcalcY directly to the middle point
+                dotcalcX = (sourceX + targetX) / 2;
+                dotcalcY = (sourceY + targetY) / 2;
+
 
 
             }
+            //else {
+            // console.error('Source or target node is undefined or nodes array is empty.');
+            // console.log("d.source =", d.source);
+            // console.log("d.target =", d.target);
+
+            //}
 
             //console.log("making the dotCircle visible");
             //console.log(calcX);

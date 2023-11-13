@@ -40,16 +40,70 @@ let nodesize = {
 
 
 
+// Function to calculate the height of the node based on the shape and number of lines
+function calculateNodeHeight(shape, numLines) {
+    const baseHeight = 50; // Default base height
+    const lineHeight = 20; // Height for each additional line
+
+    switch (shape) {
+        case 'rectangle':
+            return calculateRectHeight(numLines);
+        case 'ellipse':
+            // Adjust dimensions as needed for ellipse
+            return baseHeight + (lineHeight * (numLines - 1));
+        case 'parallelogram':
+            // Adjust dimensions as needed for parallelogram
+            return calculateParallelogramHeight(numLines);
+        case 'diamond':
+            // Adjust dimensions as needed for diamond
+            return calculateDiamondHeight(numLines);
+        default:
+            console.error('Invalid node shape:', shape);
+            return baseHeight;
+    }
+}
+
+
+
+// Function to calculate the width of the node based on the shape
+function calculateNodeWidth(shape) {
+    switch (shape) {
+        case 'rectangle':
+            return nodesize.width.rectangle;
+        case 'ellipse':
+            return nodesize.width.ellipse; // Adjust as needed
+        case 'parallelogram':
+            return nodesize.width.parallelogram; // Adjust as needed
+        case 'diamond':
+            return nodesize.width.diamond; // Adjust as needed
+        default:
+            console.error('Invalid node shape:', shape);
+            return nodesize.width.rectangle; // Default width for unknown shape
+    }
+}
+
+
 // Function to calculate the height of the rectangle based on the number of lines
 function calculateRectHeight(numLines) {
     const baseHeight = 50; // Base height for one line
     const lineHeight = 20; // Height for each additional line
-    //console.log("The numlines =", numLines);
-    if (numLines > 1)
-        return (lineHeight * numLines) + 15;
-    else {
-        return baseHeight;
-    }
+    return (lineHeight * numLines) + 15;
+}
+
+// Function to calculate the height of the parallelogram based on the number of lines
+function calculateParallelogramHeight(numLines) {
+    const baseHeight = 50; // Base height for one line
+    const lineHeight = 20; // Height for each additional line
+    // Adjust dimensions as needed for parallelogram
+    return (lineHeight * numLines) + 10;
+}
+
+// Function to calculate the height of the diamond based on the number of lines
+function calculateDiamondHeight(numLines) {
+    const baseHeight = 50; // Base height for one line
+    const lineHeight = 20; // Height for each additional line
+    // Adjust dimensions as needed for diamond
+    return (lineHeight * numLines) + 5;
 }
 
 function calculateDiamondPoints(numLines) {
@@ -292,4 +346,4 @@ window.addEventListener('keyup', handleKeyup);
 
 
 
-export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName, isFieldEmpty, showFieldError, countLines, calculateRectHeight, calculateDiamondPoints, calculateParallelogramPoints, nodesize, nodetext, splitText, adjustTextareaHeight, handleShapeText };
+export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName, isFieldEmpty, showFieldError, countLines, calculateNodeHeight, calculateDiamondPoints, calculateParallelogramPoints, nodesize, nodetext, splitText, adjustTextareaHeight, handleShapeText, calculateNodeWidth };
