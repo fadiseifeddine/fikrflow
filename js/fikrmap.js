@@ -1438,7 +1438,108 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 });
 
             solidRelationships.exit().remove();
+
+            // Draw label
+            const label = svg.selectAll('.label')
+                .data(mindMapData.relationships.filter((relation) => relation.type === 'solid'));
+
+            label.enter()
+                .append('text')
+                .attr('class', 'label')
+                .merge(label)
+                .attr('x', (d) => {
+                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
+                    const targetNode = nodes.filter((node) => node.id === d.target).node();
+
+                    if (sourceNode && targetNode) {
+                        const sourceTransform = sourceNode.getAttribute('transform');
+                        const targetTransform = targetNode.getAttribute('transform');
+
+                        const sourceX = parseFloat(sourceTransform.split('(')[1].split(',')[0]);
+                        const targetX = parseFloat(targetTransform.split('(')[1].split(',')[0]);
+
+                        const x = (sourceX + targetX) / 2;
+                        return x;
+                    } else {
+                        console.error(`Error: sourceNode or targetNode not found for label "${d.label}"`);
+                        return 0;
+                    }
+                })
+                .attr('y', (d) => {
+                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
+                    const targetNode = nodes.filter((node) => node.id === d.target).node();
+
+                    if (sourceNode && targetNode) {
+                        const sourceTransform = sourceNode.getAttribute('transform');
+                        const targetTransform = targetNode.getAttribute('transform');
+
+                        const sourceY = parseFloat(sourceTransform.split('(')[1].split(',')[1].split(')')[0]);
+                        const targetY = parseFloat(targetTransform.split('(')[1].split(',')[1].split(')')[0]);
+
+                        const y = (sourceY + targetY) / 2;
+                        return y;
+                    } else {
+                        console.error(`Error: sourceNode or targetNode not found for label "${d.label}"`);
+                        return 0;
+                    }
+                })
+                .attr('dy', 20) // Adjust the vertical position (upward) of the label (shift relatively to y)
+                .attr('text-anchor', 'middle')
+                .text((d) => d.label);
+
+            label.exit().remove();
+
+
+
+
         }
+
+
+        function handleLabel(lineId) {
+            // Assuming 'd' is the data object for the relationship
+            console.log("0000 0");
+            console.log("lineId=", lineId);
+
+            // Update the stroke-width in the mind map data
+            const relationship = mindMapData.relationships.find((relation) => {
+                const slineId = `${relation.source}-${relation.target}`;
+                return slineId === lineId;
+            });
+
+            console.log("relationship.source =", relationship.source);
+
+            // Check if the label already exists
+            const existingLabel = d3.select(`#label-${relationship.source}-${relationship.target}`);
+            console.log("0000 1");
+
+            if (existingLabel.size() === 0) {
+                console.log("0000 2");
+
+                // Label doesn't exist, create a new one
+                const label = graphGroup.append('foreignObject')
+                    .attr('id', `label-${relationship.source}-${relationship.target}`)
+                    .attr('x', (relationship.x1 + relationship.x2) / 2 - 50) // Adjust position as needed
+                    .attr('y', (relationship.y1 + relationship.y2) / 2 - 20) // Adjust position to place it above the line
+                    .attr('width', 100)
+                    .attr('height', 20)
+                    .html(`<div contenteditable="true">${relationship.label || ''}</div>`)
+                    .on('blur', function() {
+                        // Save the edited label on blur
+                        const editedLabel = d3.select(this).select('div').text();
+                        // You may want to update your data with the editedLabel
+                        relationship.label = editedLabel;
+                        // Remove the input field
+                        d3.select(this).remove();
+                    });
+            } else {
+                console.log("0000 3");
+
+                // Label already exists, make it editable
+                existingLabel.select('div').attr('contenteditable', 'true').node().focus();
+            }
+        }
+
+
 
 
 
@@ -2248,7 +2349,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
         function handleBoxIconboxNodesClick(event, d) {
-            //console.log(`Clicked ${d.text}`);
+            console.log(`----- handleBoxIconboxNodesClick Clicked ${d.text}`);
             //console.log('-----------------------------------');
 
             const nodeId = selectedNode.id;
@@ -2274,7 +2375,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
         function handleBoxShapeboxNodesClick(event, d) {
-            // console.log(`Clicked ${d.text}`);
+            console.log(`----- handleBoxShapeboxNodesClick Clicked ${d.text}`);
             // console.log('-----------------------------------');
 
             const nodeId = selectedNode.id;
@@ -2300,7 +2401,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
         }
 
         function handleBoxToolboxNodesClick(event, d) {
-            // console.log(` -- Clicked ${d.text}`);
+            console.log(`----- handleBoxToolboxNodesClickClicked ${d.text}`);
             //  console.log('-----------------------------------');
 
             var nodeId = selectedNode.id;
@@ -2394,7 +2495,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
         function handleRelationshipToolboxNodesClick(event, d) {
-            //console.log(`Clicked ${d.text}`);
+            console.log(`----- handleRelationshipToolboxNodesClick Clicked ${d.text}`);
             //console.log('-----------------------------------');
 
             const lineId = selectedLine.attr('id');
@@ -2405,6 +2506,12 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             if (d.text === "Type") {
                 //console.log("Type .... ");
+            }
+
+            if (d.text === "Label") {
+                console.log("Label .... ");
+                handleLabel(lineId);
+
             }
 
             if (d.text === "Thicker" || d.text === "Thinner") {
