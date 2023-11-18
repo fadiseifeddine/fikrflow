@@ -1439,14 +1439,19 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             solidRelationships.exit().remove();
 
+
+
             // Draw label
             const label = svg.selectAll('.label')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'solid'));
 
             label.enter()
-                .append('text')
+                .append('foreignObject')
                 .attr('class', 'label')
                 .merge(label)
+                .attr('id', (d) => `label-${d.source}-${d.target}`) // Set the id attribute
+                .attr('width', 150) // Increased width to 150
+                .attr('height', 20)
                 .attr('x', (d) => {
                     const sourceNode = nodes.filter((node) => node.id === d.source).node();
                     const targetNode = nodes.filter((node) => node.id === d.target).node();
@@ -1484,8 +1489,39 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     }
                 })
                 .attr('dy', 20) // Adjust the vertical position (upward) of the label (shift relatively to y)
-                .attr('text-anchor', 'middle')
-                .text((d) => d.label);
+                .html(d => `<div contenteditable="true">${d.label}</div>`)
+                .on('click', function(event, d) {
+                    const textElement = d3.select(this);
+                    const divElement = textElement.select('div');
+                    divElement.node().focus();
+
+                    divElement.on('blur', function() {
+                        d.label = this.innerText;
+                        console.log('Blur Event:', d.label);
+                    });
+
+                    divElement.on('keydown', function(event) {
+                        const value = this.innerText;
+                        console.log('Input Event:', value);
+
+                        if (event.key !== 'Backspace' && event.key !== 'ArrowLeft' && event.key !== 'ArrowRight' && event.key !== 'Delete') {
+                            if (value.length >= 15) {
+                                common.showMessage(`Exceeded maximum Label Length 15`, 2000);
+                                event.preventDefault();
+                                event.stopPropagation();
+
+                            }
+                        }
+                    });
+
+                })
+                .style('cursor', 'pointer') // Add this line to change cursor on hover
+                .on('mouseover', function() {
+                    d3.select(this).style('text-decoration', 'underline');
+                })
+                .on('mouseout', function() {
+                    d3.select(this).style('text-decoration', 'none');
+                });
 
             label.exit().remove();
 
@@ -1493,52 +1529,6 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
         }
-
-
-        function handleLabel(lineId) {
-            // Assuming 'd' is the data object for the relationship
-            console.log("0000 0");
-            console.log("lineId=", lineId);
-
-            // Update the stroke-width in the mind map data
-            const relationship = mindMapData.relationships.find((relation) => {
-                const slineId = `${relation.source}-${relation.target}`;
-                return slineId === lineId;
-            });
-
-            console.log("relationship.source =", relationship.source);
-
-            // Check if the label already exists
-            const existingLabel = d3.select(`#label-${relationship.source}-${relationship.target}`);
-            console.log("0000 1");
-
-            if (existingLabel.size() === 0) {
-                console.log("0000 2");
-
-                // Label doesn't exist, create a new one
-                const label = graphGroup.append('foreignObject')
-                    .attr('id', `label-${relationship.source}-${relationship.target}`)
-                    .attr('x', (relationship.x1 + relationship.x2) / 2 - 50) // Adjust position as needed
-                    .attr('y', (relationship.y1 + relationship.y2) / 2 - 20) // Adjust position to place it above the line
-                    .attr('width', 100)
-                    .attr('height', 20)
-                    .html(`<div contenteditable="true">${relationship.label || ''}</div>`)
-                    .on('blur', function() {
-                        // Save the edited label on blur
-                        const editedLabel = d3.select(this).select('div').text();
-                        // You may want to update your data with the editedLabel
-                        relationship.label = editedLabel;
-                        // Remove the input field
-                        d3.select(this).remove();
-                    });
-            } else {
-                console.log("0000 3");
-
-                // Label already exists, make it editable
-                existingLabel.select('div').attr('contenteditable', 'true').node().focus();
-            }
-        }
-
 
 
 
@@ -1756,8 +1746,8 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 { icon: "bi bi-arrow-left-right", text: "Type" },
                 { icon: "bi bi-arrows-collapse", text: "Thinner" },
                 { icon: "bi-arrows-expand", text: "Thicker" },
-                { icon: "bi bi-trash", text: "Delete" },
-                { icon: "bi bi-textarea-t", text: "Label" }
+                { icon: "bi bi-trash", text: "Delete" }
+                // { icon: "bi bi-textarea-t", text: "Label" }
             ];
             // Create the nodes inside the relationship box
             const relationshipTooBoxNodes = toolboxContent
@@ -2021,7 +2011,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             RemoveToggleButtons();
             hideAttributeContainer();
 
-
+            console.log("Toggle -- 1");
 
             // Create a group for the circle and text
             dotGroup = svg
@@ -2035,6 +2025,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             // Get the id of the box or line and use it as the id for the circle
             const circleId = d.id || (d.source && d.target ? `${d.source}-${d.target}` : null);
+            console.log("Toggle -- 2");
 
             // Create the circle with "..." text in the middle of the line
             dotCircle = dotGroup
@@ -2046,6 +2037,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 .attr("fill", "yellow")
                 .attr("stroke", "black")
                 .attr("stroke-width", 2);
+            console.log("Toggle -- 3");
 
             // Append the "..." text to the circle's parent group
             // Append a foreignObject to the circle to embed HTML content
@@ -2057,6 +2049,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 .attr("alignment-baseline", "middle")
                 .text("...");
 
+            console.log("Toggle -- 4");
 
 
             // Create the "+" button
@@ -2078,6 +2071,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 .attr("fill", "yellow")
                 .attr("stroke", "black")
                 .attr("stroke-width", 2);
+            console.log("Toggle -- 5");
 
 
             const plusText = plusGroup
@@ -2109,6 +2103,8 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 .attr("stroke", "black")
                 .attr("stroke-width", 2);
 
+            console.log("Toggle -- 6");
+
             // Create a foreignObject to embed HTML content
 
             const penIcon = penGroup
@@ -2127,16 +2123,23 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             div.select("i")
                 .style("font-size", "18px") // Adjust the font size as needed
                 .style("color", "black"); // Adjust the color as needed
+            console.log("Toggle -- 7");
 
 
             // Assume `zoomG` is the group element to which the zoom behavior is applied
             const zoomTransform = d3.zoomTransform(d3.select('#graphGroup').node());
 
+            console.log("Toggle -- 8");
+            console.log("Toggle -- d=", d);
 
             // setting the coordinates for the toggled icons
             // 3dot position
-            if (d.label) // Rectangle / Box
+            if (d.description) // Rectangle / Box (description is not common attribute between the box and line)
             { // dot and plus shape position
+                console.log("Toggle -- Label 9 - 1");
+                console.log("Toggle --d.label=", d.label);
+                console.log("Toggle --d.shape=", d.shape);
+
                 if (d.shape === 'ellipse') {
                     const bbox = dotGroup.node().getBBox();
                     //dotcalcX = d.x;
@@ -2200,6 +2203,9 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             }
             // line
             if (d.source && d.target && mindMapData.nodes.length > 1) {
+
+                console.log("Toggle -- Line 9 - 1");
+
                 // Find the source and target node objects
                 const sourceNode = mindMapData.nodes.find((node) => node.id === d.source);
                 const targetNode = mindMapData.nodes.find((node) => node.id === d.target);
@@ -2224,9 +2230,12 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 const targetX = targetNode.x + targetWidth / 2;
                 const targetY = targetNode.y + targetHeight / 2;
 
+                console.log(`Calculating middle point - Source (${sourceNode.id}): (${sourceX}, ${sourceY}), Target (${targetNode.id}): (${targetX}, ${targetY})`);
+
                 // Set dotcalcX and dotcalcY directly to the middle point
                 dotcalcX = (sourceX + targetX) / 2;
                 dotcalcY = (sourceY + targetY) / 2;
+                console.log("Toggle -- 9 - 2");
 
 
 
@@ -2506,12 +2515,6 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             if (d.text === "Type") {
                 //console.log("Type .... ");
-            }
-
-            if (d.text === "Label") {
-                console.log("Label .... ");
-                handleLabel(lineId);
-
             }
 
             if (d.text === "Thicker" || d.text === "Thinner") {
