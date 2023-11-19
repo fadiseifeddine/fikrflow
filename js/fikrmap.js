@@ -3554,22 +3554,21 @@ function showColorPalette(type, id) {
 
 
     if (id.startsWith("label")) {
-
         const labelElement = d3.select(`#${id}`);
-        const x1 = parseFloat(labelElement.attr("x1"));
-        const y1 = parseFloat(labelElement.attr("y1"));
-        const x2 = parseFloat(labelElement.attr("x2"));
-        const y2 = parseFloat(labelElement.attr("y2"));
-        const midX = (x1 + x2) / 2;
-        const midY = (y1 + y2) / 2;
+        console.log("labelElement=", labelElement);
 
-        // Position the color palette next to the midpoint of the line
-        const paletteX = midX - 70; //- colorPalette.offsetWidth / 2;
-        const paletteY = midY - 70; //- colorPalette.offsetHeight / 2;
+        const x = parseFloat(labelElement.attr("x"));
+        const y = parseFloat(labelElement.attr("y"));
+        console.log("x:", x, "y:", y);
+
+        // Position the color palette next to the label
+        const paletteX = x - 70; // Adjust the offset as needed
+        const paletteY = y - 70; // Adjust the offset as needed
 
         colorPalette.style.top = paletteY + "px";
         colorPalette.style.left = paletteX + "px";
     }
+
     // Calculate the midpoint of the line or box
     else if (type === 'line') {
         const lineId = id;
