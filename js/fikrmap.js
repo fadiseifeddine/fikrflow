@@ -2710,13 +2710,13 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
             const display = BoxIconBoxRef.style("display");
-            //console.log('display=' + display);
+            console.log('display=' + display);
 
             if (display === "none") {
 
                 //console.log("Display of Icon is None, we are setting x and y to display ...");
                 //calcX = d.x + (d.label.length * 10 + 20) / 2;
-                var calcX = box.x + (rectangle) / 2 - 70;
+                var calcX = box.x + (common.nodesize.width.rectangle) / 2 - 70;
                 var calcY = box.y - 70;
 
                 //console.log('calcX', calcX);
