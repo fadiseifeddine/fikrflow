@@ -1442,16 +1442,20 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
             // Draw label
-            const label = svg.selectAll('.label')
+            const label = svg.selectAll('.relation-label')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'solid'));
 
             label.enter()
                 .append('foreignObject')
-                .attr('class', 'label')
+                .attr('class', 'relation-label')
                 .merge(label)
                 .attr('id', (d) => `label-${d.source}-${d.target}`) // Set the id attribute
                 .attr('width', 150) // Increased width to 150
                 .attr('height', 20)
+                .attr('color', (d) => {
+                    //console.log("dddddddddd=", d);
+                    return d.relation_label.color;
+                })
                 .attr('x', (d) => {
                     const sourceNode = nodes.filter((node) => node.id === d.source).node();
                     const targetNode = nodes.filter((node) => node.id === d.target).node();
@@ -1489,7 +1493,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     }
                 })
                 .attr('dy', 20) // Adjust the vertical position (upward) of the label (shift relatively to y)
-                .html(d => `<div contenteditable="true">${d.label}</div>`)
+                .html(d => `<div contenteditable="true">${d.relation_label.label}</div>`)
                 .on('click', function(event, d) {
                     const textElement = d3.select(this);
                     const divElement = textElement.select('div');
@@ -1498,11 +1502,22 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     divElement.on('blur', function() {
                         d.label = this.innerText;
                         console.log('Blur Event:', d.label);
+
+
+                        // Update the stroke-width in the mind map data
+                        const relationship = mindMapData.relationships.find((relation) => {
+                            const slineId = `${relation.source}-${relation.target}`;
+                            return slineId === d.id;
+                        });
+                        relationship.relation_label.label = d.label;
+
+
                     });
 
                     divElement.on('keydown', function(event) {
                         const value = this.innerText;
                         console.log('Input Event:', value);
+
 
                         if (event.key !== 'Backspace' && event.key !== 'ArrowLeft' && event.key !== 'ArrowRight' && event.key !== 'Delete') {
                             if (value.length >= 15) {
@@ -1513,6 +1528,12 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                             }
                         }
                     });
+
+                })
+                .on('contextmenu', function(event, d) {
+                    event.preventDefault();
+                    handleColorPalette('label', `label-${d.source}-${d.target}`);
+
 
                 })
                 .style('cursor', 'pointer') // Add this line to change cursor on hover
@@ -3459,7 +3480,7 @@ function generateRandomColorCode() {
 
 function showColorPalette(type, id) {
     // Set the clicked box as the active box
-    //console.log("showColorPalette for id =" + id, 'type =' + type);
+    console.log("||||||||| showColorPalette for id =" + id, 'type =' + type);
 
     // Show the color palette
     colorPalette.innerHTML = "";
@@ -3473,7 +3494,23 @@ function showColorPalette(type, id) {
             // Hide the color palette
             colorPalette.style.display = "none";
 
-            if (type == 'line') {
+            if (id.startsWith("label")) {
+                const labelElement = d3.select(`#${id}`);
+                labelElement.style('color', colorCode);
+
+                // Extract the part after "label-"
+                const extractedId = id.substring("label-".length);
+
+                // Update the stroke-width in the mind map data
+                const relationship = mindMapData.relationships.find((relation) => {
+                    const slineId = `${relation.source}-${relation.target}`;
+                    return slineId === extractedId;
+                });
+
+                console.log("relationship = ", relationship);
+                relationship.relation_label.color = colorCode;
+
+            } else if (type == 'line') {
                 //console.log("Changing the Line Color");
                 //console.log(`Current Line Id ${id}`);
                 const lineElement = d3.select(`#${id}`);
@@ -3515,8 +3552,26 @@ function showColorPalette(type, id) {
         colorPalette.appendChild(colorPaletteColor);
     }
 
+
+    if (id.startsWith("label")) {
+
+        const labelElement = d3.select(`#${id}`);
+        const x1 = parseFloat(labelElement.attr("x1"));
+        const y1 = parseFloat(labelElement.attr("y1"));
+        const x2 = parseFloat(labelElement.attr("x2"));
+        const y2 = parseFloat(labelElement.attr("y2"));
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+
+        // Position the color palette next to the midpoint of the line
+        const paletteX = midX - 70; //- colorPalette.offsetWidth / 2;
+        const paletteY = midY - 70; //- colorPalette.offsetHeight / 2;
+
+        colorPalette.style.top = paletteY + "px";
+        colorPalette.style.left = paletteX + "px";
+    }
     // Calculate the midpoint of the line or box
-    if (type === 'line') {
+    else if (type === 'line') {
         const lineId = id;
         const lineElement = d3.select(`#${id}`);
         const x1 = parseFloat(lineElement.attr("x1"));
