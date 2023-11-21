@@ -16,6 +16,7 @@ import { handleAddNode } from './fikrmap.js';
 
 
 
+
 // Button moving the SVG Left , Right, Up and Down
 let currentTranslate = { x: 0, y: 0 };
 const moveStep = 50; // Define the step size for each movement
@@ -214,9 +215,17 @@ function zoomIn() {
     const vcurrentTransform = d3.zoomTransform(d3.select('#graphGroup').node());
     const newScale = vcurrentTransform.k * 1.2; // Increase the current scale by 20%
     const newTransform = d3.zoomIdentity.translate(vcurrentTransform.x, vcurrentTransform.y).scale(newScale);
-    d3.select('#graphGroup').transition().duration(750).call(zoom.transform, newTransform); // Apply the new transform with a transition
-    transformManager.currentTransform = newTransform;
 
+    // Select both graphGroup and relation-label elements
+    const selection = d3.selectAll('#graphGroup, .relation-label');
+
+    // Update positions during zoom out
+    selection.attr('transform', d => `translate(${newTransform.x},${newTransform.y}) scale(${newTransform.k})`);
+
+    // Apply the new transform with a single transition
+    selection.transition().duration(100).call(zoom.transform, newTransform);
+
+    transformManager.currentTransform = newTransform;
 
 }
 
@@ -225,8 +234,20 @@ function zoomOut() {
     const vcurrentTransform = d3.zoomTransform(d3.select('#graphGroup').node());
     const newScale = vcurrentTransform.k / 1.2; // Decrease the current scale by 20%
     const newTransform = d3.zoomIdentity.translate(vcurrentTransform.x, vcurrentTransform.y).scale(newScale);
-    d3.select('#graphGroup').transition().duration(750).call(zoom.transform, newTransform); // Apply the new transform with a transition
+
+
+    // Select both graphGroup and relation-label elements
+    const selection = d3.selectAll('#graphGroup, .relation-label');
+
+    // Update positions during zoom out
+    selection.attr('transform', d => `translate(${newTransform.x},${newTransform.y}) scale(${newTransform.k})`);
+
+    // Apply the new transform with a single transition
+    selection.transition().duration(100).call(zoom.transform, newTransform);
+
+
     transformManager.currentTransform = newTransform;
+
 }
 
 // Function to reset zoom to 1
@@ -237,17 +258,21 @@ function resetZoom() {
     // Create a new zoom transform with the specified values
     const newTransform = d3.zoomIdentity.scale(1);
 
-    // Apply the new zoom transform to #graphGroup
-    d3.select('#graphGroup')
-        .transition()
-        .duration(750)
-        .call(zoom.transform, newTransform);
+    // Select both graphGroup and relation-label elements
+    const selection = d3.selectAll('#graphGroup, .relation-label');
+
+    // Update positions during zoom reset
+    selection.attr('transform', d => `translate(${newTransform.x},${newTransform.y}) scale(${newTransform.k})`);
+
+    // Apply the new zoom transform to both graphGroup and relation-label with a single transition
+    selection.transition().duration(100).call(zoom.transform, newTransform);
 
     // Update transformManager.currentTransform
-    transformManager.setCurrentTransform({ k: 1, x: 0, y: 0 });
+    transformManager.currentTransform = { k: 1, x: 0, y: 0 };
 }
 
 
+// Function to move the SVG
 function move(direction) {
     console.log("Moving the SVG in Direction =" + direction);
 
@@ -268,9 +293,20 @@ function move(direction) {
 
     // Now apply this translation to the zoom transform
     const newTransform = d3.zoomIdentity.translate(currentTranslate.x, currentTranslate.y).scale(transformManager.currentTransform.k);
-    d3.select('#graphGroup').transition().duration(750).call(zoom.transform, newTransform);
+
+    // Select both graphGroup and relation-label elements
+    const selection = d3.selectAll('#graphGroup, .relation-label');
+
+    // Update positions during move
+    selection.attr('transform', d => `translate(${newTransform.x},${newTransform.y}) scale(${newTransform.k})`);
+
+    // Apply the new zoom transform to both graphGroup and relation-label with a single transition
+    selection.transition().duration(100).call(zoom.transform, newTransform);
+
+    // Update transformManager.currentTransform
     transformManager.currentTransform = newTransform;
 }
+
 
 
 
@@ -288,5 +324,5 @@ function zoomed(event) {
     transformManager.currentTransform.y = event.transform.y;
 
     // Optionally, you can log the currentTransform to the console to verify
-    console.log("zoomed = ", transformManager.currentTransform);
+    // console.log("zoomed = ", transformManager.currentTransform);
 }

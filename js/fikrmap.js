@@ -456,8 +456,8 @@ function getCenterY(selection, nodeId) {
 
 
 function renderMindMap(mindMapData, renderstatus = 'refresh') {
-    console.log("Rendering the mindMapData start ... renderstatus = ", renderstatus);
-    console.log("renderMindMap currentTransform", currentTransform);
+    //console.log("LLL Rendering the mindMapData start ... renderstatus = ", renderstatus);
+    //console.log("LLL renderMindMap currentTransform", currentTransform);
 
 
     const mindMapContainer = document.getElementById('mindMapContainer');
@@ -473,7 +473,6 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .append('svg')
             .attr('width', width)
             .attr('height', height);
-
 
 
         // Create a group element to contain nodes and relationships
@@ -602,6 +601,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
         function ticked() {
+            console.log("TICKED");
             nodes.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
             renderRelationships();
 
@@ -1036,6 +1036,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
         //console.log("To Render Relationships ....");
         // After creating the nodes and starting the simulation, update the relationships
+        console.log("LLLLLLLLL Render Relations .......");
         renderRelationships();
 
         // Change the order
@@ -1445,7 +1446,11 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             const label = svg.selectAll('.relation-label')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'solid'));
 
+            //console.log("XXXXX currentTransform.x =", currentTransform.x)
+            //console.log("XXXXX currentTransform.y =", currentTransform.y)
+
             label.enter()
+                .append('g') // Create a group element
                 .append('foreignObject')
                 .attr('class', 'relation-label')
                 .merge(label)
@@ -1456,6 +1461,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     //console.log("dddddddddd=", d);
                     return d.relation_label.color;
                 })
+                .attr('transform', `translate(${currentTransform.x},${currentTransform.y}) scale(${currentTransform.k})`) // Apply the current transform here
                 .attr('x', (d) => {
                     const sourceNode = nodes.filter((node) => node.id === d.source).node();
                     const targetNode = nodes.filter((node) => node.id === d.target).node();
