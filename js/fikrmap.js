@@ -3097,8 +3097,14 @@ function handleAddNode() {
                 target: newNodeId,
                 type: 'solid',
                 strokewidth: 1,
-                stroke: 'black'
+                stroke: 'black',
+                relation_label: {
+                    label: "Parent of",
+                    color: "red"
+                }
             });
+
+
 
 
             selectedNode = newNodeId; // Select the new node
