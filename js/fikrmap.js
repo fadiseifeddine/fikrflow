@@ -1057,7 +1057,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
         });
 
         nodes.on("mouseover", function(event, d) {
-            // console.log("A- OVERRRRRR NODES");
+            console.log("A- OVERRRRRR NODES");
             //event.stopPropagation(); // Stop the mousedown event from propagating
             //d3.select(this).attr("class", "solid-relationship hover");
             ToggleButtons(event, d);
@@ -2158,6 +2158,8 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             console.log("Toggle -- 8");
             console.log("Toggle -- d=", d);
+            console.log("d.description =", d.description);
+
 
             // setting the coordinates for the toggled icons
             // 3dot position
@@ -3080,7 +3082,9 @@ function handleAddNode() {
                 id: newNodeId,
                 parentId: newNodeparentId,
                 label: 'Double Click to Edit',
+                description: 'Enter Long Description here',
                 color: selectedNodeData.color,
+                shape: "ellipse",
                 textColor: selectedNodeData.textColor,
                 x: nextX,
                 y: selectedNodeData.y + 100, // Adjust the y position of the new node
