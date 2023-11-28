@@ -58,6 +58,8 @@ let dotsText = null;
 let BoxToolBox = null;
 
 let nodes = null;
+let solidRelationships = null;
+let curvedRelationships = null;
 
 let addingrel = false;
 let addingrelsource = null;
@@ -224,11 +226,11 @@ async function sendChatMessage(message) {
             //jsondrw = mindMapDataJson;
 
             mindMapData = calculateNodePositions(mindMapDataJson);
+            console.log('Adjusted mind map data with positions:', mindMapData);
+            renderMindMap(mindMapData);
             console.log("Takesnapshot trigerred by sendchatmessage ...");
-
-            //console.log('Adjusted mind map data with positions:', mindMapData);
             takeSnapshot(mindMapData); // the version 1
-            renderMindMap(mindMapData, 'initial');
+
         } else {
             console.error('Error sending chat message:', response.status);
         }
@@ -455,9 +457,8 @@ function getCenterY(selection, nodeId) {
 
 
 
-function renderMindMap(mindMapData, renderstatus = 'refresh') {
-    //console.log("LLL Rendering the mindMapData start ... renderstatus = ", renderstatus);
-    //console.log("LLL renderMindMap currentTransform", currentTransform);
+function renderMindMap(mindMapData) {
+    console.log("LLL renderMindMap mindMapData", mindMapData);
 
 
     const mindMapContainer = document.getElementById('mindMapContainer');
@@ -495,11 +496,6 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .attr('stroke', 'white') // Add a white stroke to the arrow
             .attr('stroke-width', 1); // Set the stroke width as needed
 
-        if (renderstatus == "initial") {
-            // For Hierarchal, we need to change when network (Fadi)
-            assignDepth(mindMapData.nodes);
-
-        }
 
         svg.on("wheel", function(event) {
             // Prevent the default behavior of the wheel event
@@ -534,45 +530,15 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             }
         });
 
-        // Define a custom force to avoid overlap between relationships
-        function avoidOverlapForce(strength = 0.1) {
-            function force(alpha) {
-                mindMapData.relationships.forEach((relation) => {
-                    const sourceNode = mindMapData.nodes.find((node) => node.id === relation.source);
-                    const targetNode = mindMapData.nodes.find((node) => node.id === relation.target);
 
-                    if (sourceNode && targetNode) {
-                        // Calculate the position of the relationship based on source and target node positions
-                        const sourceX = sourceNode.x;
-                        const targetX = targetNode.x;
-                        const sourceY = sourceNode.y;
-                        const targetY = targetNode.y;
-
-                        // Calculate the midpoint between source and target nodes
-                        const midX = (sourceX + targetX) / 2;
-                        const midY = (sourceY + targetY) / 2;
-
-                        // Adjust the position based on node shapes and sizes
-                        // You can use the same logic you used for the nodes to determine offsets
-                        // For example, if sourceNode is a parallelogram, you can adjust midX and midY accordingly
-
-                        // Update the position of the relationship
-                        relation.x = midX;
-                        relation.y = midY;
-                    }
-                });
-            }
-
-            return force;
-        }
 
         // Define the link force
-        const linkForce = d3.forceLink(mindMapData.links)
-            .id(d => d.id) // Assume each node has a unique id
-            .distance(10); // You can adjust this value to set the desired distance between linked nodes
-        // Define the charge force
-        const chargeForce = d3.forceManyBody()
-            .strength(-100); // Negative value for repulsion. You can adjust the strength of the repulsion here
+        // const linkForce = d3.forceLink(mindMapData.links)
+        //     .id(d => d.id) // Assume each node has a unique id
+        //     .distance(10); // You can adjust this value to set the desired distance between linked nodes
+        // // Define the charge force
+        // const chargeForce = d3.forceManyBody()
+        //     .strength(-100); // Negative value for repulsion. You can adjust the strength of the repulsion here
 
         // Force Directed Graph
         // Now add these forces to your simulation
@@ -585,76 +551,35 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
         //     .on('tick', ticked);
 
 
-        // Vertical Graph
-        const simulation = d3
-            .forceSimulation(mindMapData.nodes)
+        // Create a simulation with several forces.
+        const simulation = d3.forceSimulation(mindMapData.nodes)
+            .force("link", d3.forceLink(mindMapData.links).id(d => d.id))
+            .force("charge", d3.forceManyBody())
             .force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2))
-            .force('collision', d3.forceCollide()
-                .strength(0.2) // Adjust the strength value as needed
-                .radius((d) => (d.shape === 'ellipse' ? common.nodesize.width.ellipse : d.shape === 'parallelogram' ? common.nodesize.width.parallelogram / 2 : d.shape === 'diamond' ? common.nodesize.width.diamond / 2 : common.nodesize.width.rectangle / 2) + spacingBetweenNodes)
-            ) //.force('collide', d3.forceCollide().radius( /* specify the desired separation radius */ ))
-            //.force('avoidOverlapRelationships', avoidOverlapForce(0.2)) // Adjust the strength value as needed
-            .force('verticalAlignment', verticalAlignmentForce(100)) // Adjust the level value as needed
-            .on('tick', ticked);
+            .on("tick", ticked);
+
+
 
         // Your existing ticked function
 
 
-        function ticked() {
-            console.log("TICKED");
-            nodes.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
-            renderRelationships();
+        // function ticked() {
+        //     console.log("TICKED");
+        //     nodes.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
+        //     renderRelationships();
 
-            // will keep the current zoom
-            graphGroup.attr('transform', `translate(${currentTransform.x}, ${currentTransform.y}) scale(${currentTransform.k})`);
+        //     // will keep the current zoom
+        //     graphGroup.attr('transform', `translate(${currentTransform.x}, ${currentTransform.y}) scale(${currentTransform.k})`);
 
 
-            // Check if the simulation's alpha value has fallen below a threshold
-            if (simulation.alpha() < 0.005) {
-                simulation.stop(); // Stop the simulation
-                console.log('Simulation stabilized');
+        //     // Check if the simulation's alpha value has fallen below a threshold
+        //     if (simulation.alpha() < 0.005) {
+        //         simulation.stop(); // Stop the simulation
+        //         console.log('Simulation stabilized');
 
-            }
-            // If you have links, you'll want to update their positions here too
-        }
-
-        function verticalAlignmentForce(level) {
-            console.log("renderstatus=", renderstatus);
-
-            if (renderstatus == "refresh") {
-                return;
-            }
-            const force = (alpha) => {
-                mindMapData.nodes.forEach(node => {
-                    //console.log('node.depth:', node.depth); // Debugging line
-                    const targetY = level * node.depth;
-                    // console.log('targetY:', targetY); // Debugging line
-                    node.y += (targetY - node.y) * alpha;
-                });
-            };
-            return force;
-        }
-
-        function assignDepth(nodes) {
-            nodes.forEach(node => {
-                node.depth = getDepth(node, nodes);
-                console.log("node .id  =", node.id);
-                console.log("node .depth =", node.depth);
-
-            });
-        }
-
-        function getDepth(node, nodes, depth = 0) {
-            if (!node.parentId) {
-                return depth;
-            }
-            const parentNode = nodes.find(n => n.id === node.parentId);
-            if (!parentNode) {
-                console.error('Parent node not found:', node.parentId);
-                return depth;
-            }
-            return getDepth(parentNode, nodes, depth + 1);
-        }
+        //     }
+        //     // If you have links, you'll want to update their positions here too
+        // }
 
 
 
@@ -682,7 +607,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 }
                 if (d.shape === 'parallelogram') {
                     const numLines = common.countLines(d) + 1; // Assuming this function counts the number of lines in the text
-                    console.log("Number of Lines = ", numLines);
+                    //console.log("Number of Lines = ", numLines);
                     const plgrmPoints = common.calculateParallelogramPoints(numLines);
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                     path.setAttribute("d", "M" + plgrmPoints.map(p => `${p.x},${p.y}`).join("L") + "Z");
@@ -694,9 +619,9 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     // Create a path for the diamond // Diamons height based on numlines
                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                     const numLines = common.countLines(d) + 1;
-                    console.log("Number of Lines = ", numLines);
+                    //console.log("Number of Lines = ", numLines);
                     const diamondPoints = common.calculateDiamondPoints(numLines);
-                    console.log("diamondPoints=", diamondPoints);
+                    //console.log("diamondPoints=", diamondPoints);
                     path.setAttribute("d", "M" + diamondPoints.map(p => `${p.x},${p.y}`).join("L") + "Z");
                     path.setAttribute("stroke", "red");
                     path.setAttribute("stroke-width", 2);
@@ -707,10 +632,10 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 
                     const numLines = common.countLines(d) + 1;
-                    console.log("---------------------- XX S");
-                    console.log("d.label=", d.label);
-                    console.log("Number of Lines = ", numLines);
-                    console.log("---------------------- XX E");
+                    // console.log("---------------------- XX S");
+                    // console.log("d.label=", d.label);
+                    // console.log("Number of Lines = ", numLines);
+                    // console.log("---------------------- XX E");
 
                     const rectangle = common.calculateNodeHeight(d.shape, numLines);
 
@@ -743,8 +668,8 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             })
             .attr('height', (d) => { // for rect
                 const numLines = common.countLines(d); // Assume d.label contains the text
-                console.log("d.label=", d.label);
-                console.log("Number of Lines = ", numLines);
+                //console.log("d.label=", d.label);
+                //console.log("Number of Lines = ", numLines);
                 // adjust node height
                 return common.calculateNodeHeight(d.shape, numLines);
             })
@@ -762,7 +687,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             .attr('ry', (d) => {
                 if (d.shape === 'ellipse') { // for elipse
                     const numLines = common.countLines(d);
-                    console.log("Number of Lines = ", numLines);
+                    // console.log("Number of Lines = ", numLines);
                     const totalHeight = common.calculateNodeHeight(d.shape, numLines);
                     return totalHeight / 2; // divide by 2 since ry is a radius, not a diameter
                 } else if (d.shape === 'parallelogram') {
@@ -1093,6 +1018,29 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             selectNode(clickedNode.id);
         });
 
+        // Set the position attributes of links and nodes each time the simulation ticks.
+        function ticked() {
+
+            console.log("TICKEDDDDDDDDDDDDDDD .....");
+
+            solidRelationships
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            curvedRelationships
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            nodes
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+
+
+        }
 
         svg.on('click', (event) => {
             //console.log("B - SVG CLICK");
@@ -1126,7 +1074,13 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             selection.call(drag);
 
-            function dragStart(event, d) {
+            function dragStart(event) {
+
+                console.log("simulation =", simulation);
+
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                event.subject.fx = event.subject.x;
+                event.subject.fy = event.subject.y;
 
                 if (!allowDrag) return;
 
@@ -1138,6 +1092,9 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
             function dragMove(event, d) {
+
+                event.subject.fx = event.x;
+                event.subject.fy = event.y;
 
                 if (!allowDrag) return;
 
@@ -1185,7 +1142,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 //  console.log("d3x = " + d3x + ", d3y =" + d3y);
                 console.log(" dragmove 2 currentTrasform = ", currentTransform);
                 console.log("Rendering from DragMove ...");
-                renderMindMap(mindMapData, 'refresh');
+                renderMindMap(mindMapData);
 
 
                 ToggleButtons(event, d); // so the 3 dots move with the box
@@ -1194,6 +1151,10 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             }
 
             function dragEnd(event, d) {
+
+                if (!event.active) simulation.alphaTarget(0);
+                event.subject.fx = null;
+                event.subject.fy = null;
 
                 if (!allowDrag) return;
 
@@ -1214,26 +1175,18 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     selectedNode.y = adjustedY;
                 }
 
-                //console.log("x=", selectedNode.x);
-                //console.log("y=", selectedNode.y);
-
-
-                // Call takeSnapshot when drag ends
-                // console.log('------------------------------------  DragEnd before taking the snaphot');
-                // console.log('--- dragEnd after mindMapData', mindMapData);
-                console.log("Takesnapshot trigerred by dragend ...");
+                console.log(`DragEnd Node ${selectedNode.id}: x=${adjustedX}, y=${adjustedY}`); // Debugging statement
 
                 takeSnapshot(mindMapData);
-                // console.log('------------------------------------  DragEnd after taking the snaphot');
-
             }
+
 
         }
 
         function updateSolidRelationships() {
             //console.log("In updateSolidRelationships Render the Solid Relationship ...", svg);
 
-            const solidRelationships = graphGroup
+            solidRelationships = graphGroup
                 .selectAll('.solid-relationship')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'solid'));
 
@@ -1561,7 +1514,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
 
         function updateCurvedRelationships() {
-            const curvedRelationships = graphGroup
+            curvedRelationships = graphGroup
                 .selectAll('.dash-relationship')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'dash'));
 
@@ -1954,7 +1907,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             const selectedNode4ShapeChange = mindMapData.nodes.find(node => node.id === nodeId);
             selectedNode4ShapeChange.icon = null;
-            renderMindMap(mindMapData, 'refresh');
+            renderMindMap(mindMapData);
         }
 
         function renderBoxShapeBox() {
@@ -2038,7 +1991,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             RemoveToggleButtons();
             hideAttributeContainer();
 
-            console.log("Toggle -- 1");
+            //console.log("Toggle -- 1");
 
             // Create a group for the circle and text
             dotGroup = svg
@@ -2052,7 +2005,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             // Get the id of the box or line and use it as the id for the circle
             const circleId = d.id || (d.source && d.target ? `${d.source}-${d.target}` : null);
-            console.log("Toggle -- 2");
+            //console.log("Toggle -- 2");
 
             // Create the circle with "..." text in the middle of the line
             dotCircle = dotGroup
@@ -2064,7 +2017,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 .attr("fill", "yellow")
                 .attr("stroke", "black")
                 .attr("stroke-width", 2);
-            console.log("Toggle -- 3");
+            //console.log("Toggle -- 3");
 
             // Append the "..." text to the circle's parent group
             // Append a foreignObject to the circle to embed HTML content
@@ -2076,7 +2029,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 .attr("alignment-baseline", "middle")
                 .text("...");
 
-            console.log("Toggle -- 4");
+            //console.log("Toggle -- 4");
 
 
             // Create the "+" button
@@ -2098,7 +2051,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 .attr("fill", "yellow")
                 .attr("stroke", "black")
                 .attr("stroke-width", 2);
-            console.log("Toggle -- 5");
+            //console.log("Toggle -- 5");
 
 
             const plusText = plusGroup
@@ -2130,7 +2083,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 .attr("stroke", "black")
                 .attr("stroke-width", 2);
 
-            console.log("Toggle -- 6");
+            //console.log("Toggle -- 6");
 
             // Create a foreignObject to embed HTML content
 
@@ -2150,24 +2103,24 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             div.select("i")
                 .style("font-size", "18px") // Adjust the font size as needed
                 .style("color", "black"); // Adjust the color as needed
-            console.log("Toggle -- 7");
+            // console.log("Toggle -- 7");
 
 
             // Assume `zoomG` is the group element to which the zoom behavior is applied
             const zoomTransform = d3.zoomTransform(d3.select('#graphGroup').node());
 
-            console.log("Toggle -- 8");
-            console.log("Toggle -- d=", d);
-            console.log("d.description =", d.description);
+            // console.log("Toggle -- 8");
+            //  console.log("Toggle -- d=", d);
+            //  console.log("d.description =", d.description);
 
 
             // setting the coordinates for the toggled icons
             // 3dot position
             if (d.description) // Rectangle / Box (description is not common attribute between the box and line)
             { // dot and plus shape position
-                console.log("Toggle -- Label 9 - 1");
-                console.log("Toggle --d.label=", d.label);
-                console.log("Toggle --d.shape=", d.shape);
+                //    console.log("Toggle -- Label 9 - 1");
+                //    console.log("Toggle --d.label=", d.label);
+                //   console.log("Toggle --d.shape=", d.shape);
 
                 if (d.shape === 'ellipse') {
                     const bbox = dotGroup.node().getBBox();
@@ -2188,10 +2141,10 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
                     dotcalcX = currentTransform.k * (d.x + common.nodesize.width.parallelogram / 2) + currentTransform.x;
                     dotcalcY = currentTransform.k * (d.y - common.nodesize.height.ellipse + 25) + currentTransform.y;
-                    console.log("...........currentTransform.k=", currentTransform.k);
-                    console.log("common.nodesize.height.ellipse=", common.nodesize.height.ellipse);
-                    console.log("currentTransform.y=", currentTransform.y);
-                    console.log("dotcalcY=", dotcalcY);
+                    // console.log("...........currentTransform.k=", currentTransform.k);
+                    // console.log("common.nodesize.height.ellipse=", common.nodesize.height.ellipse);
+                    // console.log("currentTransform.y=", currentTransform.y);
+                    // console.log("dotcalcY=", dotcalcY);
                     pluscalcX = currentTransform.k * (d.x + common.nodesize.width.parallelogram / 2) + currentTransform.x;
                     pluscalcY = currentTransform.k * (d.y + nodeHeight) + currentTransform.y;
                     plusCircle.attr("cx", pluscalcX).attr("cy", pluscalcY).attr("visibility", "visible");
@@ -2233,7 +2186,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
             // line
             if (d.source && d.target && mindMapData.nodes.length > 1) {
 
-                console.log("Toggle -- Line 9 - 1");
+                //console.log("Toggle -- Line 9 - 1");
 
                 // Find the source and target node objects
                 const sourceNode = mindMapData.nodes.find((node) => node.id === d.source);
@@ -2244,12 +2197,12 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                 // console.log('targetNode:', targetNode);
 
                 const srcnumLines = common.countLines(sourceNode);
-                console.log("Number of Lines For Source = ", srcnumLines);
+                //console.log("Number of Lines For Source = ", srcnumLines);
                 const sourceHeight = common.calculateNodeHeight(sourceNode.shape, srcnumLines);
                 const sourceWidth = common.calculateNodeWidth(sourceNode.shape);
 
                 const trgnumLines = common.countLines(targetNode);
-                console.log("Number of Lines For Target = ", trgnumLines);
+                //console.log("Number of Lines For Target = ", trgnumLines);
                 const targetHeight = common.calculateNodeHeight(targetNode.shape, trgnumLines);
                 const targetWidth = common.calculateNodeWidth(targetNode.shape);
 
@@ -2407,7 +2360,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             const selectedNode4ShapeChange = mindMapData.nodes.find(node => node.id === nodeId);
             selectedNode4ShapeChange.icon = shp;
-            renderMindMap(mindMapData, 'refresh');
+            renderMindMap(mindMapData);
 
         }
 
@@ -2434,7 +2387,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             const selectedNode4ShapeChange = mindMapData.nodes.find(node => node.id === nodeId);
             selectedNode4ShapeChange.shape = shp;
-            renderMindMap(mindMapData, 'refresh');
+            renderMindMap(mindMapData);
 
         }
 
@@ -2483,7 +2436,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
                     // console.log("Set Style to =" + newStrokeWidth);
                     nodeelement.style("stroke-width", `${newStrokeWidth}`);
 
-                    renderMindMap(mindMapData, 'refresh');
+                    renderMindMap(mindMapData);
 
                 }
 
@@ -2495,7 +2448,7 @@ function renderMindMap(mindMapData, renderstatus = 'refresh') {
 
             } else if (d.text === "Delete") {
                 deleteNodeAndRelatedNodes(nodeId);
-                renderMindMap(mindMapData, 'refresh');
+                renderMindMap(mindMapData);
                 console.log("takeSnapshot trigerred by Delete Box");
                 takeSnapshot(mindMapData);
 
@@ -2768,7 +2721,7 @@ function toggleCompletion(mindMapData, nodeId) {
         }
         console.log("Takesnapshot trigerred by toggleCompletion ...");
         takeSnapshot(mindMapData);
-        renderMindMap(mindMapData, 'refresh');
+        renderMindMap(mindMapData);
     }
 }
 
@@ -2872,7 +2825,7 @@ function selectNode(nodeId) {
         mindMapData.relationships.push(newRelationship);
 
         // Re-render the mind map to show the new relationship
-        renderMindMap(mindMapData, 'refresh');
+        renderMindMap(mindMapData);
         addingrelsource = null;
         addingreltarget = null;
         addingrel = null;
@@ -3114,7 +3067,7 @@ function handleAddNode() {
             selectedNode = newNodeId; // Select the new node
 
             // Re-render the mind map with the updated data
-            renderMindMap(mindMapData, 'refresh');
+            renderMindMap(mindMapData);
             console.log("Takesnapshot trigerred by handleaddnode ...");
 
             takeSnapshot(mindMapData);
@@ -3126,7 +3079,7 @@ function takeSnapshot(mindMapData) {
     console.log("Taking the Snapshot ....", mindMapData);
     // Fetch the latest current version or default to 0 if not found
     ismodified = 1;
-    console.log("Current Version currentVersion before update = ", currentVersion);
+    //console.log("Current Version currentVersion before update = ", currentVersion);
     //console.log('--- mindMapData before  updateversion', mindMapData);
     common.setMindMapData(mindMapData);
     fikrcollab.sendUpdate(mindMapData);
@@ -3137,14 +3090,14 @@ function takeSnapshot(mindMapData) {
         return;
     }
 
-    console.log("takeSnapshot currentTransform", currentTransform);
+    //console.log("takeSnapshot currentTransform", currentTransform);
 
 
     updateversion(common.getSessionId(), 'increment')
         .then(updatedCurrentVersion => {
             //console.log('mindMapData before delete ', mindMapData);
             currentVersion = updatedCurrentVersion;
-            console.log("Current Version currentVersion after update = ", currentVersion);
+            //console.log("Current Version currentVersion after update = ", currentVersion);
             return deleteversions(common.getSessionId(), currentVersion);
         })
         .then(() => {
@@ -3197,7 +3150,7 @@ async function fetchAndRenderVersion(version) {
 
         if (response.ok) {
             const versionedSnapshot = await response.json();
-            renderMindMap(versionedSnapshot.jsondrw, 'refresh');
+            renderMindMap(versionedSnapshot.jsondrw);
             updateUndoRedoButtons();
         } else {
             console.error(`Failed to fetch versioned snapshot for version ${version}`);
@@ -3209,8 +3162,8 @@ async function fetchAndRenderVersion(version) {
 
 async function fetchcurrentdrawchainversion() {
     try {
-        console.log("fetchcurrentdrawchainversion searching for the element with fikruser.getUserId() = " + fikruser.getUserId())
-            //console.log("fetchcurrentdrawchainversion searching for the element with common.getSessionId() = " + common.getSessionId())
+        // console.log("fetchcurrentdrawchainversion searching for the element with fikruser.getUserId() = " + fikruser.getUserId())
+        //console.log("fetchcurrentdrawchainversion searching for the element with common.getSessionId() = " + common.getSessionId())
         const vuserID = fikruser.getUserId();
         const vsessionID = common.getSessionId();
         const response = await fetch(`http://localhost:3000/api/fetchcurrentdrawchainversion?user=${vuserID}&sessionid=${vsessionID}`, {
@@ -3270,8 +3223,8 @@ async function updateUndoRedoButtons() {
 
     //console.log("Now getting the current version for session id = " + common.getSessionId());
     const chainVersion = await fetchcurrentdrawchainversion() || 0; // Fetch the latest current version
-    console.log("updateUndoRedoButtons = currentVersion = " + currentVersion)
-    console.log("updateUndoRedoButtons = chainVersion = " + chainVersion)
+    //console.log("updateUndoRedoButtons = currentVersion = " + currentVersion)
+    //console.log("updateUndoRedoButtons = chainVersion = " + chainVersion)
 
     undoButton.disabled = currentVersion <= 1;
     redoButton.disabled = currentVersion >= chainVersion;
@@ -3557,7 +3510,7 @@ function showColorPalette(type, id) {
                         //console.log('Updating mindMapData Color for Id =' + id);
                         nodeData.fill = colorCode;
                     }
-                    renderMindMap(mindMapData, 'refresh');
+                    renderMindMap(mindMapData);
 
                 }
             }
@@ -3665,7 +3618,7 @@ async function displayfilelist() {
 
             selectedFileNameElement.textContent = fileListSelect.value;
             mindMapData = selectedJsondrw
-            renderMindMap(mindMapData, 'refresh');
+            renderMindMap(mindMapData);
 
         } else {
             alert('Please select a file.'); // Show an alert to prompt the user to select a file
@@ -3719,8 +3672,8 @@ async function updateversion(vsessionid, voperation) {
             if (data.success) {
                 // console.log("updateversion get back with success and result");
                 const result = data.result; // Access the result property
-                console.log('Version Updated Successfully');
-                console.log(data);
+                //console.log('Version Updated Successfully');
+                //console.log(data);
                 // Perform any necessary UI updates or redirects after successful saving
                 return result; // Return the result
             } else {
@@ -3744,8 +3697,8 @@ async function updateversion(vsessionid, voperation) {
 // delete the interrupted version, after adding new position after undo, all other versions after to be deleted
 async function deleteversions(vsessionid, vversion) {
     const targetdelete = vversion
-    console.log("Deleting All Versions after or equal ..." + targetdelete);
-    // Proceed with saving using the file name
+        //console.log("Deleting All Versions after or equal ..." + targetdelete);
+        // Proceed with saving using the file name
     try {
         const response = await fetch('http://localhost:3000/api/deleteversions', {
             method: 'POST',
@@ -3759,7 +3712,7 @@ async function deleteversions(vsessionid, vversion) {
         });
 
         if (response.ok) {
-            console.log('Versions Deleted Successfully');
+            //console.log('Versions Deleted Successfully');
             // Perform any necessary UI updates or redirects after successful saving
         } else {
             console.error('Failed to Delete Versions');
@@ -3808,6 +3761,13 @@ function calculateNodePositions(response) {
         }
     });
 
+    // Log window dimensions
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    console.log('Window Width:', windowWidth);
+    console.log('Window Height:', windowHeight);
+
+
     // Calculate x and y positions for each node
     nodes.forEach((node, index) => {
         const rectangle = node.label.length * 10 + 20; // Adjust the box width based on the text length
@@ -3815,15 +3775,31 @@ function calculateNodePositions(response) {
         const paddingX = 100; // Horizontal padding between nodes
         const paddingY = 100; // Vertical padding between nodes
 
-        const row = Math.floor(index / 3); // Number of rows (adjust the value to control the layout)
+        const x = (index % 3) * (rectangle + paddingX) + windowWidth / 4;
+        const y = Math.floor(index / 3) * (common.nodesize.height.rectangle + paddingY) + windowHeight / 3;
 
-        const x = (index % 3) * (rectangle + paddingX); // Calculate x position
-        const y = row * (common.nodesize.height.rectangle + paddingY); // Calculate y position
 
-        node.x = x; // Set x position
-        node.y = y; // Set y position
+        // DRAGEND ==== Invert the drag coordinates to get the correct positions in the zoomed/translated coordinate system
+        //  const transformedX = (event.x - currentTransform.x) / currentTransform.k;
+        //  const transformedY = (event.y - currentTransform.y) / currentTransform.k;
 
-        nodePositions.set(node.id, { x, y }); // Store the calculated position
+        //  // Adjust the coordinates for your specific use case
+        //  const adjustedX = transformedX - 50;
+        //  const adjustedY = transformedY - 25;
+        // DRAGEND =======
+
+        const transformedX = (x - currentTransform.x) / currentTransform.k;
+        const transformedY = (y - currentTransform.y) / currentTransform.k;
+
+        const adjustedX = transformedX - 75;
+        const adjustedY = transformedY - 125;
+
+        console.log(`Node ${node.id}: x=${adjustedX}, y=${adjustedY}`); // Debugging statement
+
+        node.x = adjustedX; // Set x position
+        node.y = adjustedY; // Set y position
+
+        nodePositions.set(node.id, { x: adjustedX, y: adjustedY }); // Store the calculated position
 
         nodeOrder.push(node.id); // Add node to the node order array
     });
@@ -3844,6 +3820,8 @@ function calculateNodePositions(response) {
 
     return response;
 }
+
+
 
 
 document.addEventListener("DOMContentLoaded", function() {

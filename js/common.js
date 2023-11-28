@@ -107,13 +107,13 @@ function calculateDiamondHeight(numLines) {
 }
 
 function calculateDiamondPoints(numLines) {
-    console.log("numLines=", numLines);
+    //console.log("numLines=", numLines);
     const totalHeight = nodesize.height.diamond;
-    console.log("totalHeight=", totalHeight);
+    // console.log("totalHeight=", totalHeight);
     const halfWidth = nodesize.width.diamond / 2;
-    console.log("halfWidth=", halfWidth);
+    // console.log("halfWidth=", halfWidth);
     const halfHeight = totalHeight / 2;
-    console.log("halfHeight=", halfHeight);
+    // console.log("halfHeight=", halfHeight);
 
     // Assuming the top-left corner of the bounding box is at (0, 0)
     const topPoint = { x: halfWidth, y: 0 };
