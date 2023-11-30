@@ -530,35 +530,22 @@ function renderMindMap(mindMapData) {
             }
         });
 
+        // Add a red circle at the center
+        svg.append("circle")
+            .attr("cx", mindMapContainer.clientWidth / 2)
+            .attr("cy", mindMapContainer.clientHeight / 2)
+            .attr("r", 5) // Adjust the radius as needed
+            .style("fill", "red");
 
 
-        // Define the link force
-        // const linkForce = d3.forceLink(mindMapData.links)
-        //     .id(d => d.id) // Assume each node has a unique id
-        //     .distance(10); // You can adjust this value to set the desired distance between linked nodes
-        // // Define the charge force
-        // const chargeForce = d3.forceManyBody()
-        //     .strength(-100); // Negative value for repulsion. You can adjust the strength of the repulsion here
-
-        // Force Directed Graph
-        // Now add these forces to your simulation
-        // const simulation = d3
-        //     .forceSimulation(mindMapData.nodes)
-        //     .force('link', linkForce)
-        //     .force('charge', chargeForce)
-        //     .alphaDecay(0.09) // Default is 0.0228 will make node stabilize quickly
-        //     .force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2))
-        //     .on('tick', ticked);
-
-
+        //Create a simulation with several forces.
         // Create a simulation with several forces.
         const simulation = d3.forceSimulation(mindMapData.nodes)
-            .force("link", d3.forceLink(mindMapData.links).id(d => d.id))
-            .force("charge", d3.forceManyBody())
-            .force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2))
+            .force('link', d3.forceLink(mindMapData.links).id(d => d.id).distance(20).strength(0.1)) // Adjust strength as needed
+            .force("charge", d3.forceManyBody().strength(-1))
+            .alphaDecay(0.5) // Experiment with different values. Higher values will make the simulation more fluid,
+            .force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2).strength(0.05)) // Adjust strength as needed
             .on("tick", ticked);
-
-
 
         // Your existing ticked function
 
@@ -1019,27 +1006,18 @@ function renderMindMap(mindMapData) {
         });
 
         // Set the position attributes of links and nodes each time the simulation ticks.
+        // Modify the tick function to adjust the positions of dragged nodes
         function ticked() {
+            nodes.attr('transform', (d) => `translate(${d.fx || d.x},${d.fy || d.y})`);
+            renderRelationships();
 
-            console.log("TICKEDDDDDDDDDDDDDDD .....");
+            // Keep the current zoom
+            graphGroup.attr('transform', `translate(${currentTransform.x},${currentTransform.y}) scale(${currentTransform.k})`);
 
-            solidRelationships
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
-
-            curvedRelationships
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
-
-            nodes
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y);
-
-
+            if (simulation.alpha() < 0.005) {
+                simulation.stop();
+                console.log('Simulation stabilized');
+            }
         }
 
         svg.on('click', (event) => {
@@ -1066,122 +1044,59 @@ function renderMindMap(mindMapData) {
 
 
         function dragHandler(selection) {
-
             const drag = d3.drag()
                 .on('start', dragStart)
                 .on('drag', dragMove)
-                .on('end', dragEnd); // Add drag end event handler
+                .on('end', dragEnd);
 
             selection.call(drag);
 
             function dragStart(event) {
-
-                console.log("simulation =", simulation);
-
                 if (!event.active) simulation.alphaTarget(0.3).restart();
                 event.subject.fx = event.subject.x;
                 event.subject.fy = event.subject.y;
 
                 if (!allowDrag) return;
-
-                // Only handle as a drag event if the Shift key is not held down
-                //if (event.sourceEvent.shiftKey) return;
                 d3.select(this).raise().classed('active', true);
             }
 
-
-
             function dragMove(event, d) {
-
                 event.subject.fx = event.x;
                 event.subject.fy = event.y;
 
                 if (!allowDrag) return;
-
-
-                console.log(" dragmove 1 currentTrasform = ", currentTransform);
-
-                // Invert the drag coordinates to get the correct positions in the zoomed/translated coordinate system
-                const transformedX = (event.x - currentTransform.x) / currentTransform.k;
-                const transformedY = (event.y - currentTransform.y) / currentTransform.k;
-
-                // Adjust the coordinates for your specific use case
-                const adjustedX = transformedX - 50;
-                const adjustedY = transformedY - 25;
-                // Update the position of the dragged element
-                d3.select(this).attr('transform', `translate(${adjustedX}, ${adjustedY})`);
-
-
-                const selectedNode = mindMapData.nodes.find((node) => node.id === d.id);
-                if (selectedNode) {
-                    selectedNode.x = adjustedX;
-                    selectedNode.y = adjustedY;
-                }
-
-                // console.log("node id" + d.id)
-                // console.log("selectedNode.x  and y" + selectedNode.x + ", " + selectedNode.y)
-                // console.log(mindMapData)
-
-                // Update the positions of the associated lines in the mindMapData
-                mindMapData.relationships.forEach((relation) => {
-                    if (relation.source === d.id) {
-                        relation.x1 = selectedNode.x + getRightEdgeX(nodes, selectedNode);
-                        relation.y1 = selectedNode.y + getCenterY(nodes, selectedNode);
-                    }
-                    if (relation.target === d.id) {
-                        relation.x2 = selectedNode.x + getLeftEdgeX(nodes, selectedNode);
-                        relation.y2 = selectedNode.y + getCenterY(nodes, selectedNode);
-                    }
-                });
-
-
-
-                const d3x = event.x;
-                const d3y = event.y;
-
-                //  console.log("d3x = " + d3x + ", d3y =" + d3y);
-                console.log(" dragmove 2 currentTrasform = ", currentTransform);
-                console.log("Rendering from DragMove ...");
                 renderMindMap(mindMapData);
-
-
-                ToggleButtons(event, d); // so the 3 dots move with the box
-
-
+                ToggleButtons(event, d);
             }
 
             function dragEnd(event, d) {
-
                 if (!event.active) simulation.alphaTarget(0);
                 event.subject.fx = null;
                 event.subject.fy = null;
 
                 if (!allowDrag) return;
 
-                // Invert the drag coordinates to get the correct positions in the zoomed/translated coordinate system
-                const transformedX = (event.x - currentTransform.x) / currentTransform.k;
-                const transformedY = (event.y - currentTransform.y) / currentTransform.k;
-
-                // Adjust the coordinates for your specific use case
-                const adjustedX = transformedX - 50;
-                const adjustedY = transformedY - 25;
-
-                d3.select(this).classed('active', false);
-
-                // Update the positions of the node in mindMapData
-                const selectedNode = mindMapData.nodes.find((node) => node.id === d.id);
-                if (selectedNode) {
-                    selectedNode.x = adjustedX;
-                    selectedNode.y = adjustedY;
-                }
-
-                console.log(`DragEnd Node ${selectedNode.id}: x=${adjustedX}, y=${adjustedY}`); // Debugging statement
+                // Restart the simulation with a higher alpha target for quick stabilization
+                simulation.alphaTarget(0.3).restart();
 
                 takeSnapshot(mindMapData);
             }
 
+            // Listen for tick events to adjust the charge force strength
+            simulation.on('tick', function() {
+                nodes.attr('transform', (d) => `translate(${d.x},${d.y})`);
+                renderRelationships();
+                graphGroup.attr('transform', `translate(${currentTransform.x},${currentTransform.y}) scale(${currentTransform.k})`);
 
+                if (simulation.alpha() < 0.005) {
+                    simulation.stop();
+                    console.log('Simulation stabilized');
+                }
+            });
+
+            return drag;
         }
+
 
         function updateSolidRelationships() {
             //console.log("In updateSolidRelationships Render the Solid Relationship ...", svg);
@@ -2767,7 +2682,7 @@ function selectNode(nodeId) {
 
         } else {
 
-            renderMindMap(mindMapData, 'refresh');
+            renderMindMap(mindMapData);
             // Re-render the mind map to apply the selection highlight
 
             const addButton = document.getElementById('addNodeButton');
@@ -3740,6 +3655,7 @@ function populateFileList(fileList) {
 }
 
 function calculateNodePositions(response) {
+    console.log("calculatenodepositions once ========================");
     const nodes = response.nodes;
     const relationships = response.relationships;
 
