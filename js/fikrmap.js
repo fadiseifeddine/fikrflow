@@ -10,6 +10,7 @@ let sourceNode = null;
 let ismodified = 0;
 let svg = null;
 let graphGroup = null;
+let rectNodes = null;
 
 let blurEventPromise = null;
 let drawingExistsInBlur = false; // Initialize a flag
@@ -59,7 +60,10 @@ let BoxToolBox = null;
 
 let nodes = null;
 let solidRelationships = null;
+let label = null;
 let curvedRelationships = null;
+
+let simulation = null;
 
 let addingrel = false;
 let addingrelsource = null;
@@ -205,7 +209,7 @@ drawingContainer.addEventListener('click', function(event) {
 // MAINNNNNNNNNNNNNNNNNNNNNNN
 async function sendChatMessage(message) {
     try {
-
+        console.log("sendChatMessage with message =", message);
         const response = await fetch('http://localhost:3000/api/sendprompt', {
             method: 'POST',
             headers: {
@@ -216,26 +220,34 @@ async function sendChatMessage(message) {
             })
         });
 
-        if (response.ok) {
-            const responseData = await response.json();
+
+        const llmResult = await response.json();
+        console.log("Upload Result:", llmResult);
+
+        if (llmResult) {
             const {
                 mindMapDataJson
-            } = responseData;
+            } = llmResult;
 
-            //console.log('Received mind map data:', mindMapDataJson);
+            console.log('Received mind map data:', mindMapDataJson);
             //jsondrw = mindMapDataJson;
 
             mindMapData = calculateNodePositions(mindMapDataJson);
             console.log('Adjusted mind map data with positions:', mindMapData);
             renderMindMap(mindMapData);
+            common.showMessage('Generate Drawing ...', 2000);
+
             console.log("Takesnapshot trigerred by sendchatmessage ...");
             takeSnapshot(mindMapData); // the version 1
 
         } else {
             console.error('Error sending chat message:', response.status);
+            common.showMessage('Error sending chat message ...', 2000);
+
         }
     } catch (error) {
         console.error('Error sending chat message:', error);
+        common.showMessage('Error sending chat message ...', 2000);
     }
 }
 //////////////////////
@@ -468,6 +480,7 @@ function renderMindMap(mindMapData) {
 
         const width = mindMapContainer.clientWidth;
         const height = mindMapContainer.clientHeight;
+        console.log('Width:', width, 'Height:', height);
 
         // Create the SVG element
         svg = d3.select('#mindMapContainer')
@@ -538,37 +551,63 @@ function renderMindMap(mindMapData) {
             .style("fill", "red");
 
 
-        //Create a simulation with several forces.
-        // Create a simulation with several forces.
+        function centerForce(centerStrength, minCenterDistance, maxCenterDistance, relationStrength, maxRelationDistance) {
+            function force(alpha) {
+                mindMapData.nodes.forEach(node => {
+                    const centerX = mindMapContainer.clientWidth / 2;
+                    const centerY = mindMapContainer.clientHeight / 2;
+
+                    // Calculate the force components
+                    const dx = node.x - centerX;
+                    const dy = node.y - centerY;
+                    const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+
+                    // Attract nodes when too far from center
+                    if (distanceFromCenter > maxCenterDistance) {
+                        node.vx -= dx * centerStrength * alpha;
+                        node.vy -= dy * centerStrength * alpha;
+                    }
+                    // Repulse nodes when too near center
+                    else if (distanceFromCenter < minCenterDistance) {
+                        node.vx += dx * centerStrength * alpha;
+                        node.vy += dy * centerStrength * alpha;
+                    }
+
+                    // Repulse nodes when relationships are too near
+                    mindMapData.nodes.forEach(otherNode => {
+                        if (otherNode !== node) {
+                            const dx = node.x - otherNode.x;
+                            const dy = node.y - otherNode.y;
+                            const distanceBetweenNodes = Math.sqrt(dx * dx + dy * dy);
+
+                            if (distanceBetweenNodes < maxRelationDistance) {
+                                node.vx += dx * relationStrength * alpha;
+                                node.vy += dy * relationStrength * alpha;
+                            }
+                        }
+                    });
+                });
+            }
+
+            return force;
+        }
+
+        // Create force simulation
         const simulation = d3.forceSimulation(mindMapData.nodes)
-            .force('link', d3.forceLink(mindMapData.links).id(d => d.id).distance(20).strength(0.1)) // Adjust strength as needed
-            .force("charge", d3.forceManyBody().strength(-1))
-            .alphaDecay(0.5) // Experiment with different values. Higher values will make the simulation more fluid,
-            .force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2).strength(0.05)) // Adjust strength as needed
-            .on("tick", ticked);
+            .force('link', d3.forceLink(mindMapData.links)
+                .id(d => d.id)
+                .distance(40)
+                .strength(0.1))
+            .force("charge", d3.forceManyBody().strength(-10))
+            .alphaDecay(0.8) // Experiment with different values. Lower values will make the simulation cool down more slowly
+            .force('center', centerForce(0.08, 300, 450, 0.08, 300)); // Adjust parameters as needed
+        //centerStrength, minCenterDistance, maxCenterDistance, relationStrength, maxRelationDistance
+        //minCenterDistance: Nodes closer to the center than this distance will experience a force pushing them away from the center.
+        //maxCenterDistance: Nodes farther from the center than this distance will experience a force pulling them toward the center.
+        //relationStrength: It represents the strength of the force between nodes that are connected by a relationship. A higher value would mean a stronger attraction or repulsion between connected nodes.
+        //maxRelationDistance: It represents the maximum distance at which the force between connected nodes is applied. Nodes connected by a relationship that is shorter than this distance will experience an attraction force, while nodes connected by a relationship longer than this distance will experience a repulsion force.
 
-        // Your existing ticked function
-
-
-        // function ticked() {
-        //     console.log("TICKED");
-        //     nodes.attr('transform', (d) => `translate(${d.x}, ${d.y})`);
-        //     renderRelationships();
-
-        //     // will keep the current zoom
-        //     graphGroup.attr('transform', `translate(${currentTransform.x}, ${currentTransform.y}) scale(${currentTransform.k})`);
-
-
-        //     // Check if the simulation's alpha value has fallen below a threshold
-        //     if (simulation.alpha() < 0.005) {
-        //         simulation.stop(); // Stop the simulation
-        //         console.log('Simulation stabilized');
-
-        //     }
-        //     // If you have links, you'll want to update their positions here too
-        // }
-
-
+        //.force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2));
 
         nodes = graphGroup
             .selectAll('.node')
@@ -585,7 +624,7 @@ function renderMindMap(mindMapData) {
         const scaleX = 4; // Scale factor for horizontal scaling
         const scaleY = 0; // Scale factor for vertical scaling
 
-        const rectNodes = nodes
+        rectNodes = nodes
             //.append('rect')
             .append((d) => {
                 // If shape is 'ellipse', create an ellipse element; if 'parallelogram', create a parallelogram element; otherwise, create a rect element
@@ -1005,20 +1044,6 @@ function renderMindMap(mindMapData) {
             selectNode(clickedNode.id);
         });
 
-        // Set the position attributes of links and nodes each time the simulation ticks.
-        // Modify the tick function to adjust the positions of dragged nodes
-        function ticked() {
-            nodes.attr('transform', (d) => `translate(${d.fx || d.x},${d.fy || d.y})`);
-            renderRelationships();
-
-            // Keep the current zoom
-            graphGroup.attr('transform', `translate(${currentTransform.x},${currentTransform.y}) scale(${currentTransform.k})`);
-
-            if (simulation.alpha() < 0.005) {
-                simulation.stop();
-                console.log('Simulation stabilized');
-            }
-        }
 
         svg.on('click', (event) => {
             //console.log("B - SVG CLICK");
@@ -1051,25 +1076,27 @@ function renderMindMap(mindMapData) {
 
             selection.call(drag);
 
-            function dragStart(event) {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                event.subject.fx = event.subject.x;
-                event.subject.fy = event.subject.y;
+            function dragStart(event, d) {
+                // if (!allowDrag) return;
 
-                if (!allowDrag) return;
-                d3.select(this).raise().classed('active', true);
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
             }
 
             function dragMove(event, d) {
-                event.subject.fx = event.x;
-                event.subject.fy = event.y;
 
-                if (!allowDrag) return;
-                renderMindMap(mindMapData);
-                ToggleButtons(event, d);
+                // if (!allowDrag) return;
+
+                d.fx = event.x;
+                d.fy = event.y;
+
+                // renderMindMap(mindMapData);
+                // ToggleButtons(event, d);
             }
 
             function dragEnd(event, d) {
+
                 if (!event.active) simulation.alphaTarget(0);
                 event.subject.fx = null;
                 event.subject.fy = null;
@@ -1079,19 +1106,35 @@ function renderMindMap(mindMapData) {
                 // Restart the simulation with a higher alpha target for quick stabilization
                 simulation.alphaTarget(0.3).restart();
 
-                takeSnapshot(mindMapData);
+                // takeSnapshot(mindMapData);
             }
 
-            // Listen for tick events to adjust the charge force strength
-            simulation.on('tick', function() {
-                nodes.attr('transform', (d) => `translate(${d.x},${d.y})`);
+            simulation.on("tick", () => {
+
+                // Set the position attributes of links and nodes each time the simulation ticks.
+                // Modify the tick function to adjust the positions of dragged nodes
+                nodes.attr('transform', (d) => `translate(${d.fx || d.x},${d.fy || d.y})`);
                 renderRelationships();
+
+                // Keep the current zoom
                 graphGroup.attr('transform', `translate(${currentTransform.x},${currentTransform.y}) scale(${currentTransform.k})`);
 
                 if (simulation.alpha() < 0.005) {
                     simulation.stop();
                     console.log('Simulation stabilized');
                 }
+
+
+                // rectNodes
+                //     .attr("x", d => d.x)
+                //     .attr("y", d => d.y);
+
+                // label
+                //     .attr("x", d => d.x)
+                //     .attr("y", d => d.y);
+
+
+
             });
 
             return drag;
@@ -1311,7 +1354,7 @@ function renderMindMap(mindMapData) {
 
 
             // Draw label
-            const label = svg.selectAll('.relation-label')
+            label = svg.selectAll('.relation-label')
                 .data(mindMapData.relationships.filter((relation) => relation.type === 'solid'));
 
             //console.log("XXXXX currentTransform.x =", currentTransform.x)
@@ -3655,13 +3698,17 @@ function populateFileList(fileList) {
 }
 
 function calculateNodePositions(response) {
-    console.log("calculatenodepositions once ========================");
+    console.log("Full response received:", response);
     const nodes = response.nodes;
     const relationships = response.relationships;
+
+    console.log("Nodes ", nodes);
+
 
     const nodePositions = new Map(); // Map to store the calculated positions
 
     const nodeOrder = []; // Array to keep track of the node order
+
 
     // Sort nodes based on the order of source nodes appearing first
     nodes.sort((a, b) => {

@@ -10,10 +10,7 @@ import { transformManager } from './fikrmap.js';
 import { handleAddRelation } from './fikrmap.js';
 import { handleAddNode } from './fikrmap.js';
 
-
-
-
-
+import * as fikrllm from './fikrllm.js';
 
 
 
@@ -76,15 +73,35 @@ if (r_save_Button_conf_saveDrawingButton) {
     r_save_Button_conf_saveDrawingButton.addEventListener("click", r_save_Button_conf_handleSaveDrawing);
 }
 
-function handleInputSubmit() {
+// async function handleInputSubmit() {
+//     const userInput = document.getElementById('textInput').value;
+//     // Call chatWithLLM and wait for the response
+//     const chatResponse = await fikrllm.chatWithLLM(userInput); // Langflow
+
+//     //Check if chatWithLLM was successful
+//     if (chatResponse) {
+//         console.log("LLM Response ....", chatResponse);
+//         sendChatMessage(chatResponse);
+//     } else {
+//         // Handle the case when chatWithLLM fails
+//         console.error('Failed to process user input');
+//         // Provide appropriate user feedback
+//     }
+//     common.showMessage('Generate Drawing ...', 2000);
+//     selectedFileNameElement.textContent = "";
+//     common.setFileName(null);
+// }
+
+async function handleInputSubmit() {
     const userInput = document.getElementById('textInput').value;
+
+
     sendChatMessage(userInput);
-    common.showMessage('Generate Drawing ...', 2000);
     selectedFileNameElement.textContent = "";
     common.setFileName(null);
 
-
 }
+
 
 
 function r_open_Button_handleSave() {
