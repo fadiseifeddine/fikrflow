@@ -1,0 +1,18 @@
+version: '3'
+services:
+  fikrflow:
+    image: nginx:latest
+    ports:
+      - "5500:80"
+    volumes:
+      - .:/usr/share/nginx/html
+      - shared_volume:/shared_data
+    networks:
+      - shared-network
+
+networks:
+  shared-network:
+    external: true
+
+volumes:
+  shared_volume:  # Define the shared volume

@@ -70,6 +70,7 @@
                        Settings
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
+                        <li><a class="dropdown-item" href="#" id="uploaddoc">Upload (DOC)</a></li>
                         <li><a class="dropdown-item" href="#" id="importxls">Import (XLS)</a></li>
                         <li><a class="dropdown-item" href="#" id="exportxls">Export (XLS)</a></li>
                         <li><a class="dropdown-item" href="#" id="registeruser">Sign-Up</a></li>
@@ -394,6 +395,25 @@
         </div>
     </div>
 
+    <!-- Upload DOC Modal -->
+    <div id="uploaddocmodal" class="modal fade" tabindex="-1" aria-labelledby="uploaddoclabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploaddocoption">Import XLS</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="file" id="docInput" accept=".pdf,.docx" />
+                    <div id="uploaddragDropArea" class="drop-area">
+                        <p>Drag and drop your PDF/DOCX file here</p>
+                    </div>
+                    <button id="uploadButton" class="btn btn-primary">Upload</button>
+                    <!-- Add Import button -->
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Load jQuery and Bootstrap JS before your custom scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <!-- Add Popper.js -->

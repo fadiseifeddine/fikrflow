@@ -175,11 +175,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     });
 
+    // Event listener for the Import button
+    document.getElementById('uploadButton').addEventListener('click', async function() {
+        const fileInput = document.getElementById('docInput');
+        const file = fileInput.files[0];
+        if (file) {
+            try {
+                await uploadFiles(file);
+                // You now have the mindMapData object from the XLSX file
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
 
+        // File Import End ------------------------------------------------------------
+
+
+    });
 
 
 });
 
+// Handle click event on uploaddocdropdown element
+document.getElementById('uploaddoc').addEventListener('click', function() {
+    console.log("Upload Modal ....");
+
+    const uploaddocElement = document.getElementById('uploaddocmodal');
+    console.log("uploaddocElement", uploaddocElement);
+    const uploaddocModal = new bootstrap.Modal(uploaddocElement, {
+        backdrop: true
+    });
+    uploaddocModal.show();
+});
 
 // Handle click event on importxlsdropdown element
 document.getElementById('importxls').addEventListener('click', function() {
@@ -192,6 +219,7 @@ document.getElementById('importxls').addEventListener('click', function() {
     });
     importXlsModal.show();
 });
+
 
 // Handle click event on importxlsdropdown element
 document.getElementById('exportxls').addEventListener('click', function() {
@@ -252,7 +280,7 @@ async function sendChatMessage(message) {
 }
 //////////////////////
 
-async function handleFiles(file) {
+async function handleFiles(file) { // import drawing
     console.log("Handling the files ....", file);
     if (
         file.type === "application/vnd.ms-excel" ||
@@ -263,7 +291,7 @@ async function handleFiles(file) {
         formData.append("file", file);
 
         try {
-            const response = await fetch('http://localhost:3000/api/upload', {
+            const response = await fetch('http://localhost:3000/api/upload_importdrawing', {
                 method: "POST",
                 body: formData,
             });
@@ -277,18 +305,60 @@ async function handleFiles(file) {
                 importxlsModal.hide();
                 renderMindMap(data.result);
             } else {
-                console.error("Error uploading the file:", response.statusText);
+                console.error("Error uploading  for import the file:", response.statusText);
             }
         } catch (error) {
-            console.error("Error uploading the file:", error);
+            console.error("Error uploading  for import the file:", error);
         }
     } else {
-        alert("Please upload a valid XLS or XLSX file.");
+        alert("Please upload for import a valid XLS or XLSX file.");
     }
 }
 
 
 
+async function uploadFiles(file) { // upload for LLM
+    console.log("Upload the files ...", file);
+
+    const allowedTypes = [
+        "application/vnd.ms-excel", // XLS
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // XLSX
+        "application/pdf", // PDF
+        "application/msword", // DOC
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" // DOCX
+    ];
+
+    if (allowedTypes.includes(file.type) || file.name.endsWith(".xlsx")) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+            const response = await fetch('http://localhost:3000/api/upload_llm', {
+                method: "POST",
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("data", data); // Log the server's response
+                //console.log('Hiding the Modal ....');
+                $('#fileNameModal').modal('hide');
+                const uploaddocModal = bootstrap.Modal.getInstance(document.getElementById('uploaddocmodal'));
+                uploaddocModal.hide();
+                common.showMessage('File Uploaded / Vectorized', 2000);
+
+            } else {
+                console.error("Error uploading the file:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error uploading the file:", error);
+        }
+
+        // Add here the logic to send formData to your server...
+    } else {
+        console.log("File type not supported.");
+    }
+}
 
 function resizeDrawingContainer() {
     const windowHeight = window.innerHeight;
