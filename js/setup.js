@@ -64,6 +64,8 @@ document.getElementById('move-right').addEventListener('click', () => move('righ
 document.getElementById('move-up').addEventListener('click', () => move('up'));
 document.getElementById('move-down').addEventListener('click', () => move('down'));
 
+
+
 // Add a click event listener to the "Save" button (add name to drawing and save)
 const r_save_Button_conf_saveDrawingButton = document.getElementById("r_save_Button_conf_saveDrawingButton");
 
