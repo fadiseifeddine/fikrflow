@@ -848,6 +848,15 @@ function getCenterY(selection, nodeId) {
 function renderMindMap(mindMapData) {
     console.log("LLL renderMindMap mindMapData", mindMapData);
 
+    // Variables to Fine-Tune
+    const centerStrength = 0.08; // Strength of center pulling force
+    const minCenterDistance = 300; // Minimum distance from center for repulsion
+    const maxCenterDistance = 450; // Maximum distance from center for attraction
+    const chargeStrength = -50; // Strength of node repulsion
+    const linkDistance = 40; // Distance between nodes connected by a link
+    const linkStrength = 0.1; // Strength of the links
+    const alphaTarget = 0.3; // Alpha target for simulation during dragging
+    const nodeRadius = 5; // Radius of the nodes
 
     const mindMapContainer = document.getElementById('mindMapContainer');
     mindMapContainer.innerHTML = '';
@@ -927,56 +936,36 @@ function renderMindMap(mindMapData) {
             .style("fill", "red");
 
 
-        function centerForce(centerStrength, minCenterDistance, maxCenterDistance, relationStrength, maxRelationDistance) {
-            function force(alpha) {
+        // Custom center force
+        function centerForce() {
+            return function force(alpha) {
                 mindMapData.nodes.forEach(node => {
-                    const centerX = mindMapContainer.clientWidth / 2;
-                    const centerY = mindMapContainer.clientHeight / 2;
-
-                    // Calculate the force components
+                    const centerX = width / 2;
+                    const centerY = height / 2;
                     const dx = node.x - centerX;
                     const dy = node.y - centerY;
-                    const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
+                    const distance = Math.sqrt(dx * dx + dy * dy);
 
-                    // Attract nodes when too far from center
-                    if (distanceFromCenter > maxCenterDistance) {
+                    if (distance > maxCenterDistance) {
                         node.vx -= dx * centerStrength * alpha;
                         node.vy -= dy * centerStrength * alpha;
-                    }
-                    // Repulse nodes when too near center
-                    else if (distanceFromCenter < minCenterDistance) {
+                    } else if (distance < minCenterDistance) {
                         node.vx += dx * centerStrength * alpha;
                         node.vy += dy * centerStrength * alpha;
                     }
-
-                    // Repulse nodes when relationships are too near
-                    mindMapData.nodes.forEach(otherNode => {
-                        if (otherNode !== node) {
-                            const dx = node.x - otherNode.x;
-                            const dy = node.y - otherNode.y;
-                            const distanceBetweenNodes = Math.sqrt(dx * dx + dy * dy);
-
-                            if (distanceBetweenNodes < maxRelationDistance) {
-                                node.vx += dx * relationStrength * alpha;
-                                node.vy += dy * relationStrength * alpha;
-                            }
-                        }
-                    });
                 });
-            }
-
-            return force;
+            };
         }
-
+        // Create force simulation
         // Create force simulation
         const simulation = d3.forceSimulation(mindMapData.nodes)
             .force('link', d3.forceLink(mindMapData.links)
                 .id(d => d.id)
-                .distance(40)
-                .strength(0.1))
-            .force("charge", d3.forceManyBody().strength(-10))
-            .alphaDecay(0.8) // Experiment with different values. Lower values will make the simulation cool down more slowly
-            .force('center', centerForce(0.08, 300, 450, 0.08, 300)); // Adjust parameters as needed
+                .distance(linkDistance)
+                .strength(linkStrength))
+            .force("charge", d3.forceManyBody().strength(chargeStrength))
+            .force('center', centerForce())
+            .on("tick", ticked);
         //centerStrength, minCenterDistance, maxCenterDistance, relationStrength, maxRelationDistance
         //minCenterDistance: Nodes closer to the center than this distance will experience a force pushing them away from the center.
         //maxCenterDistance: Nodes farther from the center than this distance will experience a force pulling them toward the center.
@@ -984,6 +973,18 @@ function renderMindMap(mindMapData) {
         //maxRelationDistance: It represents the maximum distance at which the force between connected nodes is applied. Nodes connected by a relationship that is shorter than this distance will experience an attraction force, while nodes connected by a relationship longer than this distance will experience a repulsion force.
 
         //.force('center', d3.forceCenter(mindMapContainer.clientWidth / 2, mindMapContainer.clientHeight / 2));
+
+
+        function ticked() {
+            // Update the position attributes of nodes and links
+            nodes.attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+
+            links.attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+        }
 
         nodes = graphGroup
             .selectAll('.node')
@@ -1455,9 +1456,10 @@ function renderMindMap(mindMapData) {
             function dragStart(event, d) {
                 // if (!allowDrag) return;
 
-                if (!event.active) simulation.alphaTarget(0.3).restart();
+                if (!event.active) simulation.alphaTarget(alphaTarget).restart();
                 d.fx = d.x;
                 d.fy = d.y;
+
             }
 
             function dragMove(event, d) {
@@ -1473,14 +1475,17 @@ function renderMindMap(mindMapData) {
 
             function dragEnd(event, d) {
 
+
                 if (!event.active) simulation.alphaTarget(0);
-                event.subject.fx = null;
-                event.subject.fy = null;
+                d.fx = null;
+                d.fy = null;
+
+
 
                 if (!allowDrag) return;
 
                 // Restart the simulation with a higher alpha target for quick stabilization
-                simulation.alphaTarget(0.3).restart();
+                //simulation.alphaTarget(0.3).restart();
 
                 // takeSnapshot(mindMapData);
             }

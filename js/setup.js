@@ -10,10 +10,6 @@ import { transformManager } from './fikrmap.js';
 import { handleAddRelation } from './fikrmap.js';
 import { handleAddNode } from './fikrmap.js';
 
-import * as fikrllm from './fikrllm.js';
-
-
-
 // Button moving the SVG Left , Right, Up and Down
 let currentTranslate = { x: 0, y: 0 };
 const moveStep = 50; // Define the step size for each movement
@@ -25,8 +21,6 @@ const selectedFileNameElement = document.getElementById('selectedFileName');
 // Modal for Saving the Drawing under a File Name
 const fileNameModal = new bootstrap.Modal(document.getElementById('fileNameModal'));
 
-
-// Zoom
 // Create the zoom behavior
 const zoom = d3.zoom()
     .scaleExtent([0.1, 10]) // This defines the min and max zoom scale, feel free to change these values
@@ -36,6 +30,9 @@ const zoom = d3.zoom()
 d3.select("#graphGroup").call(zoom);
 
 // Listeners =============================
+
+console.log("----------- ==== ==== ==== Attaching event listener to submitButton");
+
 document.getElementById('submitButton').addEventListener('click', handleInputSubmit);
 document.getElementById('r_savefile_Button').addEventListener('click', r_save_Button_handleSave);
 document.getElementById('r_openfile_Button').addEventListener('click', r_open_Button_handleOpen);
