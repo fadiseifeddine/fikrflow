@@ -14,105 +14,119 @@
 <body>
 
 
-    <div id="containerWrapper">
+    <div id="containerWrapper" class="container-fluid">
 
-        <div id="chatContainer">
-            <textarea id="textInput" rows="3" placeholder="Enter your text"></textarea>
-            <div id="btnContainer">
+        <!-- Flex container to align child divs in a row -->
+        <div class="row">
 
-                <div class="btn-group" role="group">
-                    <button id="submitButton" class="btn btn-secondary"><i class="bi bi-check"></i></button>
-                    <button id="addButton" class="btn btn-secondary"><i class="bi bi-plus"></i></button>
-                    <button id="deleteButton" class="btn btn-secondary" disabled><i class="bi bi-trash"></i></button>
-                    <button id="editButton" class="btn btn-secondary" disabled> <i class="bi bi-pencil-fill"></i></button>
-                    <button id="r_savefile_Button" class="btn btn-secondary"><i class="bi bi-save"></i></button>
-                    <button id="r_openfile_Button" class="btn btn-secondary"><i class="bi bi-folder2-open"></i></button>
-                    <button id="addNodeButton" class="btn btn-secondary" disabled><i class="bi bi-node-plus"></i></button>
-                    <button id="addRelationButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-right"></i></button>
-                    <button id="undoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
-                    <button id="redoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-clockwise"></i></button>
-                    <button id="zoomInButton"><i class="bi bi-zoom-in"></i></button>
-                    <button id="zoomOutButton"><i class="bi bi-zoom-out"></i></button>
-                    <button id="resetZoomButton"><i class="bi bi-aspect-ratio"></i></button>
-                    <button id="move-left"><i class="bi bi-arrow-left-circle"></i></button>
-                    <button id="move-right"><i class="bi bi-arrow-right-circle"></i></button>
-                    <button id="move-up"><i class="bi bi-arrow-up-circle"></i></button>
-                    <button id="move-down"><i class="bi bi-arrow-down-circle"></i></button>
+            <div id="chatContainer" class="col-12">
+                <textarea id="textInput" rows="2" placeholder="Enter your text"></textarea>
 
-                </div>
-            </div>
+                <!-- Flex container to align child divs in a row -->
+                <div class="flex-row-control_containers">
 
-            <div id="filterContainer">
+                    <div id="btnContainer">
 
-                <!-- New div with three buttons -->
-                <div id="filterButtons" class="d-flex justify-content-center">
-                    <button id="heartButton" class="btn btn-secondary icon-button">
+                        <div class="btn-group" role="group">
+                            <button id="submitButton" class="btn btn-secondary"><i class="bi bi-check"></i></button>
+                            <button id="addButton" class="btn btn-secondary"><i class="bi bi-plus"></i></button>
+                            <button id="deleteButton" class="btn btn-secondary" disabled><i class="bi bi-trash"></i></button>
+                            <button id="editButton" class="btn btn-secondary" disabled> <i class="bi bi-pencil-fill"></i></button>
+                            <button id="r_savefile_Button" class="btn btn-secondary"><i class="bi bi-save"></i></button>
+                            <button id="r_openfile_Button" class="btn btn-secondary"><i class="bi bi-folder2-open"></i></button>
+                            <button id="addNodeButton" class="btn btn-secondary" disabled><i class="bi bi-node-plus"></i></button>
+                            <button id="addRelationButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-right"></i></button>
+                            <button id="undoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-counterclockwise"></i></button>
+                            <button id="redoButton" class="btn btn-secondary" disabled><i class="bi bi-arrow-clockwise"></i></button>
+                            <button id="zoomInButton"><i class="bi bi-zoom-in"></i></button>
+                            <button id="zoomOutButton"><i class="bi bi-zoom-out"></i></button>
+                            <button id="resetZoomButton"><i class="bi bi-aspect-ratio"></i></button>
+                            <button id="move-left"><i class="bi bi-arrow-left-circle"></i></button>
+                            <button id="move-right"><i class="bi bi-arrow-right-circle"></i></button>
+                            <button id="move-up"><i class="bi bi-arrow-up-circle"></i></button>
+                            <button id="move-down"><i class="bi bi-arrow-down-circle"></i></button>
+
+                        </div>
+                    </div>
+
+                    <div id="filterContainer">
+
+                        <!-- New div with three buttons -->
+                        <div id="filterButtons" class="d-flex justify-content-center">
+                            <button id="heartButton" class="btn btn-secondary icon-button">
                         <i class="bi bi-heart"></i>
                     </button>
 
-                    <button id="smileyButton" class="btn btn-secondary icon-button">
+                            <button id="smileyButton" class="btn btn-secondary icon-button">
                         <i class="bi bi-emoji-smile"></i>
                     </button>
 
-                    <button id="starButton" class="btn btn-secondary icon-button">
+                            <button id="starButton" class="btn btn-secondary icon-button">
                         <i class="bi bi-star"></i>
                     </button>
 
-                </div>
-            </div>
+                        </div>
+                    </div>
 
 
-            <div id="settingsContainer">
+                    <div id="settingsContainer">
 
-                <!-- Settings menu -->
-                <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <!-- Settings menu -->
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                        Settings
                     </button>
-                    <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
-                        <li><a class="dropdown-item" href="#" id="importxls">Import (XLS)</a></li>
-                        <li><a class="dropdown-item" href="#" id="exportxls">Export (XLS)</a></li>
-                        <li><a class="dropdown-item" href="#" id="registeruser">Sign-Up</a></li>
-                        <li><a class="dropdown-item" href="#" id="loginuser">Sign-In</a></li>
-                        <li><a class="dropdown-item" href="#" id="duplicate">Duplicate</a></li>
+                            <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
+                                <li><a class="dropdown-item" href="#" id="importxls">Import (XLS)</a></li>
+                                <li><a class="dropdown-item" href="#" id="exportxls">Export (XLS)</a></li>
+                                <li><a class="dropdown-item" href="#" id="registeruser">Sign-Up</a></li>
+                                <li><a class="dropdown-item" href="#" id="loginuser">Sign-In</a></li>
+                                <li><a class="dropdown-item" href="#" id="duplicate">Duplicate</a></li>
 
 
-                        <!-- ... Other menu options ... -->
-                    </ul>
+                                <!-- ... Other menu options ... -->
+                            </ul>
+                            <!-- Separate Upload (DOC) Button -->
+                            <button class="btn btn-primary" type="button" id="uploaddoc">Upload (DOC)</button>
+
+                            <!-- Sample Visual Button -->
+                            <button class="btn btn-primary" type="button" id="samplevisual">Sample Visual</button>
+
+                        </div>
+
+
+                    </div>
+
                 </div>
 
-                <!-- Separate Upload (DOC) Button -->
-                <button class="btn btn-primary" type="button" id="uploaddoc">Upload (DOC)</button>
 
-                <!-- Sample Visual Button -->
-                <button class="btn btn-primary" type="button" id="samplevisual">Sample Visual</button>
-
-            </div>
-
-
-            <div id="drawingContainer">
-                <svg width="100%" height="100%" id="mindMapContainer"></svg>
             </div>
 
         </div>
 
+        <div class="row">
 
 
-        <div id="centerContainer">
-            <span id="selectedFileLabel">Selected File:</span>
-            <span id="selectedFileName"></span>
-            <span id="selectedUserLabel">Selected User:</span>
-            <span id="selectedUser">johndoe</span>
-            <span id="selectedStatus"></span>
+            <div id="centerContainer" class="col-12">
+                <span id="selectedFileLabel">Selected File:</span>
+                <span id="selectedFileName"></span>
+                <span id="selectedUserLabel">Selected User:</span>
+                <span id="selectedUser">johndoe</span>
+                <span id="selectedStatus"></span>
 
-            <!-- Add a message bar -->
-            <div id="messageBar">
+                <!-- Add a message bar -->
+                <div id="messageBar">
+                </div>
+
+
+                <div id="drawingContainer">
+                    <svg width="100%" height="100%" id="mindMapContainer"></svg>
+                </div>
+
+
+
             </div>
-
-
         </div>
-
-
     </div>
 
 

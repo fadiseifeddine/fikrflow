@@ -6,20 +6,25 @@ body {
     overflow: hidden;
 }
 
-#chatContainer {
-    position: fixed;
-    top: 0;
-    left: 0;
+#containerWrapper {
     width: 100%;
-    height: 100px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
-    padding: 10px;
-    box-sizing: border-box;
-    background-color: #ffffe0;
-    z-index: 2;
+    min-height: 100vh;
+    /* Ensure it covers at least the full viewport height */
+}
+
+#chatContainer {
+    width: 100%;
+}
+
+
+/* Other styles for #textInput, #submitButton, .node, etc. remain the same */
+
+#centerContainer {
+    width: 100%;
+    min-height: 100%;
+    /* Ensure it takes at least 100% of the parent's height */
+    overflow-y: auto;
+    /* Scrollbar appears when content overflows */
 }
 
 #textInput {
@@ -35,23 +40,6 @@ body {
 #submitButton {
     padding: 5px 10px;
     font-size: 14px;
-}
-
-#centerContainer {
-    position: absolute;
-    top: 25%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    background-color: #f8f9fa;
-    border: 1px solid #d1d1d1;
-    padding: 10px;
-    width: 1200px;
-    /* Adjust the width as needed */
-    margin: 0 auto;
-    /* Center horizontally */
-    z-index: 1;
-    /* Make sure it appears above other content */
 }
 
 #selectedFileLabel,
@@ -329,14 +317,6 @@ foreignObject input {
     background-color: #f0f0f0;
 }
 
-#containerWrapper {
-    position: relative;
-    width: 100%;
-    /* Adjust the width as needed */
-    height: 100vh;
-    /* Adjust the height as needed */
-}
-
 
 /* Add new CSS styles for the attribute container */
 
@@ -431,16 +411,32 @@ foreignObject input {
 }
 
 #drawingContainer {
-    position: relative;
     width: 100%;
-    height: 100%;
-    border: 2px solid black;
+    /* Full width */
+    min-height: 100vh;
+    /* Minimum height to at least cover the viewport */
+    overflow-y: auto;
+    /* Enables vertical scrolling when necessary */
 }
 
 #mindMapContainer {
-    position: relative;
+    /* position: relative;*/
     width: 100%;
-    height: 100%;
     border: 2px solid red;
     /* Change 'black' to any color you prefer */
+}
+
+.flex-row-control_containers {
+    display: flex;
+    justify-content: space-between;
+    /* Adjusts space between children */
+    align-items: center;
+    /* Aligns children vertically in the middle */
+}
+
+#btnContainer,
+#filterContainer,
+#settingsContainer {
+    flex: 1;
+    /* Each child will take up equal space */
 }
