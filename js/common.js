@@ -270,6 +270,11 @@ function adjustTextareaHeight(textarea) {
 }
 
 function splitText(text, maxLength, maxLines) {
+    if (typeof text !== 'string') {
+        console.warn('Text is not a string:', text);
+        return ''; // Return an empty string if text is not a string
+    }
+
     let lines = text.split('\n'); // Initial split by newline
 
     // Further split each line if it exceeds maxLength
@@ -303,13 +308,15 @@ function splitText(text, maxLength, maxLines) {
     return lines.join('\n');
 }
 
+
 function countLines(d) {
     let label = d.label; // Assuming 'label' is a property of 'd'
-    let maxLength = nodetext.length[d.shape];
-    let maxLines = nodetext.maxlines[d.shape];
+    let shape = d.shape || 'rectangle'; // Default to 'rectangle' if shape is undefined
+    let maxLength = nodetext.length[shape];
+    let maxLines = nodetext.maxlines[shape];
 
     if (!maxLength || !maxLines) {
-        console.error('Unrecognized shape:', d.shape);
+        console.error('Unrecognized or undefined shape:', shape);
         return 0; // Handle this case as needed
     }
 
@@ -319,6 +326,7 @@ function countLines(d) {
     // Return the count of the lines after the split
     return splitTextResult.split('\n').length;
 }
+
 
 function handleShapeText(d) {
     const shapeConfig = {
@@ -339,6 +347,224 @@ function handleShapeText(d) {
     return d.label; // Return the modified label
 }
 
+function determineMapType(mindMapData) {
+    // If all nodes have a single parent (except the root), it's a hierarchy
+    let isHierarchy = true;
+
+    const nodeIds = new Set(mindMapData.nodes.map(node => node.id));
+    const childCounts = new Map();
+
+    mindMapData.relationships.forEach(rel => {
+        if (!childCounts.has(rel.target)) {
+            childCounts.set(rel.target, 0);
+        }
+        childCounts.set(rel.target, childCounts.get(rel.target) + 1);
+    });
+
+    childCounts.forEach((count, nodeId) => {
+        if (count > 1 && nodeIds.has(nodeId)) {
+            isHierarchy = false;
+        }
+    });
+
+    return isHierarchy ? "hierarchy" : "network";
+}
+
+function calculateNodePositions(data, currentTransform) {
+    const type = determineMapType(data);
+    if (type === 'network') {
+        console.log("Network ........");
+        // Apply network layout calculations (e.g., force-directed layout)
+        // This might involve initializing a force simulation and positioning nodes based on their relationships
+        return calculateNetworkNodePositions(data, currentTransform);
+    } else if (type === 'hierarchy') {
+        console.log("Hierarchy ........");
+
+        //hierarchy no need to calculate the d3.tree 
+        return data;
+
+    }
+}
+
+function calculateNetworkNodePositions(response, currentTransform) {
+    console.log("Full response received:", response);
+    const nodes = response.nodes;
+    const relationships = response.relationships;
+
+    console.log("Nodes ", nodes);
+
+
+    const nodePositions = new Map(); // Map to store the calculated positions
+
+    const nodeOrder = []; // Array to keep track of the node order
+
+
+    // Sort nodes based on the order of source nodes appearing first
+    nodes.sort((a, b) => {
+        const aIsSource = relationships.some((relationship) => relationship.source === a.id);
+        const bIsSource = relationships.some((relationship) => relationship.source === b.id);
+
+        if (aIsSource && !bIsSource) {
+            return -1;
+        } else if (!aIsSource && bIsSource) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+
+    // Log window dimensions
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    console.log('Window Width:', windowWidth);
+    console.log('Window Height:', windowHeight);
+
+
+    // Calculate x and y positions for each node
+    nodes.forEach((node, index) => {
+        const rectangle = node.label.length * 10 + 20; // Adjust the box width based on the text length
+
+        const paddingX = 100; // Horizontal padding between nodes
+        const paddingY = 100; // Vertical padding between nodes
+
+        const x = (index % 3) * (rectangle + paddingX) + windowWidth / 4;
+        const y = Math.floor(index / 3) * (nodesize.height.rectangle + paddingY) + windowHeight / 3;
+
+
+        // DRAGEND ==== Invert the drag coordinates to get the correct positions in the zoomed/translated coordinate system
+        //  const transformedX = (event.x - currentTransform.x) / currentTransform.k;
+        //  const transformedY = (event.y - currentTransform.y) / currentTransform.k;
+
+        //  // Adjust the coordinates for your specific use case
+        //  const adjustedX = transformedX - 50;
+        //  const adjustedY = transformedY - 25;
+        // DRAGEND =======
+
+        const transformedX = (x - currentTransform.x) / currentTransform.k;
+        const transformedY = (y - currentTransform.y) / currentTransform.k;
+
+        const adjustedX = transformedX - 75;
+        const adjustedY = transformedY - 125;
+
+        console.log(`Node ${node.id}: x=${adjustedX}, y=${adjustedY}`); // Debugging statement
+
+        node.x = adjustedX; // Set x position
+        node.y = adjustedY; // Set y position
+
+        nodePositions.set(node.id, { x: adjustedX, y: adjustedY }); // Store the calculated position
+
+        nodeOrder.push(node.id); // Add node to the node order array
+    });
+
+    // Sort the nodes based on the node order
+    nodes.sort((a, b) => nodeOrder.indexOf(a.id) - nodeOrder.indexOf(b.id));
+
+    // Update the relationships with the calculated positions
+    relationships.forEach((relationship) => {
+        const sourcePosition = nodePositions.get(relationship.source);
+        const targetPosition = nodePositions.get(relationship.target);
+
+        relationship.x1 = sourcePosition.x; // Set x position for the relationship source
+        relationship.y1 = sourcePosition.y; // Set y position for the relationship source
+        relationship.x2 = targetPosition.x; // Set x position for the relationship target
+        relationship.y2 = targetPosition.y; // Set y position for the relationship target
+    });
+
+    return response;
+}
+
+
+
+// functions used in tree hierarchy , fadi to consider doing it for network
+// ===================================================================
+
+function createParallelogramElement(d) {
+    const numLines = countLines(d) + 1; // Assuming this function counts the number of lines in the text
+    const plgrmPoints = calculateParallelogramPoints(numLines);
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute("d", "M" + plgrmPoints.map(p => `${p.x},${p.y}`).join("L") + "Z");
+    path.setAttribute("stroke", "red");
+    path.setAttribute("stroke-width", "2");
+    path.setAttribute("fill", "none");
+    return path;
+}
+
+function createDiamondElement(d) {
+    const numLines = countLines(d) + 1;
+    const diamondPoints = calculateDiamondPoints(numLines);
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute("d", "M" + diamondPoints.map(p => `${p.x},${p.y}`).join("L") + "Z");
+    path.setAttribute("stroke", "red");
+    path.setAttribute("stroke-width", 2);
+    path.setAttribute("fill", "none");
+    return path;
+}
+
+function createShapeElement(nodeData) {
+    let element;
+    switch (nodeData.shape) {
+        case 'rectangle':
+            element = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            // Set attributes for rectangle
+            break;
+        case 'ellipse':
+            element = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            // Set attributes for ellipse
+            break;
+        case 'parallelogram':
+            element = createParallelogramElement(nodeData); // Implement this function
+            break;
+        case 'diamond':
+            element = createDiamondElement(nodeData); // Implement this function
+            break;
+        default:
+            console.error('Unrecognized shape:', nodeData.shape);
+            return null;
+    }
+    return element;
+}
+
+function getNodeSize(nodeData) {
+    if (!nodeData || !nodeData.shape) {
+        console.error('Missing data or shape for node:', nodeData);
+        return [0, 0]; // Default size for missing data or shape
+    }
+
+    console.log('nodeData that i am calculating the size :', nodeData);
+
+    const numLines = countLines(nodeData);
+    return [
+        calculateNodeWidth(nodeData.shape),
+        calculateNodeHeight(nodeData.shape, numLines)
+    ];
+}
+
+function transformDataToHierarchy(data) {
+    if (!data || !data.nodes || !data.relationships) {
+        console.error("Invalid data format:", data);
+        return null;
+    }
+
+    let nodeMap = new Map();
+    data.nodes.forEach(node => {
+        nodeMap.set(node.id, {...node, children: [] });
+    });
+
+    data.relationships.forEach(rel => {
+        let parent = nodeMap.get(rel.source);
+        let child = nodeMap.get(rel.target);
+        if (parent && child) {
+            parent.children.push(child);
+        } else {
+            console.error("Invalid relationship:", rel);
+        }
+    });
+
+    return nodeMap.get("root"); // Assuming 'root' is the id of the root node
+}
+// ===================================================================
+
+
 // Add event listeners for keydown and keyup events
 window.addEventListener('keydown', handleKeydown);
 window.addEventListener('keyup', handleKeyup);
@@ -346,4 +572,4 @@ window.addEventListener('keyup', handleKeyup);
 
 
 
-export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName, isFieldEmpty, showFieldError, countLines, calculateNodeHeight, calculateDiamondPoints, calculateParallelogramPoints, nodesize, nodetext, splitText, adjustTextareaHeight, handleShapeText, calculateNodeWidth };
+export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName, isFieldEmpty, showFieldError, countLines, calculateNodeHeight, calculateDiamondPoints, calculateParallelogramPoints, nodesize, nodetext, splitText, adjustTextareaHeight, handleShapeText, calculateNodeWidth, createShapeElement, getNodeSize, transformDataToHierarchy, createParallelogramElement, createDiamondElement, calculateNodePositions, determineMapType };

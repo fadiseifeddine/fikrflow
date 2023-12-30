@@ -209,7 +209,7 @@ document.getElementById('uploaddoc').addEventListener('click', function() {
 });
 
 
-document.getElementById('samplevisual').addEventListener('click', function() {
+document.getElementById('sample_nt_visual').addEventListener('click', function() {
     console.log("samplevisual ....");
 
     const mindMapDataJson = {
@@ -507,7 +507,253 @@ document.getElementById('samplevisual').addEventListener('click', function() {
         ]
     }
 
-    mindMapData = calculateNodePositions(mindMapDataJson);
+    mindMapData = common.calculateNodePositions(mindMapDataJson, currentTransform);
+    console.log('Adjusted mind map data with positions:', mindMapData);
+    renderMindMap(mindMapData);
+    common.showMessage('Generate Drawing ...', 2000);
+
+});
+
+document.getElementById('sample_hr_visual').addEventListener('click', function() {
+    console.log("samplevisualhr ....");
+
+    const mindMapDataJson = {
+        "nodes": [
+            // Root Node
+            {
+                "id": "root",
+                "parentId": null,
+                "label": "Root Node",
+                "description": "Root Description",
+                "fill": "#f0f8ff",
+                "textColor": "#000",
+                "fontFamily": "Arial",
+                "fontSize": "12px",
+                "completed": false,
+                "compdate": null,
+                "strokewidth": 1,
+                "shape": "rectangle",
+                "icon": null,
+                "x": 0,
+                "y": 0,
+                "index": 0,
+                "vy": 0,
+                "vx": 0
+            },
+            // Level 1 Nodes
+            {
+                "id": "node1",
+                "parentId": "root",
+                "label": "Node 1",
+                "description": "Description for Node 1",
+                "fill": "#FFFFE0",
+                "textColor": "#000",
+                "fontFamily": "Arial",
+                "fontSize": "12px",
+                "completed": true,
+                "compdate": "2023-01-01",
+                "strokewidth": 2,
+                "shape": "ellipse",
+                "icon": "heart",
+                "x": 0,
+                "y": 0,
+                "index": 0,
+                "vy": 0,
+                "vx": 0
+            },
+            {
+                "id": "node2",
+                "parentId": "root",
+                "label": "Node 2",
+                "description": "Description for Node 2",
+                "fill": "#FFCCCC",
+                "textColor": "#333",
+                "fontFamily": "Arial",
+                "fontSize": "14px",
+                "completed": false,
+                "compdate": null,
+                "strokewidth": 1.5,
+                "shape": "parallelogram",
+                "icon": "star",
+                "x": 0,
+                "y": 0,
+                "index": 0,
+                "vy": 0,
+                "vx": 0
+            },
+            // Level 2 Nodes
+            {
+                "id": "node1-1",
+                "parentId": "node1",
+                "label": "Node 1-1",
+                "description": "Description for Node 1-1",
+                "fill": "#CCEEFF",
+                "textColor": "#000",
+                "fontFamily": "Arial",
+                "fontSize": "12px",
+                "completed": true,
+                "compdate": "2023-02-01",
+                "strokewidth": 2,
+                "shape": "diamond",
+                "icon": "smile",
+                "x": 0,
+                "y": 0,
+                "index": 0,
+                "vy": 0,
+                "vx": 0
+            },
+            {
+                "id": "node2-1",
+                "parentId": "node2",
+                "label": "Node 2-1",
+                "description": "Description for Node 2-1",
+                "fill": "#DDEFBB",
+                "textColor": "#333",
+                "fontFamily": "Arial",
+                "fontSize": "12px",
+                "completed": false,
+                "compdate": null,
+                "strokewidth": 1,
+                "shape": "rectangle",
+                "icon": null,
+                "x": 0,
+                "y": 0,
+                "index": 0,
+                "vy": 0,
+                "vx": 0
+            },
+            // Level 3 Nodes
+            {
+                "id": "node1-1-1",
+                "parentId": "node1-1",
+                "label": "Node 1-1-1",
+                "description": "Description for Node 1-1-1",
+                "fill": "#CCEEFF",
+                "textColor": "#000",
+                "fontFamily": "Arial",
+                "fontSize": "12px",
+                "completed": true,
+                "compdate": "2023-03-01",
+                "strokewidth": 2,
+                "shape": "diamond",
+                "icon": "smile",
+                "x": 0,
+                "y": 0,
+                "index": 0,
+                "vy": 0,
+                "vx": 0
+            },
+            // Level 4 Node
+            {
+                "id": "node1-1-1-1",
+                "parentId": "node1-1-1",
+                "label": "Node 1-1-1-1",
+                "description": "Description for Node 1-1-1-1",
+                "fill": "#EEDDFF",
+                "textColor": "#000",
+                "fontFamily": "Arial",
+                "fontSize": "12px",
+                "completed": false,
+                "compdate": null,
+                "strokewidth": 1.5,
+                "shape": "rectangle",
+                "icon": null,
+                "x": 0,
+                "y": 0,
+                "index": 0,
+                "vy": 0,
+                "vx": 0
+            }
+            // ... Additional nodes as needed
+        ],
+        "relationships": [
+            // Relationships between the root and level 1 nodes
+            {
+                "id": "root-node1",
+                "source": "root",
+                "target": "node1",
+                "type": "solid",
+                "stroke": "black",
+                "strokewidth": 2,
+                "relation_label": { "label": "Root to Node 1", "color": "red" },
+                "x1": 0,
+                "y1": 0,
+                "x2": 0,
+                "y2": 0
+            },
+            {
+                "id": "root-node2",
+                "source": "root",
+                "target": "node2",
+                "type": "solid",
+                "stroke": "black",
+                "strokewidth": 2,
+                "relation_label": { "label": "Root to Node 2", "color": "blue" },
+                "x1": 0,
+                "y1": 0,
+                "x2": 0,
+                "y2": 0
+            },
+            // Relationships between level 1 and level 2 nodes
+            {
+                "id": "node1-node1-1",
+                "source": "node1",
+                "target": "node1-1",
+                "type": "solid",
+                "stroke": "black",
+                "strokewidth": 2,
+                "relation_label": { "label": "Node 1 to Node 1-1", "color": "green" },
+                "x1": 0,
+                "y1": 0,
+                "x2": 0,
+                "y2": 0
+            },
+            {
+                "id": "node2-node2-1",
+                "source": "node2",
+                "target": "node2-1",
+                "type": "solid",
+                "stroke": "black",
+                "strokewidth": 2,
+                "relation_label": { "label": "Node 2 to Node 2-1", "color": "purple" },
+                "x1": 0,
+                "y1": 0,
+                "x2": 0,
+                "y2": 0
+            },
+            // Relationships between level 2 and level 3 nodes
+            {
+                "id": "node1-1-node1-1-1",
+                "source": "node1-1",
+                "target": "node1-1-1",
+                "type": "solid",
+                "stroke": "black",
+                "strokewidth": 2,
+                "relation_label": { "label": "Node 1-1 to Node 1-1-1", "color": "orange" },
+                "x1": 0,
+                "y1": 0,
+                "x2": 0,
+                "y2": 0
+            },
+            // Relationships between level 3 and level 4 nodes
+            {
+                "id": "node1-1-1-node1-1-1-1",
+                "source": "node1-1-1",
+                "target": "node1-1-1-1",
+                "type": "solid",
+                "stroke": "black",
+                "strokewidth": 2,
+                "relation_label": { "label": "Node 1-1-1 to Node 1-1-1-1", "color": "yellow" },
+                "x1": 0,
+                "y1": 0,
+                "x2": 0,
+                "y2": 0
+            }
+            // ... Additional relationships as needed
+        ]
+    };
+
+    mindMapData = common.calculateNodePositions(mindMapDataJson, currentTransform);
     console.log('Adjusted mind map data with positions:', mindMapData);
     renderMindMap(mindMapData);
     common.showMessage('Generate Drawing ...', 2000);
@@ -541,16 +787,17 @@ drawingContainer.addEventListener('click', function(event) {
 
 
 // MAINNNNNNNNNNNNNNNNNNNNNNN
-async function sendChatMessage(message) {
+async function sendChatMessage(message, searchdoc) {
     try {
-        console.log("sendChatMessage with message =", message);
+        console.log("sendChatMessage with message =", message, "search_doc =", search_doc);
         const response = await fetch('http://localhost:3000/api/sendprompt', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                text: message
+                text: message,
+                searchdoc: search_doc
             })
         });
 
@@ -566,7 +813,7 @@ async function sendChatMessage(message) {
             console.log('Received mind map data:', mindMapDataJson);
             //jsondrw = mindMapDataJson;
 
-            mindMapData = calculateNodePositions(mindMapDataJson);
+            mindMapData = common.calculateNodePositions(mindMapDataJson, currentTransform);
             console.log('Adjusted mind map data with positions:', mindMapData);
             renderMindMap(mindMapData);
             common.showMessage('Generate Drawing ...', 2000);
@@ -846,7 +1093,24 @@ function getCenterY(selection, nodeId) {
 
 
 function renderMindMap(mindMapData) {
-    console.log("LLL renderMindMap mindMapData", mindMapData);
+    console.log("Rendering the min Map =", mindMapData);
+
+    const mapType = common.determineMapType(mindMapData);
+
+    if (mapType === "hierarchy") {
+
+        // Assuming mindMapDataJson is defined as provided
+        let hierarchicalData = common.transformDataToHierarchy(mindMapData);
+
+        console.log("hierarchicalData =", hierarchicalData);
+        renderHierarchyMindMap(hierarchicalData);
+    } else {
+        renderNetworkMindMap(mindMapData);
+    }
+}
+
+function renderNetworkMindMap(mindMapData) {
+    console.log("LLL renderNetworkMindMap mindMapData", mindMapData);
 
     // Variables to Fine-Tune
     const centerStrength = 0.08; // Strength of center pulling force
@@ -1009,27 +1273,9 @@ function renderMindMap(mindMapData) {
                     return document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
                 }
                 if (d.shape === 'parallelogram') {
-                    const numLines = common.countLines(d) + 1; // Assuming this function counts the number of lines in the text
-                    //console.log("Number of Lines = ", numLines);
-                    const plgrmPoints = common.calculateParallelogramPoints(numLines);
-                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    path.setAttribute("d", "M" + plgrmPoints.map(p => `${p.x},${p.y}`).join("L") + "Z");
-                    path.setAttribute("stroke", "red");
-                    path.setAttribute("stroke-width", "2");
-                    path.setAttribute("fill", "none");
-                    return path;
+                    return common.createParallelogramElement(d);
                 } else if (d.shape === 'diamond') {
-                    // Create a path for the diamond // Diamons height based on numlines
-                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    const numLines = common.countLines(d) + 1;
-                    //console.log("Number of Lines = ", numLines);
-                    const diamondPoints = common.calculateDiamondPoints(numLines);
-                    //console.log("diamondPoints=", diamondPoints);
-                    path.setAttribute("d", "M" + diamondPoints.map(p => `${p.x},${p.y}`).join("L") + "Z");
-                    path.setAttribute("stroke", "red");
-                    path.setAttribute("stroke-width", 2);
-                    path.setAttribute("fill", "none");
-                    return path;
+                    return common.createDiamondElement(d);
                 } else {
 
                     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -3048,6 +3294,104 @@ function renderMindMap(mindMapData) {
 }
 
 
+function renderHierarchyMindMap(hierarchyData) {
+    // Define dimensions and margins for the SVG container
+    const margin = { top: 40, right: 120, bottom: 40, left: 120 };
+    const width = 960 - margin.left - margin.right;
+    const height = 800 - margin.top - margin.bottom;
+
+    // Clear previous contents (if any)
+    d3.select("#mindMapContainer").selectAll("*").remove();
+
+    // Select the SVG container and set its dimensions
+    const svg = d3.select("#mindMapContainer")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // Assign the data to a hierarchy
+    const rootNode = d3.hierarchy(hierarchyData, d => d.children);
+
+    // Initialize the flextree layout with fixed node size and spacing
+    const treeLayout = d3.flextree()
+        .nodeSize(() => [20, 20]) // Fixed node size: [height, width]
+        .spacing((a, b) => a.parent === b.parent ? 20 : 40); // Fixed spacing
+
+    // Compute the new tree layout
+    treeLayout(rootNode);
+
+    // Calculate the total depth of the tree (for vertical centering)
+    let maxDepth = 0;
+    rootNode.each(node => {
+        if (node.depth > maxDepth) maxDepth = node.depth;
+    });
+
+    // Calculate vertical offset to center the tree
+    const rootYOffset = (height / 2) - (maxDepth * 20 / 2);
+
+    // Center the root node horizontally and vertically
+    rootNode.each(node => {
+        node.y += width / 2 - rootNode.y; // Horizontal centering
+        node.x += rootYOffset; // Vertical centering
+    });
+
+    // Debugging: Log calculated positions
+    rootNode.each(node => {
+        console.log(`Node ${node.data.id}: x=${node.x}, y=${node.y}`);
+    });
+
+    // Create nodes and links (relationships)
+    const nodes = svg.selectAll(".node")
+        .data(rootNode.descendants())
+        .enter().append("g")
+        .attr("class", "node")
+        .attr("transform", d => `translate(${d.y},${d.x})`);
+
+    nodes.append("circle")
+        .attr("r", 10)
+        .style("fill", d => d.data.fill);
+
+    nodes.append("text")
+        .attr("dy", ".35em")
+        .attr("x", d => d.children ? -13 : 13)
+        .style("text-anchor", d => d.children ? "end" : "start")
+        .text(d => d.data.label);
+
+    // Create and append shapes for each node
+    nodes.append(d => common.createShapeElement(d.data))
+        .attr("fill", d => d.data.fill)
+        .attr("stroke", "black");
+
+    // Append labels to each node
+    nodes.append("text")
+        .attr("dy", ".35em")
+        .attr("x", d => d.children ? -10 : 10)
+        .attr("text-anchor", d => d.children ? "end" : "start")
+        .text(d => d.data.label)
+        .style("fill", d => d.data.textColor);
+
+    // Links (relationships)
+    const links = svg.selectAll(".link")
+        .data(rootNode.links())
+        .enter().append("path")
+        .attr("class", "link")
+        .attr("d", d3.linkHorizontal()
+            .x(d => d.y)
+            .y(d => d.x));
+
+    // Zoom and pan functionality
+    const zoom = d3.zoom()
+        .scaleExtent([0.5, 10])
+        .on("zoom", event => svg.attr("transform", event.transform));
+
+    svg.call(zoom);
+}
+
+
+
+
+
 // Function to handle checkbox toggle
 function toggleCompletion(mindMapData, nodeId) {
     const node = mindMapData.nodes.find((node) => node.id === nodeId);
@@ -4078,92 +4422,7 @@ function populateFileList(fileList) {
     });
 }
 
-function calculateNodePositions(response) {
-    console.log("Full response received:", response);
-    const nodes = response.nodes;
-    const relationships = response.relationships;
 
-    console.log("Nodes ", nodes);
-
-
-    const nodePositions = new Map(); // Map to store the calculated positions
-
-    const nodeOrder = []; // Array to keep track of the node order
-
-
-    // Sort nodes based on the order of source nodes appearing first
-    nodes.sort((a, b) => {
-        const aIsSource = relationships.some((relationship) => relationship.source === a.id);
-        const bIsSource = relationships.some((relationship) => relationship.source === b.id);
-
-        if (aIsSource && !bIsSource) {
-            return -1;
-        } else if (!aIsSource && bIsSource) {
-            return 1;
-        } else {
-            return 0;
-        }
-    });
-
-    // Log window dimensions
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    console.log('Window Width:', windowWidth);
-    console.log('Window Height:', windowHeight);
-
-
-    // Calculate x and y positions for each node
-    nodes.forEach((node, index) => {
-        const rectangle = node.label.length * 10 + 20; // Adjust the box width based on the text length
-
-        const paddingX = 100; // Horizontal padding between nodes
-        const paddingY = 100; // Vertical padding between nodes
-
-        const x = (index % 3) * (rectangle + paddingX) + windowWidth / 4;
-        const y = Math.floor(index / 3) * (common.nodesize.height.rectangle + paddingY) + windowHeight / 3;
-
-
-        // DRAGEND ==== Invert the drag coordinates to get the correct positions in the zoomed/translated coordinate system
-        //  const transformedX = (event.x - currentTransform.x) / currentTransform.k;
-        //  const transformedY = (event.y - currentTransform.y) / currentTransform.k;
-
-        //  // Adjust the coordinates for your specific use case
-        //  const adjustedX = transformedX - 50;
-        //  const adjustedY = transformedY - 25;
-        // DRAGEND =======
-
-        const transformedX = (x - currentTransform.x) / currentTransform.k;
-        const transformedY = (y - currentTransform.y) / currentTransform.k;
-
-        const adjustedX = transformedX - 75;
-        const adjustedY = transformedY - 125;
-
-        console.log(`Node ${node.id}: x=${adjustedX}, y=${adjustedY}`); // Debugging statement
-
-        node.x = adjustedX; // Set x position
-        node.y = adjustedY; // Set y position
-
-        nodePositions.set(node.id, { x: adjustedX, y: adjustedY }); // Store the calculated position
-
-        nodeOrder.push(node.id); // Add node to the node order array
-    });
-
-    // Sort the nodes based on the node order
-    nodes.sort((a, b) => nodeOrder.indexOf(a.id) - nodeOrder.indexOf(b.id));
-
-    // Update the relationships with the calculated positions
-    relationships.forEach((relationship) => {
-        const sourcePosition = nodePositions.get(relationship.source);
-        const targetPosition = nodePositions.get(relationship.target);
-
-        relationship.x1 = sourcePosition.x; // Set x position for the relationship source
-        relationship.y1 = sourcePosition.y; // Set y position for the relationship source
-        relationship.x2 = targetPosition.x; // Set x position for the relationship target
-        relationship.y2 = targetPosition.y; // Set y position for the relationship target
-    });
-
-    return response;
-}
 
 
 
