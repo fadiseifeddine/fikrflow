@@ -18,11 +18,28 @@
 
         <!-- Flex container to align child divs in a row -->
         <div class="row">
+            <div class="row">
 
-            <div id="chatContainer" class="col-12">
-                <textarea id="textInput" rows="2" placeholder="Enter your text"></textarea>
+                <!-- Textarea Column -->
+                <div id="chatContainer" class="col-md-8">
+                    <textarea id="textInput" rows="2" placeholder="Enter your text"></textarea>
+                    <!-- Flex container to align child divs in a row -->
+                    <div class="flex-row-control_containers">
+                        <!-- ... Your buttons and other elements ... -->
+                    </div>
+                </div>
 
-                <!-- Flex container to align child divs in a row -->
+                <!-- Uploaded Files List Column -->
+                <div class="col-md-4">
+                    <div id="uploadedFilesList" class="uploaded-files">
+                        <h5>Uploaded Files</h5>
+                        <ul id="fileList"></ul>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row">
                 <div class="flex-row-control_containers">
 
                     <div id="btnContainer">
@@ -435,6 +452,8 @@
             </div>
         </div>
     </div>
+
+
     <!-- Load jQuery and Bootstrap JS before your custom scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <!-- Add Popper.js -->

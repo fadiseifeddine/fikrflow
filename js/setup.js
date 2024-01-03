@@ -94,11 +94,13 @@ if (r_save_Button_conf_saveDrawingButton) {
 async function handleInputSubmit() {
     const userInput = document.getElementById('textInput').value;
 
+    console.log("Searching with a filter = " + common.getUploadedFileName());
+    // Pass the selected file name to sendChatMessage
+    await sendChatMessage(userInput, common.getUploadedFileName());
 
-    sendChatMessage(userInput);
+    // Resetting the selected file name display and internal state
     selectedFileNameElement.textContent = "";
     common.setFileName(null);
-
 }
 
 

@@ -1,5 +1,7 @@
 // Import everything from common.js as a module
 import * as common from './common.js';
+import * as fikruser from './fikruser.js';
+
 
 
 async function duplicateDrawing(fileName, mindMapData, userId, sessionId) {
@@ -92,8 +94,85 @@ async function saveDrawing(fileName, mindMapData, userId, sessionId, zoomScale, 
     }
 }
 
+async function saveUpload(filename, username) {
+    // Check if the user provided a file name
+    if (filename !== "") {
+        console.log("saveUpload Handle uploading with file name:", filename);
 
+        // Proceed with uploading using the file name
+        try {
+            const response = await fetch('http://localhost:3000/api/fikr_upload', {
+                method: 'POST',
+                body: JSON.stringify({
+                    filename: filename,
+                    username: username
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
+            if (response.ok) {
+                console.log('Upload saved successfully');
+                // Display a success message or handle the success scenario
+                return true; // Return true on success
+            } else {
+                console.error('Failed to save upload');
+                // Handle the error and provide appropriate user feedback
+                return false; // Return false on failure
+            }
+        } catch (error) {
+            console.error('An error occurred:', error);
+            // Handle the error and provide appropriate user feedback
+            return false; // Return false on error
+        }
+    } else {
+        console.log("File name not provided. Uploading canceled.");
+        return false; // Return false if the file name is not provided
+    }
+}
+
+function onListItemClick(filename) {
+    common.setUploadedFileName(filename); // Update the selected file name
+    const fileListItems = document.querySelectorAll('#fileList li');
+    fileListItems.forEach(item => {
+        if (item.textContent === filename) {
+            item.classList.add('selected'); // Highlight this item
+        } else {
+            item.classList.remove('selected'); // Remove highlight from other items
+        }
+    });
+}
+
+async function getUploads() {
+    try {
+
+        const vuserID = fikruser.getUserId();
+
+        const response = await fetch(`http://localhost:3000/api/getuploads?user=${vuserID}`);
+        if (response.ok) {
+            const files = await response.json();
+            const fileListElement = document.getElementById('fileList');
+            fileListElement.innerHTML = ''; // Clear existing list
+
+            files.forEach(filename => {
+                const listItem = document.createElement('li');
+                listItem.textContent = filename;
+                listItem.addEventListener('click', () => {
+                    // Add your logic for when a file is clicked
+                    onListItemClick(filename);
+                    console.log('File selected:', filename);
+                });
+
+                fileListElement.appendChild(listItem);
+            });
+        } else {
+            console.error('Failed to fetch uploaded files');
+        }
+    } catch (error) {
+        console.error('Error fetching uploaded files:', error);
+    }
+}
 async function getDrawings(drawingName = null) {
     try {
         // Determine the API endpoint based on whether a drawing name is provided
@@ -124,4 +203,4 @@ async function getDrawings(drawingName = null) {
 
 
 
-export { getDrawings, saveDrawing, duplicateDrawing };
+export { getDrawings, saveDrawing, duplicateDrawing, saveUpload, getUploads };

@@ -5,6 +5,8 @@ let sessionId = null;
 let userId = null;
 let mindMapData = null;
 let selectedFileName = null;
+let currentSelectedUploadedFile = null; // Global variable to store the selected uploaded file name
+
 
 let nodetext = {
     length: {
@@ -164,6 +166,13 @@ function setFileName(file) {
     selectedFileName = file;
 }
 
+function setUploadedFileName(file) {
+    currentSelectedUploadedFile = file;
+}
+
+function getUploadedFileName() {
+    return currentSelectedUploadedFile;
+}
 
 function setMindMapData(vmindMapData) {
     mindMapData = vmindMapData;
@@ -572,4 +581,4 @@ window.addEventListener('keyup', handleKeyup);
 
 
 
-export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName, isFieldEmpty, showFieldError, countLines, calculateNodeHeight, calculateDiamondPoints, calculateParallelogramPoints, nodesize, nodetext, splitText, adjustTextareaHeight, handleShapeText, calculateNodeWidth, createShapeElement, getNodeSize, transformDataToHierarchy, createParallelogramElement, createDiamondElement, calculateNodePositions, determineMapType };
+export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName, isFieldEmpty, showFieldError, countLines, calculateNodeHeight, calculateDiamondPoints, calculateParallelogramPoints, nodesize, nodetext, splitText, adjustTextareaHeight, handleShapeText, calculateNodeWidth, createShapeElement, getNodeSize, transformDataToHierarchy, createParallelogramElement, createDiamondElement, calculateNodePositions, determineMapType, setUploadedFileName, getUploadedFileName };

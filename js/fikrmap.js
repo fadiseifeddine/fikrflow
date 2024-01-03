@@ -16,6 +16,7 @@ let blurEventPromise = null;
 let drawingExistsInBlur = false; // Initialize a flag
 
 
+
 // prevent dragging when clicking the checkbox in the node
 let allowDrag = true;
 
@@ -126,6 +127,8 @@ window.addEventListener('load', async() => {
                     // Handle the case where no session ID is retrieved
                     alert('Error: No session ID');
                 }
+
+                fikrdraw.getUploads(); // get the uploaded files into the list
             });
     } catch (error) {
         // Handle any errors that occur during session retrieval
@@ -787,7 +790,7 @@ drawingContainer.addEventListener('click', function(event) {
 
 
 // MAINNNNNNNNNNNNNNNNNNNNNNN
-async function sendChatMessage(message, searchdoc) {
+async function sendChatMessage(message, search_doc) {
     try {
         console.log("sendChatMessage with message =", message, "search_doc =", search_doc);
         const response = await fetch('http://localhost:3000/api/sendprompt', {
@@ -891,17 +894,23 @@ async function uploadFiles(file) { // upload for LLM
                 body: formData,
             });
 
+            const uploaddocModal = bootstrap.Modal.getInstance(document.getElementById('uploaddocmodal'));
+
             if (response.ok) {
                 const data = await response.json();
                 console.log("data", data); // Log the server's response
                 //console.log('Hiding the Modal ....');
                 $('#fileNameModal').modal('hide');
-                const uploaddocModal = bootstrap.Modal.getInstance(document.getElementById('uploaddocmodal'));
                 uploaddocModal.hide();
                 common.showMessage('File Uploaded / Vectorized', 2000);
+                await fikrdraw.saveUpload(file.name, fikruser.getUserId());
+
 
             } else {
+                uploaddocModal.hide();
                 console.error("Error uploading the file:", response.statusText);
+                common.showMessage(`Error uploading the file: ${response.statusText}`, 2000);
+
             }
         } catch (error) {
             console.error("Error uploading the file:", error);
@@ -1103,7 +1112,9 @@ function renderMindMap(mindMapData) {
         let hierarchicalData = common.transformDataToHierarchy(mindMapData);
 
         console.log("hierarchicalData =", hierarchicalData);
-        renderHierarchyMindMap(hierarchicalData);
+        renderHierarchyMindMap(hierarchicalData); // Fadi to check later
+        //renderNetworkMindMap(mindMapData);
+
     } else {
         renderNetworkMindMap(mindMapData);
     }
@@ -3313,27 +3324,21 @@ function renderHierarchyMindMap(hierarchyData) {
     // Assign the data to a hierarchy
     const rootNode = d3.hierarchy(hierarchyData, d => d.children);
 
-    // Initialize the flextree layout with fixed node size and spacing
+    // Initialize the flextree layout
     const treeLayout = d3.flextree()
-        .nodeSize(() => [20, 20]) // Fixed node size: [height, width]
-        .spacing((a, b) => a.parent === b.parent ? 20 : 40); // Fixed spacing
+        .nodeSize(d => [20, 40]); // Fixed node size: [height, width]
 
     // Compute the new tree layout
     treeLayout(rootNode);
 
-    // Calculate the total depth of the tree (for vertical centering)
-    let maxDepth = 0;
+    // Center the tree horizontally and vertically
+    const centeringOffset = {
+        x: height / 2 - rootNode.y,
+        y: width / 2 - rootNode.x
+    };
     rootNode.each(node => {
-        if (node.depth > maxDepth) maxDepth = node.depth;
-    });
-
-    // Calculate vertical offset to center the tree
-    const rootYOffset = (height / 2) - (maxDepth * 20 / 2);
-
-    // Center the root node horizontally and vertically
-    rootNode.each(node => {
-        node.y += width / 2 - rootNode.y; // Horizontal centering
-        node.x += rootYOffset; // Vertical centering
+        node.x += centeringOffset.x;
+        node.y += centeringOffset.y;
     });
 
     // Debugging: Log calculated positions
@@ -3341,7 +3346,7 @@ function renderHierarchyMindMap(hierarchyData) {
         console.log(`Node ${node.data.id}: x=${node.x}, y=${node.y}`);
     });
 
-    // Create nodes and links (relationships)
+    // Create nodes and links
     const nodes = svg.selectAll(".node")
         .data(rootNode.descendants())
         .enter().append("g")
@@ -3357,19 +3362,6 @@ function renderHierarchyMindMap(hierarchyData) {
         .attr("x", d => d.children ? -13 : 13)
         .style("text-anchor", d => d.children ? "end" : "start")
         .text(d => d.data.label);
-
-    // Create and append shapes for each node
-    nodes.append(d => common.createShapeElement(d.data))
-        .attr("fill", d => d.data.fill)
-        .attr("stroke", "black");
-
-    // Append labels to each node
-    nodes.append("text")
-        .attr("dy", ".35em")
-        .attr("x", d => d.children ? -10 : 10)
-        .attr("text-anchor", d => d.children ? "end" : "start")
-        .text(d => d.data.label)
-        .style("fill", d => d.data.textColor);
 
     // Links (relationships)
     const links = svg.selectAll(".link")
@@ -3387,6 +3379,8 @@ function renderHierarchyMindMap(hierarchyData) {
 
     svg.call(zoom);
 }
+
+
 
 
 
