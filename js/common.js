@@ -357,8 +357,16 @@ function handleShapeText(d) {
 }
 
 function determineMapType(mindMapData) {
+    // Ensure that mindMapData.nodes and mindMapData.relationships are defined and are arrays
+    if (!mindMapData || !Array.isArray(mindMapData.nodes) || !Array.isArray(mindMapData.relationships)) {
+        console.error('Invalid mindMapData format', mindMapData);
+        return "unknown"; // or handle this case as you see fit
+    }
+
     // If all nodes have a single parent (except the root), it's a hierarchy
     let isHierarchy = true;
+
+    console.log("determineMapType mindmapData = ", mindMapData);
 
     const nodeIds = new Set(mindMapData.nodes.map(node => node.id));
     const childCounts = new Map();
@@ -379,107 +387,200 @@ function determineMapType(mindMapData) {
     return isHierarchy ? "hierarchy" : "network";
 }
 
-function calculateNodePositions(data, currentTransform) {
-    const type = determineMapType(data);
-    if (type === 'network') {
-        console.log("Network ........");
-        // Apply network layout calculations (e.g., force-directed layout)
-        // This might involve initializing a force simulation and positioning nodes based on their relationships
-        return calculateNetworkNodePositions(data, currentTransform);
-    } else if (type === 'hierarchy') {
-        console.log("Hierarchy ........");
+function transformToMindMapHierarchy(data) {
+    let nodeMap = new Map();
+    let root = null;
 
-        //hierarchy no need to calculate the d3.tree 
-        return data;
+    // Create a map of all nodes with their ID as the key
+    data.nodes.forEach(node => {
+        nodeMap.set(node.id, {
+            name: node.label,
+            description: node.description,
+            children: []
+        });
+    });
 
-    }
-}
-
-function calculateNetworkNodePositions(response, currentTransform) {
-    console.log("Full response received:", response);
-    const nodes = response.nodes;
-    const relationships = response.relationships;
-
-    console.log("Nodes ", nodes);
-
-
-    const nodePositions = new Map(); // Map to store the calculated positions
-
-    const nodeOrder = []; // Array to keep track of the node order
-
-
-    // Sort nodes based on the order of source nodes appearing first
-    nodes.sort((a, b) => {
-        const aIsSource = relationships.some((relationship) => relationship.source === a.id);
-        const bIsSource = relationships.some((relationship) => relationship.source === b.id);
-
-        if (aIsSource && !bIsSource) {
-            return -1;
-        } else if (!aIsSource && bIsSource) {
-            return 1;
-        } else {
-            return 0;
+    // Find and assign children to each node
+    data.relationships.forEach(rel => {
+        let parent = nodeMap.get(rel.source);
+        let child = nodeMap.get(rel.target);
+        if (parent && child) {
+            parent.children.push(child);
         }
     });
 
-    // Log window dimensions
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    console.log('Window Width:', windowWidth);
-    console.log('Window Height:', windowHeight);
+    // Find the root node (node without a parent)
+    root = data.nodes.find(node => node.parentId === null);
+    root = nodeMap.get(root.id);
+
+    return [root];
+}
 
 
-    // Calculate x and y positions for each node
-    nodes.forEach((node, index) => {
-        const rectangle = node.label.length * 10 + 20; // Adjust the box width based on the text length
-
-        const paddingX = 100; // Horizontal padding between nodes
-        const paddingY = 100; // Vertical padding between nodes
-
-        const x = (index % 3) * (rectangle + paddingX) + windowWidth / 4;
-        const y = Math.floor(index / 3) * (nodesize.height.rectangle + paddingY) + windowHeight / 3;
 
 
-        // DRAGEND ==== Invert the drag coordinates to get the correct positions in the zoomed/translated coordinate system
-        //  const transformedX = (event.x - currentTransform.x) / currentTransform.k;
-        //  const transformedY = (event.y - currentTransform.y) / currentTransform.k;
 
-        //  // Adjust the coordinates for your specific use case
-        //  const adjustedX = transformedX - 50;
-        //  const adjustedY = transformedY - 25;
-        // DRAGEND =======
+function calculateNodePositions(data, currentTransform) {
+    const type = determineMapType(data);
+    if (type === 'network') {
+        console.log("Network layout applied.");
+        return calculateNetworkNodePositions(data, currentTransform);
+    } else if (type === 'hierarchy') {
+        console.log("Hierarchy layout applied.");
+        return calculateHierarchyNodePositions(data, currentTransform);
+    }
+}
 
+
+function calculateHierarchyNodePositions(data, currentTransform) {
+    if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.relationships)) {
+        console.error('Invalid data format for hierarchy positioning', data);
+        return data;
+    }
+
+    // Variables for layout
+    const paddingX = 200; // Increase horizontal padding between nodes at the same level
+    const paddingY = 100; // Vertical padding between levels
+    const nodeWidth = 100; // Estimate width of a node, adjust based on actual content
+
+    // Build a map of children for each node
+    const childrenMap = new Map();
+    data.relationships.forEach(rel => {
+        if (!childrenMap.has(rel.source)) {
+            childrenMap.set(rel.source, []);
+        }
+        childrenMap.get(rel.source).push(rel.target);
+    });
+
+    // Helper function to calculate width of each level
+    const calculateLevelWidths = (nodeId, level, levelWidths, visited = new Set()) => {
+        if (visited.has(nodeId)) {
+            return; // To avoid cycles
+        }
+        visited.add(nodeId);
+
+        // Initialize level width
+        if (!levelWidths[level]) {
+            levelWidths[level] = 0;
+        }
+        levelWidths[level] += nodeWidth + paddingX; // Increment width for this level
+
+        // Recursively calculate for children
+        const children = childrenMap.get(nodeId) || [];
+        children.forEach(childId => {
+            calculateLevelWidths(childId, level + 1, levelWidths, visited);
+        });
+    };
+
+    // Calculate level widths
+    const levelWidths = [];
+    data.nodes.filter(node => !data.relationships.some(rel => rel.target === node.id)) // Root nodes
+        .forEach(rootNode => calculateLevelWidths(rootNode.id, 0, levelWidths));
+
+    // Helper function to calculate positions
+    const calculatePositions = (nodeId, x, y, visited = new Set()) => {
+        if (visited.has(nodeId)) {
+            return; // To avoid cycles
+        }
+        visited.add(nodeId);
+
+        // Apply current transform to positions
         const transformedX = (x - currentTransform.x) / currentTransform.k;
         const transformedY = (y - currentTransform.y) / currentTransform.k;
 
-        const adjustedX = transformedX - 75;
-        const adjustedY = transformedY - 125;
+        // Find the node and set its position
+        const node = data.nodes.find(n => n.id === nodeId);
+        if (node) {
+            node.x = transformedX;
+            node.y = transformedY;
+        }
 
-        console.log(`Node ${node.id}: x=${adjustedX}, y=${adjustedY}`); // Debugging statement
+        // Recursively position children
+        const children = childrenMap.get(nodeId) || [];
+        let offsetX = x - ((children.length - 1) * (nodeWidth + paddingX)) / 2; // Center children nodes
+        children.forEach(childId => {
+            calculatePositions(childId, offsetX, y + paddingY, visited);
+            offsetX += nodeWidth + paddingX; // Move to the next horizontal position
+        });
+    };
 
-        node.x = adjustedX; // Set x position
-        node.y = adjustedY; // Set y position
+    // Center root nodes and calculate positions
+    const totalWidth = Math.max(...levelWidths);
+    data.nodes.filter(node => !data.relationships.some(rel => rel.target === node.id)) // Root nodes
+        .forEach((rootNode, index, array) => {
+            const rootX = (totalWidth - levelWidths[0]) / 2; // Center the root node(s)
+            const rootY = 0; // Root nodes start at the top (y = 0)
+            calculatePositions(rootNode.id, rootX, rootY);
+        });
 
-        nodePositions.set(node.id, { x: adjustedX, y: adjustedY }); // Store the calculated position
+    return data; // Return the data with updated node positions
+}
 
-        nodeOrder.push(node.id); // Add node to the node order array
+
+
+function calculateNetworkNodePositions(data, currentTransform) {
+    if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.relationships)) {
+        console.error('Invalid data format for network positioning', data);
+        return data;
+    }
+
+    // Variables for layout
+    const paddingX = 150; // Horizontal padding between nodes
+    const paddingY = 100; // Vertical padding between levels
+
+    // Create a map to keep track of node levels and positions
+    const nodeLevels = new Map();
+
+    // Initialize all nodes at level 0
+    data.nodes.forEach(node => nodeLevels.set(node.id, { level: 0, x: 0, y: 0 }));
+
+    // Function to update node levels based on relationships
+    const updateNodeLevels = () => {
+        data.relationships.forEach(rel => {
+            const sourceLevel = nodeLevels.get(rel.source).level;
+            const targetLevel = nodeLevels.get(rel.target).level;
+            const newLevel = Math.max(sourceLevel + 1, targetLevel);
+            nodeLevels.set(rel.target, {...nodeLevels.get(rel.target), level: newLevel });
+        });
+    };
+
+    // Update node levels
+    updateNodeLevels();
+
+    // Function to calculate positions based on levels
+    const calculatePositions = () => {
+        nodeLevels.forEach((value, key) => {
+            const nodeIndex = data.nodes.findIndex(node => node.id === key);
+            if (nodeIndex !== -1) {
+                const x = value.level * paddingX;
+                const y = nodeIndex * paddingY;
+
+                // Apply current transform
+                const transformedX = (x - currentTransform.x) / currentTransform.k;
+                const transformedY = (y - currentTransform.y) / currentTransform.k;
+
+                data.nodes[nodeIndex].x = transformedX;
+                data.nodes[nodeIndex].y = transformedY;
+            }
+        });
+    };
+
+    // Calculate positions
+    calculatePositions();
+
+    // Apply positions to relationships
+    data.relationships.forEach(rel => {
+        const sourceNode = data.nodes.find(node => node.id === rel.source);
+        const targetNode = data.nodes.find(node => node.id === rel.target);
+        if (sourceNode && targetNode) {
+            rel.x1 = sourceNode.x;
+            rel.y1 = sourceNode.y;
+            rel.x2 = targetNode.x;
+            rel.y2 = targetNode.y;
+        }
     });
 
-    // Sort the nodes based on the node order
-    nodes.sort((a, b) => nodeOrder.indexOf(a.id) - nodeOrder.indexOf(b.id));
-
-    // Update the relationships with the calculated positions
-    relationships.forEach((relationship) => {
-        const sourcePosition = nodePositions.get(relationship.source);
-        const targetPosition = nodePositions.get(relationship.target);
-
-        relationship.x1 = sourcePosition.x; // Set x position for the relationship source
-        relationship.y1 = sourcePosition.y; // Set y position for the relationship source
-        relationship.x2 = targetPosition.x; // Set x position for the relationship target
-        relationship.y2 = targetPosition.y; // Set y position for the relationship target
-    });
-
-    return response;
+    return data; // Return the data with updated node positions
 }
 
 
@@ -581,4 +682,4 @@ window.addEventListener('keyup', handleKeyup);
 
 
 
-export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName, isFieldEmpty, showFieldError, countLines, calculateNodeHeight, calculateDiamondPoints, calculateParallelogramPoints, nodesize, nodetext, splitText, adjustTextareaHeight, handleShapeText, calculateNodeWidth, createShapeElement, getNodeSize, transformDataToHierarchy, createParallelogramElement, createDiamondElement, calculateNodePositions, determineMapType, setUploadedFileName, getUploadedFileName };
+export { retrieveSessionId, getMindMapData, getSessionId, getFileName, getRandomColor, showMessage, setMindMapData, setFileName, isFieldEmpty, showFieldError, countLines, calculateNodeHeight, calculateDiamondPoints, calculateParallelogramPoints, nodesize, nodetext, splitText, adjustTextareaHeight, handleShapeText, calculateNodeWidth, createShapeElement, getNodeSize, transformDataToHierarchy, createParallelogramElement, createDiamondElement, calculateNodePositions, determineMapType, setUploadedFileName, getUploadedFileName, transformToMindMapHierarchy };

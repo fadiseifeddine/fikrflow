@@ -215,296 +215,465 @@ document.getElementById('uploaddoc').addEventListener('click', function() {
 document.getElementById('sample_nt_visual').addEventListener('click', function() {
     console.log("samplevisual ....");
 
+    // const mindMapDataJson = {
+    //     "nodes": [{
+    //             "id": "s1",
+    //             "parentId": null,
+    //             "label": "Node 1 Shape represents the first node label",
+    //             "description": "This is the long description",
+    //             "fill": "#FFFFE0",
+    //             "textColor": "#000",
+    //             "fontFamily": "Arial",
+    //             "fontSize": "12px",
+    //             "completed": false,
+    //             "compdate": null,
+    //             "strokewidth": 1,
+    //             "shape": "rectangle",
+    //             "icon": "heart",
+    //             "x": 0,
+    //             "y": 0,
+    //             "index": 0,
+    //             "vy": 0,
+    //             "vx": 0
+    //         },
+    //         {
+    //             "id": "s2",
+    //             "parentId": null,
+    //             "label": "Node 2 Shape represents the second node label",
+    //             "description": "This is the long description",
+    //             "fill": "#FFFFE0",
+    //             "textColor": "#000",
+    //             "fontFamily": "Arial",
+    //             "fontSize": "12px",
+    //             "completed": false,
+    //             "compdate": null,
+    //             "strokewidth": 1,
+    //             "shape": "diamond",
+    //             "icon": "star",
+    //             "x": 0,
+    //             "y": 0,
+    //             "index": 0,
+    //             "vy": 0,
+    //             "vx": 0
+    //         },
+    //         {
+    //             "id": "s3",
+    //             "parentId": null,
+    //             "label": "Node 3 Shape represents the third node label",
+    //             "description": "This is the long description",
+    //             "fill": "#FFFFE0",
+    //             "textColor": "#000",
+    //             "fontFamily": "Arial",
+    //             "fontSize": "12px",
+    //             "completed": false,
+    //             "compdate": null,
+    //             "strokewidth": 1,
+    //             "shape": "rectangle",
+    //             "icon": "smily",
+    //             "x": 0,
+    //             "y": 0,
+    //             "index": 0,
+    //             "vy": 0,
+    //             "vx": 0
+    //         },
+    //         {
+    //             "id": "s4",
+    //             "parentId": null,
+    //             "label": "Node 4 Shape represents the fourth node label",
+    //             "description": "This is the long description",
+    //             "fill": "lightblue",
+    //             "textColor": "#000",
+    //             "fontFamily": "Arial",
+    //             "fontSize": "12px",
+    //             "completed": false,
+    //             "compdate": null,
+    //             "strokewidth": 3,
+    //             "shape": "ellipse",
+    //             "icon": null,
+    //             "x": 0,
+    //             "y": 0,
+    //             "index": 0,
+    //             "vy": 0,
+    //             "vx": 0
+    //         },
+    //         {
+    //             "id": "s5",
+    //             "parentId": null,
+    //             "label": "Node 5 Shape represents the fifth node label",
+    //             "description": "This is the long description",
+    //             "fill": "red",
+    //             "textColor": "#000",
+    //             "fontFamily": "Arial",
+    //             "fontSize": "12px",
+    //             "completed": false,
+    //             "compdate": null,
+    //             "strokewidth": 1,
+    //             "shape": "parallelogram",
+    //             "icon": null,
+    //             "x": 0,
+    //             "y": 0,
+    //             "index": 0,
+    //             "vy": 0,
+    //             "vx": 0
+    //         },
+    //         {
+    //             "id": "s6",
+    //             "parentId": null,
+    //             "label": "Node 6 Shape represents the sixth node label",
+    //             "description": "This is the long description",
+    //             "fill": "#FFFFE0",
+    //             "textColor": "#000",
+    //             "fontFamily": "Arial",
+    //             "fontSize": "12px",
+    //             "completed": false,
+    //             "compdate": null,
+    //             "strokewidth": 3,
+    //             "shape": "parallelogram",
+    //             "icon": null,
+    //             "x": 0,
+    //             "y": 0,
+    //             "index": 0,
+    //             "vy": 0,
+    //             "vx": 0
+    //         },
+    //         {
+    //             "id": "s7",
+    //             "parentId": null,
+    //             "label": "Node 7 Shape represents the seventh node label",
+    //             "description": "This is the long description",
+    //             "fill": "#FFFFE0",
+    //             "textColor": "#000",
+    //             "fontFamily": "Arial",
+    //             "fontSize": "12px",
+    //             "completed": false,
+    //             "compdate": null,
+    //             "strokewidth": 3,
+    //             "shape": "parallelogram",
+    //             "icon": null,
+    //             "x": 0,
+    //             "y": 0,
+    //             "index": 0,
+    //             "vy": 0,
+    //             "vx": 0
+    //         },
+    //         {
+    //             "id": "s8",
+    //             "parentId": null,
+    //             "label": "Node 8 Shape represents the eighth node label",
+    //             "description": "This is the long description",
+    //             "fill": "#FFFFE0",
+    //             "textColor": "#000",
+    //             "fontFamily": "Arial",
+    //             "fontSize": "12px",
+    //             "completed": false,
+    //             "compdate": null,
+    //             "strokewidth": 3,
+    //             "shape": "parallelogram",
+    //             "icon": null,
+    //             "x": 0,
+    //             "y": 0,
+    //             "index": 0,
+    //             "vy": 0,
+    //             "vx": 0
+    //         }
+    //     ],
+    //     "relationships": [{
+    //             "id": "s1-s2",
+    //             "source": "s1",
+    //             "target": "s2",
+    //             "type": "solid",
+    //             "stroke": "black",
+    //             "strokewidth": 3,
+    //             "relation_label": { "label": "connected to", "color": "red" },
+    //             "x1": 0,
+    //             "y1": 0,
+    //             "x2": 0,
+    //             "y2": 0
+    //         },
+    //         {
+    //             "id": "s2-s3",
+    //             "source": "s2",
+    //             "target": "s3",
+    //             "type": "solid",
+    //             "stroke": "black",
+    //             "strokewidth": 1,
+    //             "relation_label": { "label": null, "color": "blue" },
+    //             "x1": 0,
+    //             "y1": 0,
+    //             "x2": 0,
+    //             "y2": 0
+    //         },
+    //         {
+    //             "id": "s3-s4",
+    //             "source": "s3",
+    //             "target": "s4",
+    //             "type": "solid",
+    //             "stroke": "black",
+    //             "strokewidth": 1,
+    //             "relation_label": { "label": null, "color": "blue" },
+    //             "x1": 0,
+    //             "y1": 0,
+    //             "x2": 0,
+    //             "y2": 0
+    //         },
+    //         {
+    //             "id": "s4-s5",
+    //             "source": "s4",
+    //             "target": "s5",
+    //             "type": "solid",
+    //             "stroke": "black",
+    //             "strokewidth": 1,
+    //             "relation_label": { "label": null, "color": "blue" },
+    //             "x1": 0,
+    //             "y1": 0,
+    //             "x2": 0,
+    //             "y2": 0
+    //         },
+    //         {
+    //             "id": "s5-s6",
+    //             "source": "s5",
+    //             "target": "s6",
+    //             "type": "solid",
+    //             "stroke": "black",
+    //             "strokewidth": 2,
+    //             "relation_label": { "label": null, "color": "blue" },
+    //             "x1": 0,
+    //             "y1": 0,
+    //             "x2": 0,
+    //             "y2": 0
+    //         },
+    //         {
+    //             "id": "s5-s3",
+    //             "source": "s5",
+    //             "target": "s3",
+    //             "type": "dash",
+    //             "stroke": "black",
+    //             "strokewidth": 2,
+    //             "relation_label": { "label": null, "color": "blue" },
+    //             "x1": 0,
+    //             "y1": 0,
+    //             "x2": 0,
+    //             "y2": 0
+    //         },
+    //         {
+    //             "id": "s6-s7",
+    //             "source": "s6",
+    //             "target": "s7",
+    //             "type": "solid",
+    //             "stroke": "black",
+    //             "strokewidth": 2,
+    //             "relation_label": { "label": null, "color": "green" },
+    //             "x1": 0,
+    //             "y1": 0,
+    //             "x2": 0,
+    //             "y2": 0
+    //         },
+    //         {
+    //             "id": "s7-s8",
+    //             "source": "s7",
+    //             "target": "s8",
+    //             "type": "solid",
+    //             "stroke": "black",
+    //             "strokewidth": 2,
+    //             "relation_label": { "label": null, "color": "green" },
+    //             "x1": 0,
+    //             "y1": 0,
+    //             "x2": 0,
+    //             "y2": 0
+    //         },
+    //         {
+    //             "id": "s8-s1",
+    //             "source": "s8",
+    //             "target": "s1",
+    //             "type": "solid",
+    //             "stroke": "black",
+    //             "strokewidth": 2,
+    //             "relation_label": { "label": null, "color": "orange" },
+    //             "x1": 0,
+    //             "y1": 0,
+    //             "x2": 0,
+    //             "y2": 0
+    //         },
+    //         {
+    //             "id": "s7-s2",
+    //             "source": "s7",
+    //             "target": "s2",
+    //             "type": "solid",
+    //             "stroke": "black",
+    //             "strokewidth": 2,
+    //             "relation_label": { "label": null, "color": "purple" },
+    //             "x1": 0,
+    //             "y1": 0,
+    //             "x2": 0,
+    //             "y2": 0
+    //         }
+    //     ]
+    // }
+
     const mindMapDataJson = {
         "nodes": [{
+                "compdate": null,
+                "completed": false,
+                "description": "The WLC9800 is a high-performance wireless controller designed for large-scale enterprise networks.",
+                "fill": "#FFFFE0",
+                "fontFamily": "Arial",
+                "fontSize": "12px",
+                "icon": null,
                 "id": "s1",
-                "parentId": null,
-                "label": "Node 1 Shape represents the first node label",
-                "description": "This is the long description",
-                "fill": "#FFFFE0",
-                "textColor": "#000",
-                "fontFamily": "Arial",
-                "fontSize": "12px",
-                "completed": false,
-                "compdate": null,
-                "strokewidth": 1,
-                "shape": "rectangle",
-                "icon": "heart",
-                "x": 0,
-                "y": 0,
                 "index": 0,
-                "vy": 0,
-                "vx": 0
+                "label": "WLC9800 Specifications",
+                "parentId": null,
+                "shape": "rectangle",
+                "strokewidth": 1,
+                "textColor": "#000",
+                "vx": 0.0007738850773528688,
+                "vy": 0.0047176349678893755,
+                "x": 405.55959917409587,
+                "y": 395.4345372002832
             },
             {
+                "compdate": null,
+                "completed": false,
+                "description": "The WLC9800 can support up to 100,000 clients and 10,000 access points.",
+                "fill": "#FFFFE0",
+                "fontFamily": "Arial",
+                "fontSize": "12px",
+                "icon": null,
                 "id": "s2",
-                "parentId": null,
-                "label": "Node 2 Shape represents the second node label",
-                "description": "This is the long description",
-                "fill": "#FFFFE0",
-                "textColor": "#000",
-                "fontFamily": "Arial",
-                "fontSize": "12px",
-                "completed": false,
-                "compdate": null,
-                "strokewidth": 1,
-                "shape": "diamond",
-                "icon": "star",
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
-            },
-            {
-                "id": "s3",
-                "parentId": null,
-                "label": "Node 3 Shape represents the third node label",
-                "description": "This is the long description",
-                "fill": "#FFFFE0",
-                "textColor": "#000",
-                "fontFamily": "Arial",
-                "fontSize": "12px",
-                "completed": false,
-                "compdate": null,
-                "strokewidth": 1,
+                "index": 1,
+                "label": "Performance",
+                "parentId": "s1",
                 "shape": "rectangle",
-                "icon": "smily",
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
-            },
-            {
-                "id": "s4",
-                "parentId": null,
-                "label": "Node 4 Shape represents the fourth node label",
-                "description": "This is the long description",
-                "fill": "lightblue",
-                "textColor": "#000",
-                "fontFamily": "Arial",
-                "fontSize": "12px",
-                "completed": false,
-                "compdate": null,
-                "strokewidth": 3,
-                "shape": "ellipse",
-                "icon": null,
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
-            },
-            {
-                "id": "s5",
-                "parentId": null,
-                "label": "Node 5 Shape represents the fifth node label",
-                "description": "This is the long description",
-                "fill": "red",
-                "textColor": "#000",
-                "fontFamily": "Arial",
-                "fontSize": "12px",
-                "completed": false,
-                "compdate": null,
                 "strokewidth": 1,
-                "shape": "parallelogram",
-                "icon": null,
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
+                "textColor": "#000",
+                "vx": -0.005397826045633838,
+                "vy": -0.00039854876609599283,
+                "x": 310.31272129734634,
+                "y": 380.5087618181211
             },
             {
-                "id": "s6",
-                "parentId": null,
-                "label": "Node 6 Shape represents the sixth node label",
-                "description": "This is the long description",
+                "compdate": null,
+                "completed": false,
+                "description": "The WLC9800 can be scaled up to support multiple sites and thousands of access points.",
                 "fill": "#FFFFE0",
-                "textColor": "#000",
                 "fontFamily": "Arial",
                 "fontSize": "12px",
-                "completed": false,
-                "compdate": null,
-                "strokewidth": 3,
-                "shape": "parallelogram",
                 "icon": null,
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
+                "id": "s3",
+                "index": 2,
+                "label": "Scalability",
+                "parentId": "s1",
+                "shape": "rectangle",
+                "strokewidth": 1,
+                "textColor": "#000",
+                "vx": 0.004221072804917199,
+                "vy": -0.000752863194486197,
+                "x": 468.46421426755813,
+                "y": 336.5368048037027
             },
             {
-                "id": "s7",
-                "parentId": null,
-                "label": "Node 7 Shape represents the seventh node label",
-                "description": "This is the long description",
+                "compdate": null,
+                "completed": false,
+                "description": "The WLC9800 offers a variety of security features, including firewall, intrusion detection, and VPN.",
                 "fill": "#FFFFE0",
-                "textColor": "#000",
                 "fontFamily": "Arial",
                 "fontSize": "12px",
-                "completed": false,
-                "compdate": null,
-                "strokewidth": 3,
-                "shape": "parallelogram",
                 "icon": null,
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
+                "id": "s4",
+                "index": 3,
+                "label": "Security",
+                "parentId": "s1",
+                "shape": "rectangle",
+                "strokewidth": 1,
+                "textColor": "#000",
+                "vx": -0.005291618636220945,
+                "vy": 0.00282885045317756,
+                "x": 176.71275379137953,
+                "y": 471.44304507021593
             },
             {
-                "id": "s8",
-                "parentId": null,
-                "label": "Node 8 Shape represents the eighth node label",
-                "description": "This is the long description",
+                "compdate": null,
+                "completed": false,
+                "description": "The WLC9800 can be managed through a web-based interface or a command-line interface.",
                 "fill": "#FFFFE0",
-                "textColor": "#000",
                 "fontFamily": "Arial",
                 "fontSize": "12px",
-                "completed": false,
-                "compdate": null,
-                "strokewidth": 3,
-                "shape": "parallelogram",
                 "icon": null,
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
+                "id": "s5",
+                "index": 4,
+                "label": "Management",
+                "parentId": "s1",
+                "shape": "rectangle",
+                "strokewidth": 1,
+                "textColor": "#000",
+                "vx": 0.005863275401081568,
+                "vy": -0.00628790132777938,
+                "x": 520.8527610199234,
+                "y": 259.8716530950587
             }
         ],
         "relationships": [{
                 "id": "s1-s2",
+                "relation_label": {
+                    "color": "#000",
+                    "label": "Performance"
+                },
                 "source": "s1",
-                "target": "s2",
-                "type": "solid",
                 "stroke": "black",
                 "strokewidth": 3,
-                "relation_label": { "label": "connected to", "color": "red" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            {
-                "id": "s2-s3",
-                "source": "s2",
-                "target": "s3",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 1,
-                "relation_label": { "label": null, "color": "blue" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            {
-                "id": "s3-s4",
-                "source": "s3",
-                "target": "s4",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 1,
-                "relation_label": { "label": null, "color": "blue" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            {
-                "id": "s4-s5",
-                "source": "s4",
-                "target": "s5",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 1,
-                "relation_label": { "label": null, "color": "blue" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            {
-                "id": "s5-s6",
-                "source": "s5",
-                "target": "s6",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": null, "color": "blue" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            {
-                "id": "s5-s3",
-                "source": "s5",
-                "target": "s3",
-                "type": "dash",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": null, "color": "blue" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            {
-                "id": "s6-s7",
-                "source": "s6",
-                "target": "s7",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": null, "color": "green" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            {
-                "id": "s7-s8",
-                "source": "s7",
-                "target": "s8",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": null, "color": "green" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            {
-                "id": "s8-s1",
-                "source": "s8",
-                "target": "s1",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": null, "color": "orange" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            {
-                "id": "s7-s2",
-                "source": "s7",
                 "target": "s2",
                 "type": "solid",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": null, "color": "purple" },
                 "x1": 0,
-                "y1": 0,
                 "x2": 0,
+                "y1": 0,
+                "y2": 0
+            },
+            {
+                "id": "s1-s3",
+                "relation_label": {
+                    "color": "#000",
+                    "label": "Scalability"
+                },
+                "source": "s1",
+                "stroke": "black",
+                "strokewidth": 3,
+                "target": "s3",
+                "type": "solid",
+                "x1": 0,
+                "x2": 0,
+                "y1": 0,
+                "y2": 0
+            },
+            {
+                "id": "s1-s4",
+                "relation_label": {
+                    "color": "#000",
+                    "label": "Security"
+                },
+                "source": "s1",
+                "stroke": "black",
+                "strokewidth": 3,
+                "target": "s4",
+                "type": "solid",
+                "x1": 0,
+                "x2": 0,
+                "y1": 0,
+                "y2": 0
+            },
+            {
+                "id": "s1-s5",
+                "relation_label": {
+                    "color": "#000",
+                    "label": "Management"
+                },
+                "source": "s1",
+                "stroke": "black",
+                "strokewidth": 3,
+                "target": "s5",
+                "type": "solid",
+                "x1": 0,
+                "x2": 0,
+                "y1": 0,
                 "y2": 0
             }
         ]
@@ -520,248 +689,70 @@ document.getElementById('sample_nt_visual').addEventListener('click', function()
 document.getElementById('sample_hr_visual').addEventListener('click', function() {
     console.log("samplevisualhr ....");
 
-    const mindMapDataJson = {
-        "nodes": [
-            // Root Node
-            {
-                "id": "root",
-                "parentId": null,
-                "label": "Root Node",
-                "description": "Root Description",
-                "fill": "#f0f8ff",
-                "textColor": "#000",
-                "fontFamily": "Arial",
-                "fontSize": "12px",
-                "completed": false,
-                "compdate": null,
-                "strokewidth": 1,
-                "shape": "rectangle",
-                "icon": null,
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
-            },
-            // Level 1 Nodes
-            {
-                "id": "node1",
-                "parentId": "root",
-                "label": "Node 1",
-                "description": "Description for Node 1",
-                "fill": "#FFFFE0",
-                "textColor": "#000",
-                "fontFamily": "Arial",
-                "fontSize": "12px",
-                "completed": true,
-                "compdate": "2023-01-01",
-                "strokewidth": 2,
-                "shape": "ellipse",
-                "icon": "heart",
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
-            },
-            {
-                "id": "node2",
-                "parentId": "root",
-                "label": "Node 2",
-                "description": "Description for Node 2",
-                "fill": "#FFCCCC",
-                "textColor": "#333",
-                "fontFamily": "Arial",
-                "fontSize": "14px",
-                "completed": false,
-                "compdate": null,
-                "strokewidth": 1.5,
-                "shape": "parallelogram",
-                "icon": "star",
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
-            },
-            // Level 2 Nodes
-            {
-                "id": "node1-1",
-                "parentId": "node1",
-                "label": "Node 1-1",
-                "description": "Description for Node 1-1",
-                "fill": "#CCEEFF",
-                "textColor": "#000",
-                "fontFamily": "Arial",
-                "fontSize": "12px",
-                "completed": true,
-                "compdate": "2023-02-01",
-                "strokewidth": 2,
-                "shape": "diamond",
-                "icon": "smile",
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
-            },
-            {
-                "id": "node2-1",
-                "parentId": "node2",
-                "label": "Node 2-1",
-                "description": "Description for Node 2-1",
-                "fill": "#DDEFBB",
-                "textColor": "#333",
-                "fontFamily": "Arial",
-                "fontSize": "12px",
-                "completed": false,
-                "compdate": null,
-                "strokewidth": 1,
-                "shape": "rectangle",
-                "icon": null,
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
-            },
-            // Level 3 Nodes
-            {
-                "id": "node1-1-1",
-                "parentId": "node1-1",
-                "label": "Node 1-1-1",
-                "description": "Description for Node 1-1-1",
-                "fill": "#CCEEFF",
-                "textColor": "#000",
-                "fontFamily": "Arial",
-                "fontSize": "12px",
-                "completed": true,
-                "compdate": "2023-03-01",
-                "strokewidth": 2,
-                "shape": "diamond",
-                "icon": "smile",
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
-            },
-            // Level 4 Node
-            {
-                "id": "node1-1-1-1",
-                "parentId": "node1-1-1",
-                "label": "Node 1-1-1-1",
-                "description": "Description for Node 1-1-1-1",
-                "fill": "#EEDDFF",
-                "textColor": "#000",
-                "fontFamily": "Arial",
-                "fontSize": "12px",
-                "completed": false,
-                "compdate": null,
-                "strokewidth": 1.5,
-                "shape": "rectangle",
-                "icon": null,
-                "x": 0,
-                "y": 0,
-                "index": 0,
-                "vy": 0,
-                "vx": 0
-            }
-            // ... Additional nodes as needed
-        ],
-        "relationships": [
-            // Relationships between the root and level 1 nodes
-            {
-                "id": "root-node1",
-                "source": "root",
-                "target": "node1",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": "Root to Node 1", "color": "red" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            {
-                "id": "root-node2",
-                "source": "root",
-                "target": "node2",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": "Root to Node 2", "color": "blue" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            // Relationships between level 1 and level 2 nodes
-            {
-                "id": "node1-node1-1",
-                "source": "node1",
-                "target": "node1-1",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": "Node 1 to Node 1-1", "color": "green" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            {
-                "id": "node2-node2-1",
-                "source": "node2",
-                "target": "node2-1",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": "Node 2 to Node 2-1", "color": "purple" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            // Relationships between level 2 and level 3 nodes
-            {
-                "id": "node1-1-node1-1-1",
-                "source": "node1-1",
-                "target": "node1-1-1",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": "Node 1-1 to Node 1-1-1", "color": "orange" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            },
-            // Relationships between level 3 and level 4 nodes
-            {
-                "id": "node1-1-1-node1-1-1-1",
-                "source": "node1-1-1",
-                "target": "node1-1-1-1",
-                "type": "solid",
-                "stroke": "black",
-                "strokewidth": 2,
-                "relation_label": { "label": "Node 1-1-1 to Node 1-1-1-1", "color": "yellow" },
-                "x1": 0,
-                "y1": 0,
-                "x2": 0,
-                "y2": 0
-            }
-            // ... Additional relationships as needed
-        ]
-    };
 
-    mindMapData = common.calculateNodePositions(mindMapDataJson, currentTransform);
-    console.log('Adjusted mind map data with positions:', mindMapData);
-    renderMindMap(mindMapData);
+    const mindMapDataJson = [{
+        "name": "RootD344444444",
+        "children": [{
+                "name": "Child 1",
+                "children": [
+                    { "name": "HTML & CSS1" },
+                    { "name": "JavaScript" },
+                    { "name": "DOM" },
+                    { "name": "SVG" },
+                    { "name": "test\ntest" }
+                ]
+            },
+            {
+                "name": "安装",
+                "collapse": true,
+                "children": [
+                    { "name": "折叠节点" }
+                ]
+            },
+            {
+                "name": "入门",
+                "children": [
+                    { "name": "选择集" },
+                    { "name": "test" },
+                    { "name": "绑定数据" },
+                    { "name": "添加删除元素 ADD" },
+                    {
+                        "name": "简单图形",
+                        "children": [
+                            { "name": "柱形图" },
+                            { "name": "折线图" },
+                            { "name": "散点图" }
+                        ]
+                    },
+                    { "name": "比例尺" },
+                    { "name": "生成器" },
+                    { "name": "过渡" }
+                ],
+                "left": true
+            },
+            {
+                "name": "进阶",
+                "left": true
+            },
+            {
+                "name": "一级节点",
+                "children": [
+                    { "name": "子节点1" },
+                    { "name": "子节点2" },
+                    { "name": "子节点3" }
+                ]
+            }
+        ]
+    }]
+
+    //mindMapData = common.calculateNodePositions(mindMapDataJson, currentTransform);
+    //console.log('Adjusted mind map data with positions:', mindMapData);
+    //renderMindMap(mindMapData);
+    generateMindmap(mindMapDataJson);
     common.showMessage('Generate Drawing ...', 2000);
 
 });
+
 
 // Handle click event on importxlsdropdown element
 document.getElementById('importxls').addEventListener('click', function() {
@@ -1099,6 +1090,44 @@ function getCenterY(selection, nodeId) {
     return 0;
 }
 
+function generateMindmap(mindmapData) {
+    fetch('http://127.0.0.1:3005/generate-mindmap', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(mindmapData),
+        })
+        .then(response => response.text())
+        .then(data => {
+            console.log(data);
+            createAndDisplayIframe(); // Call inside the .then block
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+
+
+function createAndDisplayIframe() {
+
+    // Get the iframe container
+    var iframeContainer = document.getElementById('iframeTabContent');
+
+    // Clear existing content in the iframe container
+    iframeContainer.innerHTML = '';
+
+    // Create the iframe
+    var iframe = document.createElement('iframe');
+
+    iframe.src = "http://localhost:3005";
+    iframe.width = "100%"; // Set width to 100%
+    iframe.height = "600";
+    iframe.style.border = "none";
+
+    // Append the iframe to the iframeTabContent
+    var iframeContainer = document.getElementById('iframeTabContent');
+    iframeContainer.appendChild(iframe);
+}
 
 
 function renderMindMap(mindMapData) {
@@ -1108,14 +1137,26 @@ function renderMindMap(mindMapData) {
 
     if (mapType === "hierarchy") {
 
-        // Assuming mindMapDataJson is defined as provided
-        let hierarchicalData = common.transformDataToHierarchy(mindMapData);
+        console.log("Rendering the min Map as Hierarchy");
 
-        console.log("hierarchicalData =", hierarchicalData);
-        renderHierarchyMindMap(hierarchicalData); // Fadi to check later
-        //renderNetworkMindMap(mindMapData);
+
+        // Assuming mindMapDataJson is defined as provided
+        // let hierarchicalData = common.transformDataToHierarchy(mindMapData);
+        // console.log("hierarchicalData =", hierarchicalData);
+        //renderHierarchyMindMap(hierarchicalData); // Fadi to check later
+
+        renderNetworkMindMap(mindMapData);
+
+
+        console.log("Original hierarchicalData =", mindMapData);
+        let hierarchyData = common.transformToMindMapHierarchy(mindMapData);
+        console.log("Target hierarchicalData =", hierarchyData);
+        generateMindmap(hierarchyData);
 
     } else {
+
+        console.log("Rendering the min Map as Network");
+
         renderNetworkMindMap(mindMapData);
     }
 }
@@ -1127,9 +1168,9 @@ function renderNetworkMindMap(mindMapData) {
     const centerStrength = 0.08; // Strength of center pulling force
     const minCenterDistance = 300; // Minimum distance from center for repulsion
     const maxCenterDistance = 450; // Maximum distance from center for attraction
-    const chargeStrength = -50; // Strength of node repulsion
-    const linkDistance = 40; // Distance between nodes connected by a link
-    const linkStrength = 0.1; // Strength of the links
+    const chargeStrength = -200; // Strength of node repulsion
+    const linkDistance = 100; // Distance between nodes connected by a link
+    const linkStrength = 0.5; // Strength of the links
     const alphaTarget = 0.3; // Alpha target for simulation during dragging
     const nodeRadius = 5; // Radius of the nodes
 
@@ -1231,16 +1272,21 @@ function renderNetworkMindMap(mindMapData) {
                 });
             };
         }
-        // Create force simulation
+
         // Create force simulation
         const simulation = d3.forceSimulation(mindMapData.nodes)
             .force('link', d3.forceLink(mindMapData.links)
                 .id(d => d.id)
                 .distance(linkDistance)
                 .strength(linkStrength))
-            .force("charge", d3.forceManyBody().strength(chargeStrength))
-            .force('center', centerForce())
+            // .force("charge", d3.forceManyBody().strength(chargeStrength))
+            // .force('center', centerForce())
+            // .force("collide", d3.forceCollide().radius(function(d) {
+            //     return d.radius + 2; // d.radius should be your node's radius; add a small value to create padding
+            // }))
             .on("tick", ticked);
+
+
         //centerStrength, minCenterDistance, maxCenterDistance, relationStrength, maxRelationDistance
         //minCenterDistance: Nodes closer to the center than this distance will experience a force pushing them away from the center.
         //maxCenterDistance: Nodes farther from the center than this distance will experience a force pulling them toward the center.
@@ -1732,7 +1778,6 @@ function renderNetworkMindMap(mindMapData) {
 
             function dragEnd(event, d) {
 
-
                 if (!event.active) simulation.alphaTarget(0);
                 d.fx = null;
                 d.fy = null;
@@ -1763,13 +1808,13 @@ function renderNetworkMindMap(mindMapData) {
                 }
 
 
-                // rectNodes
-                //     .attr("x", d => d.x)
-                //     .attr("y", d => d.y);
+                //     // rectNodes
+                //     //     .attr("x", d => d.x)
+                //     //     .attr("y", d => d.y);
 
-                // label
-                //     .attr("x", d => d.x)
-                //     .attr("y", d => d.y);
+                //     // label
+                //     //     .attr("x", d => d.x)
+                //     //     .attr("y", d => d.y);
 
 
 
@@ -4733,4 +4778,4 @@ function getIsModified() {
 
 
 
-export { renderMindMap, sendChatMessage, setIsModified, getIsModified, displayfilelist, showSaveConfirmationModal, r_save_Button_conf_handleSaveDrawing, transformManager, handleAddRelation, handleAddNode };
+export { renderMindMap, generateMindmap, sendChatMessage, setIsModified, getIsModified, displayfilelist, showSaveConfirmationModal, r_save_Button_conf_handleSaveDrawing, transformManager, handleAddRelation, handleAddNode };
