@@ -33,14 +33,15 @@ jobs:
 
     - name: Build and push Docker image to Google Container Registry
       run: |
-        echo $GCR_JSON_SA_KEY | docker login -u _json_key --password-stdin https://${GCR_HOSTNAME}
-        docker build . --file Dockerfile --tag ${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:$(date +%s)
-        docker push ${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:$(date +%s)
+        echo ${{ secrets.GCP_SA_KEY }} | docker login -u _json_key --password-stdin https://${GCR_HOSTNAME}
+        IMAGE_TAG=$(date +%s)
+        docker build . --file Dockerfile --tag ${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:${IMAGE_TAG}
+        docker push ${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:${IMAGE_TAG}
 
     - name: Deploy to Google Cloud Run
       run: |
         gcloud run deploy ${SERVICE_NAME} \
-          --image=${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:$(date +%s) \
+          --image=${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:${IMAGE_TAG} \
           --platform managed \
           --region=${REGION} \
           --allow-unauthenticated  # Remove this line to disable public access
