@@ -32,7 +32,7 @@ jobs:
         export_default_credentials: true
 
     - name: Build and push Docker image to Google Container Registry
-     run: |
+      run: |
       echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode > gcp-key.json
       cat gcp-key.json  # For debugging purposes, remove after confirming the key's content
       echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode | docker login -u _json_key --password-stdin https://${GCR_HOSTNAME}
