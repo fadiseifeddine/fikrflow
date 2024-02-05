@@ -1,0 +1,46 @@
+name: Build and Deploy to Google Cloud Run
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  GCR_HOSTNAME: gcr.io
+  IMAGE_NAME: fikrflow
+  SERVICE_NAME: fikrflow
+  REGION: us-central1
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Set up GCP Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        export_default_credentials: true
+
+    - name: Build and push Docker image to Google Container Registry
+      run: |
+        echo $GCR_JSON_SA_KEY | docker login -u _json_key --password-stdin https://${GCR_HOSTNAME}
+        docker build . --file Dockerfile --tag ${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:$(date +%s)
+        docker push ${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:$(date +%s)
+
+    - name: Deploy to Google Cloud Run
+      run: |
+        gcloud run deploy ${SERVICE_NAME} \
+          --image=${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:$(date +%s) \
+          --platform managed \
+          --region=${REGION} \
+          --allow-unauthenticated  # Remove this line to disable public access
