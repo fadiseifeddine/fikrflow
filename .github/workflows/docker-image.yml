@@ -33,14 +33,12 @@ jobs:
 
     - name: Build and push Docker image to Google Container Registry
       run: |
-      echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode > gcp-key.json
-      cat gcp-key.json  # For debugging purposes, remove after confirming the key's content
-      echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode | docker login -u _json_key --password-stdin https://${GCR_HOSTNAME}
-      IMAGE_TAG=$(date +%s)
-      docker build . --file Dockerfile --tag ${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:${IMAGE_TAG}
-      docker push ${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:${IMAGE_TAG}
-
-
+        echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode > gcp-key.json
+        cat gcp-key.json  # For debugging purposes, remove after confirming the key's content
+        echo "${{ secrets.GCP_SA_KEY }}" | base64 --decode | docker login -u _json_key --password-stdin https://${GCR_HOSTNAME}
+        IMAGE_TAG=$(date +%s)
+        docker build . --file Dockerfile --tag ${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:${IMAGE_TAG}
+        docker push ${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:${IMAGE_TAG}
 
     - name: Deploy to Google Cloud Run
       run: |
