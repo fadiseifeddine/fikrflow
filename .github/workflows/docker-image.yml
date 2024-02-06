@@ -48,8 +48,10 @@ jobs:
 
     - name: Deploy to Google Cloud Run
       run: |
+        IMAGE_PATH="${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:${IMAGE_TAG}"
+        echo "Deploying image: $IMAGE_PATH"
         gcloud run deploy ${SERVICE_NAME} \
-          --image=${GCR_HOSTNAME}/${{ secrets.GCP_PROJECT_ID }}/${IMAGE_NAME}:${IMAGE_TAG} \
+          --image=$IMAGE_PATH \
           --platform managed \
           --region=${REGION} \
           --allow-unauthenticated  # Remove this line to disable public access
