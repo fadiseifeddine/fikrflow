@@ -5,4 +5,4 @@ FROM nginx:latest
 COPY . /usr/share/nginx/html
 
 # Expose port 5500
-EXPOSE 5500
+EXPOSE 8080
