@@ -1103,7 +1103,7 @@ function getCenterY(selection, nodeId) {
 }
 
 function generateMindmap(mindmapData) {
-    fetch('${baseUrlfikrmapserver}/generate-mindmap', {
+    fetch(`${baseUrlfikrmapserver}/generate-mindmap`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1131,7 +1131,7 @@ function createAndDisplayIframe() {
     // Create the iframe
     var iframe = document.createElement('iframe');
 
-    iframe.src = '${baseUrlfikrmapserver}';
+    iframe.src = `${baseUrlfikrmapserver}`;
     iframe.width = "100%"; // Set width to 100%
     iframe.height = "600";
     iframe.style.border = "none";
