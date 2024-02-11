@@ -9,7 +9,7 @@ let currentSelectedUploadedFile = null; // Global variable to store the selected
 
 // Define API base URL
 let baseUrlfikrflowserver = '';
-if (process.env.CLOUD_RUN_ENVIRONMENT === 'true') {
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Cloud Run URL
 } else {
     baseUrlfikrflowserver = 'http://localhost:3000'; // Local URL

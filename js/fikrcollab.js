@@ -6,10 +6,15 @@ import * as fikruser from './fikruser.js';
 import * as fikrmap from './fikrmap.js';
 
 // Define API base URL
-const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
+let baseUrlfikrflowserver = '';
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Cloud Run URL
+} else {
+    baseUrlfikrflowserver = 'http://localhost:3000'; // Local URL
+}
 
 // Connect to the Socket.io server
-const socket = io(baseUrl); // Replace with your server URL
+const socket = io(baseUrlfikrflowserver); // Replace with your server URL
 
 // Store the user's session ID and color
 
