@@ -16,6 +16,22 @@ let blurEventPromise = null;
 let drawingExistsInBlur = false; // Initialize a flag
 
 
+// Define API base URL
+let baseUrlfikrflowserver = '';
+if (process.env.CLOUD_RUN_ENVIRONMENT === 'true') {
+    baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Cloud Run URL
+} else {
+    baseUrlfikrflowserver = 'http://localhost:3000'; // Local URL
+}
+
+// Define API base URL
+let baseUrlfikrmapserver = '';
+if (process.env.CLOUD_RUN_ENVIRONMENT === 'true') {
+    baseUrlfikrmapserver = 'https://fikrmapserver-g74cb7lg5a-uc.a.run.app'; // Cloud Run URL
+} else {
+    baseUrlfikrmapserver = 'http://localhost:3000'; // Local URL
+}
+
 
 // prevent dragging when clicking the checkbox in the node
 let allowDrag = true;
@@ -784,7 +800,7 @@ drawingContainer.addEventListener('click', function(event) {
 async function sendChatMessage(message, search_doc) {
     try {
         console.log("sendChatMessage with message =", message, "search_doc =", search_doc);
-        const response = await fetch('http://localhost:3000/api/sendprompt', {
+        const response = await fetch('${baseUrlfikrflowserver}/api/sendprompt', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -838,7 +854,7 @@ async function handleFiles(file) { // import drawing
         formData.append("file", file);
 
         try {
-            const response = await fetch('http://localhost:3000/api/upload_importdrawing', {
+            const response = await fetch('${baseUrlfikrflowserver}/api/upload_importdrawing', {
                 method: "POST",
                 body: formData,
             });
@@ -880,7 +896,7 @@ async function uploadFiles(file) { // upload for LLM
         formData.append("file", file);
 
         try {
-            const response = await fetch('http://localhost:3000/api/upload_llm', {
+            const response = await fetch('${baseUrlfikrflowserver}/api/upload_llm', {
                 method: "POST",
                 body: formData,
             });
@@ -1087,7 +1103,7 @@ function getCenterY(selection, nodeId) {
 }
 
 function generateMindmap(mindmapData) {
-    fetch('http://127.0.0.1:3005/generate-mindmap', {
+    fetch('${baseUrlfikrmapserver}/generate-mindmap', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1115,7 +1131,7 @@ function createAndDisplayIframe() {
     // Create the iframe
     var iframe = document.createElement('iframe');
 
-    iframe.src = "http://localhost:3005";
+    iframe.src = '${baseUrlfikrmapserver}';
     iframe.width = "100%"; // Set width to 100%
     iframe.height = "600";
     iframe.style.border = "none";
@@ -3779,7 +3795,7 @@ function takeSnapshot(mindMapData) {
             console.log("Now taking the Snapshot .,,,");
             //console.log('mindMapData after delete', mindMapData);
             // Now, send the snapshot
-            return fetch('http://localhost:3000/api/savesnapshot', {
+            return fetch('${baseUrlfikrflowserver}/api/savesnapshot', {
                 method: 'POST',
                 body: JSON.stringify({
                     user: fikruser.getUserId(),
@@ -3816,7 +3832,7 @@ async function fetchAndRenderVersion(version) {
         // console.log("searching for the element with common.getSessionId() = " + common.getSessionId())
         const vuserID = fikruser.getUserId();
         const vsessionID = common.getSessionId();
-        const response = await fetch(`http://localhost:3000/api/getsnapshot?user=${vuserID}&sessionid=${vsessionID}&version=${version}`, {
+        const response = await fetch(`${baseUrlfikrflowserver}/api/getsnapshot?user=${vuserID}&sessionid=${vsessionID}&version=${version}`, {
             method: 'GET', // Use GET request
             headers: {
                 'Content-Type': 'application/json'
@@ -3841,7 +3857,7 @@ async function fetchcurrentdrawchainversion() {
         //console.log("fetchcurrentdrawchainversion searching for the element with common.getSessionId() = " + common.getSessionId())
         const vuserID = fikruser.getUserId();
         const vsessionID = common.getSessionId();
-        const response = await fetch(`http://localhost:3000/api/fetchcurrentdrawchainversion?user=${vuserID}&sessionid=${vsessionID}`, {
+        const response = await fetch(`${baseUrlfikrflowserver}/api/fetchcurrentdrawchainversion?user=${vuserID}&sessionid=${vsessionID}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -3867,7 +3883,7 @@ async function fetchcurrentdrawsessionversion() {
         //console.log("fetchcurrentdrawsessionversion searching for the element with common.getSessionId() = " + common.getSessionId())
         const vuserID = fikruser.getUserId();
         const vsessionID = common.getSessionId();
-        const response = await fetch(`http://localhost:3000/api/fetchcurrentdrawsessionversion?user=${vuserID}&sessionid=${vsessionID}`, {
+        const response = await fetch(`${baseUrlfikrflowserver}/api/fetchcurrentdrawsessionversion?user=${vuserID}&sessionid=${vsessionID}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -4329,7 +4345,7 @@ async function updateversion(vsessionid, voperation) {
 
         //console.log("calling updateversion API on the server ...");
         //console.log("--- mindMapData in update version before updating ... ", mindMapData);
-        const response = await fetch('http://localhost:3000/api/updateversion', {
+        const response = await fetch('${baseUrlfikrflowserver}/api/updateversion', {
             method: 'POST',
             body: JSON.stringify({
                 sessionid: vsessionid,
@@ -4375,7 +4391,7 @@ async function deleteversions(vsessionid, vversion) {
         //console.log("Deleting All Versions after or equal ..." + targetdelete);
         // Proceed with saving using the file name
     try {
-        const response = await fetch('http://localhost:3000/api/deleteversions', {
+        const response = await fetch('${baseUrlfikrflowserver}/api/deleteversions', {
             method: 'POST',
             body: JSON.stringify({
                 sessionid: vsessionid,
@@ -4585,7 +4601,7 @@ function r_open_Button_conf_handleSaveDrawing() {
 // Function to send a POST request to generate the XLSX file
 async function generateXLSX(mindMapData) {
     try {
-        const response = await fetch('http://localhost:3000/api/export-xlsx', {
+        const response = await fetch('${baseUrlfikrflowserver}/api/export-xlsx', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -2,6 +2,13 @@
 import * as common from './common.js';
 import * as fikruser from './fikruser.js';
 
+// Define API base URL
+let baseUrlfikrflowserver = '';
+if (process.env.CLOUD_RUN_ENVIRONMENT === 'true') {
+    baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Cloud Run URL
+} else {
+    baseUrlfikrflowserver = 'http://localhost:3000'; // Local URL
+}
 
 
 async function duplicateDrawing(fileName, mindMapData, userId, sessionId) {
@@ -14,7 +21,7 @@ async function duplicateDrawing(fileName, mindMapData, userId, sessionId) {
 
         // Proceed with saving using the file name
         try {
-            const response = await fetch('http://localhost:3000/api/savedraw', {
+            const response = await fetch('${baseUrlfikrflowserver}/api/savedraw', {
                 method: 'POST',
                 body: JSON.stringify({
                     userid: userId,
@@ -58,7 +65,7 @@ async function saveDrawing(fileName, mindMapData, userId, sessionId, zoomScale, 
 
         // Proceed with saving using the file name
         try {
-            const response = await fetch('http://localhost:3000/api/savedraw', {
+            const response = await fetch('${baseUrlfikrflowserver}/api/savedraw', {
                 method: 'POST',
                 body: JSON.stringify({
                     userid: userId,
@@ -101,7 +108,7 @@ async function saveUpload(filename, username) {
 
         // Proceed with uploading using the file name
         try {
-            const response = await fetch('http://localhost:3000/api/fikr_upload', {
+            const response = await fetch('${baseUrlfikrflowserver}/api/fikr_upload', {
                 method: 'POST',
                 body: JSON.stringify({
                     filename: filename,
@@ -149,7 +156,7 @@ async function getUploads() {
 
         const vuserID = fikruser.getUserId();
 
-        const response = await fetch(`http://localhost:3000/api/getuploads?user=${vuserID}`);
+        const response = await fetch(`${baseUrlfikrflowserver}/api/getuploads?user=${vuserID}`);
         if (response.ok) {
             const files = await response.json();
             const fileListElement = document.getElementById('fileList');
@@ -176,7 +183,7 @@ async function getUploads() {
 async function getDrawings(drawingName = null) {
     try {
         // Determine the API endpoint based on whether a drawing name is provided
-        let apiUrl = 'http://localhost:3000/api/getdraw';
+        let apiUrl = '${baseUrlfikrflowserver}/api/getdraw';
         if (drawingName) {
             apiUrl += `?name=${encodeURIComponent(drawingName)}`;
         }

@@ -5,9 +5,11 @@ import * as common from './common.js';
 import * as fikruser from './fikruser.js';
 import * as fikrmap from './fikrmap.js';
 
+// Define API base URL
+const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
 
 // Connect to the Socket.io server
-const socket = io('http://localhost:3000'); // Replace with your server URL
+const socket = io(baseUrl); // Replace with your server URL
 
 // Store the user's session ID and color
 

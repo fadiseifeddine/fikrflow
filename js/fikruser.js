@@ -4,6 +4,15 @@ import * as common from './common.js';
 let userId = null;
 let userName = null;
 
+
+// Define API base URL
+let baseUrlfikrflowserver = '';
+if (process.env.CLOUD_RUN_ENVIRONMENT === 'true') {
+    baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Cloud Run URL
+} else {
+    baseUrlfikrflowserver = 'http://localhost:3000'; // Local URL
+}
+
 function getUserId() {
 
     if (userId === null) {
@@ -481,7 +490,7 @@ function clearFieldErrors(fields) {
 
 // Function to check if a user exists
 async function checkuser(userId) {
-    const response = await fetch(`http://localhost:3000/api/checkuser?userId=${userId}`);
+    const response = await fetch(`${baseUrlfikrflowserver}/api/checkuser?userId=${userId}`);
     const data = await response.json();
     console.log("user exists ? ", data);
     return data.result;
@@ -495,7 +504,7 @@ async function registeruser(userId, userName, password) {
 
     // Proceed with saving using the file name
     try {
-        const response = await fetch('http://localhost:3000/api/registeruser', {
+        const response = await fetch('${baseUrlfikrflowserver}/api/registeruser', {
             method: 'POST',
             body: JSON.stringify({
                 userId: userId,
@@ -563,7 +572,7 @@ async function checkUserPassword(loginUserId, loginPassword) {
     console.log("checkUserPassword.loginPassword = ", loginPassword);
 
     try {
-        const response = await fetch('http://localhost:3000/api/authenticate', {
+        const response = await fetch('${baseUrlfikrflowserver}/api/authenticate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -586,7 +595,7 @@ async function generateVerificationCode(userId) {
     try {
 
         console.log("Generating Verification Code function userId = ", userId);
-        const response = await fetch(`http://localhost:3000/api/generate-verification-code?userId=${userId}`);
+        const response = await fetch(`${baseUrlfikrflowserver}/api/generate-verification-code?userId=${userId}`);
         const data = await response.json();
 
         if (response.ok) {
@@ -604,7 +613,7 @@ async function generateVerificationCode(userId) {
 
 async function verifyCode(userId, verificationCode) {
     try {
-        const response = await fetch(`http://localhost:3000/api/verifycode?userId=${userId}&verificationcode=${verificationCode}`, {
+        const response = await fetch(`${baseUrlfikrflowserver}/api/verifycode?userId=${userId}&verificationcode=${verificationCode}`, {
             method: 'GET',
         });
 

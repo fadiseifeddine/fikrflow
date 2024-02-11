@@ -7,6 +7,13 @@ let mindMapData = null;
 let selectedFileName = null;
 let currentSelectedUploadedFile = null; // Global variable to store the selected uploaded file name
 
+// Define API base URL
+let baseUrlfikrflowserver = '';
+if (process.env.CLOUD_RUN_ENVIRONMENT === 'true') {
+    baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Cloud Run URL
+} else {
+    baseUrlfikrflowserver = 'http://localhost:3000'; // Local URL
+}
 
 let nodetext = {
     length: {
@@ -184,7 +191,7 @@ async function retrieveSessionId(puserid) {
         console.log("The puserid in retrieveSessionId is ", puserid);
         userId = puserid;
         console.log("retreiving the sessionid for user = " + puserid);
-        const response = await fetch(`http://localhost:3000/api/getsession?userid=${puserid}`, {
+        const response = await fetch(`${baseUrlfikrflowserver}/api/getsession?userid=${puserid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
