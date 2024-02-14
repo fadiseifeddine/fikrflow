@@ -18,11 +18,13 @@ let drawingExistsInBlur = false; // Initialize a flag
 
 // Define API base URL
 let baseUrlfikrflowserver = '';
+console.log("window.location.hostname =" + window.location.hostname);
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Cloud Run URL
 } else {
     baseUrlfikrflowserver = 'http://localhost:3000'; // Local URL
 }
+console.log("baseUrlfikrflowserver =" + baseUrlfikrflowserver);
 
 // Define API base URL
 let baseUrlfikrmapserver = '';
@@ -4616,7 +4618,7 @@ async function generateXLSX(mindMapData) {
                 // If the request was successful, initiate the download
                 console.log("Got downloadable link :", data.downloadLink);
                 // Construct the full URL with the host and port of your container
-                const fullUrl = "http://localhost:3000/" + data.downloadLink;
+                const fullUrl = `${baseUrlfikrflowserver}/` + data.downloadLink;
 
                 // Set the href attribute of the download link
                 const downloadLink = document.getElementById('downloadLink');
