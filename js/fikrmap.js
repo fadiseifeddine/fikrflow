@@ -20,18 +20,18 @@ let drawingExistsInBlur = false; // Initialize a flag
 let baseUrlfikrflowserver = '';
 console.log("window.location.hostname =" + window.location.hostname);
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Cloud Run URL
+    baseUrlfikrflowserver = 'http://localhost:3000'; // Cloud Run URL
 } else {
-    baseUrlfikrflowserver = 'http://localhost:3000'; // Local URL
+    baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Local URL
 }
 console.log("baseUrlfikrflowserver =" + baseUrlfikrflowserver);
 
 // Define API base URL
 let baseUrlfikrmapserver = '';
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    baseUrlfikrmapserver = 'https://fikrmapserver-g74cb7lg5a-uc.a.run.app'; // Cloud Run URL
+    baseUrlfikrmapserver = 'http://localhost:3005'; // Cloud Run URL
 } else {
-    baseUrlfikrmapserver = 'http://localhost:3005'; // Local URL
+    baseUrlfikrmapserver = 'https://fikrmapserver-g74cb7lg5a-uc.a.run.app'; // Local URL
 }
 
 

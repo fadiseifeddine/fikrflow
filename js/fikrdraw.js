@@ -5,9 +5,9 @@ import * as fikruser from './fikruser.js';
 // Define API base URL
 let baseUrlfikrflowserver = '';
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Cloud Run URL
+    baseUrlfikrflowserver = 'http://localhost:3000'; // Cloud Run URL
 } else {
-    baseUrlfikrflowserver = 'http://localhost:3000'; // Local URL
+    baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Local URL
 }
 
 
