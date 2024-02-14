@@ -504,7 +504,7 @@ async function registeruser(userId, userName, password) {
 
     // Proceed with saving using the file name
     try {
-        const response = await fetch('${baseUrlfikrflowserver}/api/registeruser', {
+        const response = await fetch(`${baseUrlfikrflowserver}/api/registeruser`, {
             method: 'POST',
             body: JSON.stringify({
                 userId: userId,
@@ -572,7 +572,7 @@ async function checkUserPassword(loginUserId, loginPassword) {
     console.log("checkUserPassword.loginPassword = ", loginPassword);
 
     try {
-        const response = await fetch('${baseUrlfikrflowserver}/api/authenticate', {
+        const response = await fetch(`${baseUrlfikrflowserver}/api/authenticate`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
