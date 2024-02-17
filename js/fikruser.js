@@ -230,7 +230,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         } else {
             // Email format is valid
-            console.error('Valid email format');
+            console.log('Valid email format');
             sendVerificationCode.removeAttribute("disabled");
 
         }
