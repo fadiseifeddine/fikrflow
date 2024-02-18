@@ -897,7 +897,7 @@ async function uploadFiles(file) { // upload for LLM
         const formData = new FormData();
         formData.append("file", file);
 
-        console.log("formData", formData)
+        console.log("formData.path", formData.path)
 
         try {
             const response = await fetch(`${baseUrlfikrflowserver}/api/upload_llm`, {
