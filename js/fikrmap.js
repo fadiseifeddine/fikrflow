@@ -202,6 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const file = fileInput.files[0];
         if (file) {
             try {
+                console.log("File to upload:", file); // Log the file object
                 await uploadFiles(file);
                 // You now have the mindMapData object from the XLSX file
             } catch (error) {
