@@ -898,8 +898,9 @@ async function uploadFiles(file) { // upload for LLM
         const formData = new FormData();
         formData.append("file", file);
 
-        console.log("formData.path", formData.path)
-        console.log("File buffer in fikrflow project:", file.buffer); // Log the file buffer before sending
+        // Log the file name and size
+        console.log("File name:", file.name);
+        console.log("File size:", file.size);
 
         try {
             const response = await fetch(`${baseUrlfikrflowserver}/api/upload_llm`, {
