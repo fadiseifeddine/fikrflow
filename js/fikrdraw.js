@@ -6,8 +6,11 @@ import * as fikruser from './fikruser.js';
 let baseUrlfikrflowserver = '';
 if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     baseUrlfikrflowserver = 'http://localhost:3000'; // Cloud Run URL
+    console.log("baseUrlfikrflowserver is 1 = ", baseUrlfikrflowserver)
 } else {
     baseUrlfikrflowserver = 'https://fikrflowserver-g74cb7lg5a-uc.a.run.app'; // Local URL
+    console.log("baseUrlfikrflowserver is 2 = ", baseUrlfikrflowserver)
+
 }
 
 
@@ -108,7 +111,7 @@ async function saveUpload(filename, username) {
 
         // Proceed with uploading using the file name
         try {
-            const response = await fetch('${baseUrlfikrflowserver}/api/fikr_upload', {
+            const response = await fetch(`${baseUrlfikrflowserver}/api/fikr_upload`, {
                 method: 'POST',
                 body: JSON.stringify({
                     filename: filename,

@@ -912,8 +912,8 @@ async function uploadFiles(file) { // upload for LLM
 
             if (response.ok) {
                 const data = await response.json();
-                console.log("data", data); // Log the server's response
-                //console.log('Hiding the Modal ....');
+                console.log("reponse back from upload_llm", data); // Log the server's response
+                console.log('Hiding the Modal ....');
                 $('#fileNameModal').modal('hide');
                 uploaddocModal.hide();
                 common.showMessage('File Uploaded / Vectorized', 2000);
@@ -1861,131 +1861,176 @@ function renderNetworkMindMap(mindMapData) {
                 .attr("id", (d) => (d.source + '-' + d.target))
                 .attr('class', 'relationship solid-relationship')
                 .attr('stroke', (d) => d.stroke)
-                .attr('marker-end', 'url(#arrowhead)')
+                .attr('marker-end', 'url(#arrowhead)') // Use marker-end instead of marker-mid
                 .merge(solidRelationships)
                 .attr('x1', (d) => {
-                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
                     const targetNode = nodes.filter((node) => node.id === d.target).node();
+                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
 
-                    if (sourceNode && targetNode) {
-                        // Calculate center and edge positions
-                        const sourceCenterX = getCenterX(nodes, d.source);
-                        const targetCenterX = getCenterX(nodes, d.target);
-                        const sourceCenterY = getCenterY(nodes, d.source);
-                        const targetCenterY = getCenterY(nodes, d.target);
-                        const sourceBottomEdgeY = getBottomEdgeY(nodes, d.source);
-                        const targetTopEdgeY = getTopEdgeY(nodes, d.target);
+                    if (targetNode && sourceNode) {
+                        const targetShape = targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"]');
+                        const sourceShape = sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"]');
+                        if (targetShape && sourceShape) {
+                            const targetShapeTag = targetShape.getAttribute('data-tag');
+                            const sourceShapeTag = sourceShape.getAttribute('data-tag');
+                            //console.log("sourceShapeTag=", sourceShapeTag);
+                            //console.log("targetShapeTag=", targetShapeTag);
 
-                        // Calculate differences
-                        const diffX = Math.abs(sourceCenterX - targetCenterX);
-                        const diffY = sourceBottomEdgeY - targetTopEdgeY;
-
-                        console.log(`[x1] Source: (${sourceCenterX}, ${sourceCenterY}), Target: (${targetCenterX}, ${targetCenterY}), diffX: ${diffX}, diffY: ${diffY}`);
-
-                        // Check if source is directly above the target
-                        if (diffX < alignmentThreshold && diffY < alignmentThreshold) {
-                            console.log("[x1] Source directly above target, connecting centers vertically");
-                            return sourceCenterX;
-                        } else {
                             const sourceRightEdgeX = getRightEdgeX(nodes, d.source);
                             const sourceLeftEdgeX = getLeftEdgeX(nodes, d.source);
-                            return sourceCenterX < targetCenterX ? sourceRightEdgeX : sourceLeftEdgeX;
+                            const targetLeftEdgeX = getLeftEdgeX(nodes, d.target);
+
+                            // Check if the target node is to the right of the source node
+                            if (sourceRightEdgeX < targetLeftEdgeX) {
+                                // Target is to the right of source
+                                if (sourceShapeTag === 'ellipse') {
+                                    const cx = parseFloat(sourceNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                                    const rx = parseFloat(sourceShape.getAttribute('rx'));
+                                    //console.log("source ellipse on left");
+                                    return cx + rx; // Set x2 to the left edge of the ellipse
+                                } else if (sourceShapeTag === 'rect') {
+                                    return sourceRightEdgeX - 3; // Set x2 to the left edge of the rectangle
+                                } else if (sourceShapeTag === 'parallelogram') {
+                                    // Assuming the left edge of the parallelogram is the end point of the relationship
+                                    return sourceRightEdgeX - 3;
+                                } else if (sourceShapeTag === 'diamond') {
+                                    // Assuming the left edge of the diamond is the end point of the relationship
+                                    return sourceRightEdgeX - 3;
+                                }
+                            } else {
+                                // Target is to the left of source or on the same horizontal axis
+                                if (sourceShapeTag === 'ellipse') {
+                                    const cx = parseFloat(sourceNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                                    const rx = parseFloat(sourceShape.getAttribute('rx'));
+                                    return cx - rx; // Set x2 to the right edge of the ellipse
+                                } else if (sourceShapeTag === 'rect') {
+                                    return sourceLeftEdgeX + 3; // Set x2 to the right edge of the rectangle
+                                } else if (sourceShapeTag === 'parallelogram') {
+                                    // Assuming the right edge of the parallelogram is the end point of the relationship
+                                    return sourceLeftEdgeX + 3;
+                                } else if (sourceShapeTag === 'diamond') {
+                                    // Assuming the left edge of the diamond is the end point of the relationship
+                                    return sourceLeftEdgeX + 3;
+                                }
+                            }
                         }
+
                     }
                     return 0;
                 })
                 .attr('y1', (d) => {
                     const sourceNode = nodes.filter((node) => node.id === d.source).node();
-                    const targetNode = nodes.filter((node) => node.id === d.target).node();
+                    const shape = sourceNode ? sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"]') : null;
 
-                    if (sourceNode && targetNode) {
-                        const sourceBottomEdgeY = getBottomEdgeY(nodes, d.source);
-                        const sourceCenterY = getCenterY(nodes, d.source);
-                        const targetTopEdgeY = getTopEdgeY(nodes, d.target);
-                        const targetCenterY = getCenterY(nodes, d.target);
-
-                        const diffY = Math.abs(sourceCenterY - targetCenterY);
-                        const diffX = Math.abs(getCenterX(nodes, d.source) - getCenterX(nodes, d.target));
-
-                        console.log(`[y1] Source Bottom: ${sourceBottomEdgeY}, Target Top: ${targetTopEdgeY}, diffY: ${diffY}, diffX: ${diffX}`);
-
-                        if (diffY < alignmentThreshold && diffX > diffY) {
-                            console.log("[y1] Horizontally aligned, connecting centers horizontally");
-                            return sourceCenterY;
-                        } else {
-                            return sourceCenterY < targetCenterY ? sourceBottomEdgeY : getTopEdgeY(nodes, d.source);
+                    if (shape) {
+                        if (shape.getAttribute('data-tag') === 'ellipse') {
+                            const cy = parseFloat(sourceNode.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]);
+                            const ry = parseFloat(shape.getAttribute('ry'));
+                            return cy; // Set y1 to the center of the top edge of the ellipse
+                        } else if (shape.getAttribute('data-tag') === 'rect') {
+                            return getCenterY(nodes, d.source); // Set y1 to the center of the top edge of the rectangle
+                        } else if (shape.getAttribute('data-tag') === 'parallelogram') {
+                            // Assuming the top edge of the parallelogram is the start point of the relationship
+                            return getCenterY(nodes, d.source);
+                        } else if (shape.getAttribute('data-tag') === 'diamond') {
+                            // Assuming the top edge of the diamond is the start point of the relationship
+                            //console.log("diamond calling the center Y");
+                            return getCenterY(nodes, d.source);
                         }
                     }
                     return 0;
                 })
                 .attr('x2', (d) => {
-                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
                     const targetNode = nodes.filter((node) => node.id === d.target).node();
+                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
 
-                    if (sourceNode && targetNode) {
-                        const sourceCenterX = getCenterX(nodes, d.source);
-                        const targetCenterX = getCenterX(nodes, d.target);
-                        const sourceBottomEdgeY = getBottomEdgeY(nodes, d.source);
-                        const targetTopEdgeY = getTopEdgeY(nodes, d.target);
+                    if (targetNode && sourceNode) {
+                        const targetShape = targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"],[data-tag="diamond"]');
+                        const sourceShape = sourceNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"]');
 
-                        const diffX = Math.abs(sourceCenterX - targetCenterX);
-                        const diffY = sourceBottomEdgeY - targetTopEdgeY;
 
-                        console.log(`[x2] Source: (${sourceCenterX}, ${sourceBottomEdgeY}), Target: (${targetCenterX}, ${targetTopEdgeY}), diffX: ${diffX}, diffY: ${diffY}`);
 
-                        if (diffX < alignmentThreshold && diffY < alignmentThreshold) {
-                            console.log("[x2] Source directly above target, connecting centers vertically");
-                            return targetCenterX;
-                        } else {
+                        if (targetShape && sourceShape) {
+                            const targetShapeTag = targetShape.getAttribute('data-tag');
+                            const sourceShapeTag = sourceShape.getAttribute('data-tag');
+                            //console.log("sourceShapeTag=", sourceShapeTag);
+                            //console.log("targetShapeTag=", targetShapeTag);
+
+                            const sourceRightEdgeX = getRightEdgeX(nodes, d.source);
                             const targetLeftEdgeX = getLeftEdgeX(nodes, d.target);
                             const targetRightEdgeX = getRightEdgeX(nodes, d.target);
-                            return sourceCenterX < targetCenterX ? targetLeftEdgeX : targetRightEdgeX;
+
+                            // Check if the target node is to the right of the source node
+                            if (sourceRightEdgeX < targetLeftEdgeX) {
+                                // Target is to the right of source
+                                if (targetShapeTag === 'ellipse') {
+                                    const cx = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                                    const rx = parseFloat(targetShape.getAttribute('rx'));
+                                    return cx - rx; // Set x2 to the left edge of the ellipse
+                                } else if (targetShapeTag === 'rect') {
+                                    return targetLeftEdgeX - 3; // Set x2 to the left edge of the rectangle
+                                } else if (targetShapeTag === 'parallelogram') {
+                                    // Assuming the left edge of the parallelogram is the end point of the relationship
+                                    return targetLeftEdgeX - 3;
+                                } else if (targetShapeTag === 'diamond') {
+                                    // Assuming the left edge of the diamond is the end point of the relationship
+                                    return targetLeftEdgeX - 3;
+                                }
+                            } else {
+                                // Target is to the left of source or on the same horizontal axis
+                                if (targetShapeTag === 'ellipse') {
+                                    //console.log("The ellipse is target and on the left of source .....");
+                                    const cx = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[0]);
+                                    const rx = parseFloat(targetShape.getAttribute('rx'));
+                                    return cx + rx + 5; // Set x2 to the right edge of the ellipse
+                                } else if (targetShapeTag === 'rect') {
+                                    return targetRightEdgeX + 3; // Set x2 to the right edge of the rectangle
+                                } else if (targetShapeTag === 'parallelogram') {
+                                    // Assuming the right edge of the parallelogram is the end point of the relationship
+                                    return targetRightEdgeX + 3;
+                                } else if (targetShapeTag === 'diamond') {
+                                    // Assuming the left edge of the diamond is the end point of the relationship
+                                    return targetRightEdgeX - 3;
+                                }
+                            }
                         }
                     }
                     return 0;
                 })
                 .attr('y2', (d) => {
-                    const sourceNode = nodes.filter((node) => node.id === d.source).node();
                     const targetNode = nodes.filter((node) => node.id === d.target).node();
+                    const shape = targetNode ? targetNode.querySelector('[data-tag="rect"], [data-tag="ellipse"], [data-tag="parallelogram"], [data-tag="diamond"]') : null;
 
-                    if (sourceNode && targetNode) {
-                        const targetTopEdgeY = getTopEdgeY(nodes, d.target);
-                        const targetCenterY = getCenterY(nodes, d.target);
-                        const sourceBottomEdgeY = getBottomEdgeY(nodes, d.source);
-                        const sourceCenterY = getCenterY(nodes, d.source);
-
-                        const diffY = Math.abs(sourceCenterY - targetCenterY);
-                        const diffX = Math.abs(getCenterX(nodes, d.source) - getCenterX(nodes, d.target));
-
-                        console.log(`[y2] Source Bottom: ${sourceBottomEdgeY}, Target Top: ${targetTopEdgeY}, diffY: ${diffY}, diffX: ${diffX}`);
-
-                        if (diffY < alignmentThreshold && diffX > diffY) {
-                            console.log("[y2] Horizontally aligned, connecting centers horizontally");
-                            return targetCenterY;
-                        } else {
-                            return sourceCenterY < targetCenterY ? targetTopEdgeY : getBottomEdgeY(nodes, d.target);
+                    if (shape) {
+                        if (shape.getAttribute('data-tag') === 'ellipse') {
+                            const cy = parseFloat(targetNode.getAttribute('transform').split('(')[1].split(',')[1].split(')')[0]);
+                            const ry = parseFloat(shape.getAttribute('ry'));
+                            return cy; // Set y2 to the center of the top edge of the ellipse
+                        } else if (shape.getAttribute('data-tag') === 'rect') {
+                            return getCenterY(nodes, d.target); // Set y2 to the center of the top edge of the rectangle
+                        } else if (shape.getAttribute('data-tag') === 'parallelogram') {
+                            // Assuming the top edge of the parallelogram is the end point of the relationship
+                            return getCenterY(nodes, d.target);
+                        } else if (shape.getAttribute('data-tag') === 'diamond') {
+                            // Assuming the top edge of the diamond is the end point of the relationship
+                            return getCenterY(nodes, d.target);
                         }
                     }
                     return 0;
-                });
-
-            // Continue with the rest of the attribute calculations...
-
-
-
-
-            solidRelationships.attr("stroke-width", (d) => d.strokewidth)
+                })
+                .attr("stroke-width", (d) => d.strokewidth)
                 .on("mouseover", function(event, d) {
                     d3.select(this).attr("class", "solid-relationship hover");
                     ToggleButtons(event, d);
                 })
                 .on("mouseout", function() {
+                    //RemoveToggleButtons();
                     d3.select(this).attr("class", "solid-relationship");
                 })
                 .on("click", function() {
+                    //console.log("Line Clicked ....");
                     selectedLine = d3.select(this);
                 });
-
 
 
             solidRelationships
@@ -2009,6 +2054,7 @@ function renderNetworkMindMap(mindMapData) {
                 });
 
             solidRelationships.exit().remove();
+
 
 
 
