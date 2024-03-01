@@ -321,13 +321,13 @@ foreignObject input {
 /* Add new CSS styles for the attribute container */
 
 #attributeContainer {
-    width: 300px;
+    width: 500px;
     /* Adjust the width as needed */
     height: 100%;
     position: absolute;
     top: 150px;
     /* Adjust the top position to start below the chatContainer */
-    right: 0;
+    right: 20px;
     /* Position it on the right side */
     background-color: #f8f9fa;
     /* Add a background color */
