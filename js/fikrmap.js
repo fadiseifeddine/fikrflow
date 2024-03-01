@@ -1187,9 +1187,9 @@ function renderNetworkMindMap(mindMapData) {
     const centerStrength = 0.08; // Strength of center pulling force
     const minCenterDistance = 300; // Minimum distance from center for repulsion
     const maxCenterDistance = 450; // Maximum distance from center for attraction
-    const chargeStrength = -200; // Strength of node repulsion
-    const linkDistance = 100; // Distance between nodes connected by a link
-    const linkStrength = 0.5; // Strength of the links
+    const chargeStrength = -100; // Strength of node repulsion
+    const linkDistance = 50; // Distance between nodes connected by a link
+    const linkStrength = 0.1; // Strength of the links
     const alphaTarget = 0.3; // Alpha target for simulation during dragging
     const nodeRadius = 5; // Radius of the nodes
 
@@ -1279,30 +1279,32 @@ function renderNetworkMindMap(mindMapData) {
                     const centerY = height / 2;
                     const dx = node.x - centerX;
                     const dy = node.y - centerY;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distance > maxCenterDistance) {
-                        node.vx -= dx * centerStrength * alpha;
-                        node.vy -= dy * centerStrength * alpha;
-                    } else if (distance < minCenterDistance) {
-                        node.vx += dx * centerStrength * alpha;
-                        node.vy += dy * centerStrength * alpha;
-                    }
+                    // This ensures there's always a slight attraction towards the center
+                    node.vx -= dx * centerStrength * alpha;
+                    node.vy -= dy * centerStrength * alpha;
                 });
             };
         }
 
+
         // Create force simulation
+        // const simulation = d3.forceSimulation(mindMapData.nodes)
+        //     .force('link', d3.forceLink(mindMapData.links)
+        //         .id(d => d.id)
+        //         .distance(linkDistance)
+        //         .strength(linkStrength))
+
+
         const simulation = d3.forceSimulation(mindMapData.nodes)
             .force('link', d3.forceLink(mindMapData.links)
                 .id(d => d.id)
-                .distance(linkDistance)
-                .strength(linkStrength))
-            // .force("charge", d3.forceManyBody().strength(chargeStrength))
-            // .force('center', centerForce())
-            // .force("collide", d3.forceCollide().radius(function(d) {
-            //     return d.radius + 2; // d.radius should be your node's radius; add a small value to create padding
-            // }))
+                .distance(linkDistance) // Adjust this value to find a good average distance between nodes
+                .strength(linkStrength)) // Control the rigidity of links to keep the structure
+            .force("charge", d3.forceManyBody().strength(chargeStrength)) // Repulsion force to avoid overlap
+            .force('center', d3.forceCenter(width / 2, height / 2)) // Pull nodes towards the center
+            .force("collide", d3.forceCollide().radius(nodeRadius * 2)) // Prevent nodes from overlapping
+            .alphaDecay(0.05) // Slower decay gives the simulation more time to stabilize
+            .velocityDecay(0.6) // Adjust to control the movement inertia
             .on("tick", ticked);
 
 
@@ -1765,6 +1767,8 @@ function renderNetworkMindMap(mindMapData) {
         });
 
 
+        // Adjusting alpha decay to ensure faster stabilization
+        simulation.alphaDecay(0.05); // Default is 0.0228, adjust for quicker cooling
 
 
         function dragHandler(selection) {
@@ -3373,6 +3377,8 @@ function renderNetworkMindMap(mindMapData) {
 
 
 function renderHierarchyMindMap(hierarchyData) {
+    console.log("LLL renderHierarchyMindMap mindMapData", mindMapData);
+
     // Define dimensions and margins for the SVG container
     const margin = { top: 40, right: 120, bottom: 40, left: 120 };
     const width = 960 - margin.left - margin.right;
