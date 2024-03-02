@@ -40,9 +40,6 @@ document.getElementById('r_openfile_Button').addEventListener('click', r_open_Bu
 document.getElementById('undoButton').addEventListener('click', undo);
 document.getElementById('redoButton').addEventListener('click', redo);
 
-document.getElementById('editButton').addEventListener('click', function() {
-    handleRectEdit();
-});
 document.getElementById('addNodeButton').addEventListener('click', function() {
     handleAddNode();
 });

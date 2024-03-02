@@ -104,6 +104,9 @@ let starButtonDimmed = false;
 let heartButtonDimmed = false;
 let smileyButtonDimmed = false;
 
+let editButtonDimmed = false;
+
+
 // scale
 let currentTransform = { k: 1, x: 0, y: 0 };
 
@@ -1709,7 +1712,6 @@ function renderNetworkMindMap(mindMapData) {
         });
 
         nodes.on("mouseover", function(event, d) {
-            console.log("A- OVERRRRRR NODES");
             //event.stopPropagation(); // Stop the mousedown event from propagating
             //d3.select(this).attr("class", "solid-relationship hover");
             ToggleButtons(event, d);
@@ -1738,6 +1740,7 @@ function renderNetworkMindMap(mindMapData) {
         // Add the mousedown event listener to the parent container
         // the click didn't fire on the first time / it is binding on first and firing on second
         nodeText.on('mousedown', function(event) {
+            if (editButtonDimmed) return;
             // console.log('LLLL2-Node clicked:');
             const clickedNode = event.target.closest('.node');
             //   console.log('LLLL3-Node clicked:', clickedNode.id);
@@ -3528,14 +3531,14 @@ function selectNode(nodeId) {
 
             if (selectedNode) {
                 addButton.disabled = false; // Enable the "Add Node" button
-                editButton.disabled = false; // Enable the "Edit Node" button
+                //editButton.disabled = false; // Enable the "Edit Node" button
                 deleteButton.disabled = false; // Enable the "Delete Node" button
                 relationButton.disabled = false;
 
 
             } else {
                 addButton.disabled = true; // Disable the "Add Node" button
-                editButton.disabled = true; // Enable the "Edit Node" button
+                // editButton.disabled = true; // Enable the "Edit Node" button
                 deleteButton.disabled = true; // Enable the "Delete Node" button
                 relationButton.disabled = true;
 
@@ -3648,6 +3651,8 @@ function toggleHighlight(button) {
         heartButtonDimmed = !heartButtonDimmed;
     } else if (buttonId === 'smileyButton') {
         smileyButtonDimmed = !smileyButtonDimmed;
+    } else if (buttonId === 'editButton') {
+        editButtonDimmed = !editButtonDimmed;
     }
 
     // Toggle the button class for highlighting
@@ -3658,22 +3663,32 @@ function toggleHighlight(button) {
         button.classList.remove('highlighted');
         button.classList.add('dimmed');
     }
-    // Update node styles based on button states
-    ApplyFilterOnNodes();
+
 }
 
 
 // Add click event listeners to each button
 heartButton.addEventListener('click', function() {
     toggleHighlight(this);
+    // Update node styles based on button states
+    ApplyFilterOnNodes();
 });
 
 smileyButton.addEventListener('click', function() {
     toggleHighlight(this);
+    // Update node styles based on button states
+    ApplyFilterOnNodes();
 });
 
 starButton.addEventListener('click', function() {
     toggleHighlight(this);
+    // Update node styles based on button states
+    ApplyFilterOnNodes();
+});
+
+editButton.addEventListener('click', function() {
+    toggleHighlight(this);
+    console.log("edit button clicked");
 });
 
 function ApplyFilterOnNodes() {
@@ -3984,6 +3999,8 @@ async function updateUndoRedoButtons() {
 
 
 function handleRectEdit() { // double click
+
+    if (editButtonDimmed) return;
     console.log('Handling Edit for ' + selectedNode);
     if (selectedNode) {
         const selectedNodeId = selectedNode;
